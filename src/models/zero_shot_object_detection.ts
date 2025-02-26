@@ -3,6 +3,7 @@ import { pipeline, RawImage } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 
 export type ObjectDectection = {
   label: string;
@@ -21,29 +22,38 @@ export class ZeroShotObjectDetection {
   private dataProvider: Mapbox | undefined;
   private model_id: string;
   private detector: any;
+  private modelParams: PretrainedModelOptions | undefined;
 
   private initialized: boolean = false;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams?: PretrainedModelOptions
+  ) {
     this.model_id = model_id;
     this.providerParams = providerParams;
+    this.modelParams = modelParams;
   }
 
   static async getInstance(
     model_id: string,
-    providerParams: ProviderParams
+    providerParams: ProviderParams,
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: ZeroShotObjectDetection }> {
     if (
       !ZeroShotObjectDetection.instance ||
       parametersChanged(
         ZeroShotObjectDetection.instance,
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       )
     ) {
       ZeroShotObjectDetection.instance = new ZeroShotObjectDetection(
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       );
       await ZeroShotObjectDetection.instance.initialize();
     }
@@ -74,7 +84,11 @@ export class ZeroShotObjectDetection {
       throw new Error("Failed to initialize data provider");
     }
 
-    this.detector = await pipeline("zero-shot-object-detection", this.model_id);
+    this.detector = await pipeline(
+      "zero-shot-object-detection",
+      this.model_id,
+      this.modelParams
+    );
 
     this.initialized = true;
   }

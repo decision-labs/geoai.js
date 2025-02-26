@@ -5,6 +5,7 @@ import {
   Processor,
   RawImage,
   YolosForObjectDetection,
+  PretrainedConfig,
 } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 
@@ -22,20 +23,35 @@ export class ObjectDetection {
 
   private initialized: boolean = false;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams?: PretrainedConfig
+  ) {
     this.model_id = model_id;
     this.providerParams = providerParams;
+    this.modelParams = modelParams;
   }
 
   static async getInstance(
     model_id: string,
-    providerParams: ProviderParams
+    providerParams: ProviderParams,
+    modelParams?: PretrainedConfig
   ): Promise<{ instance: ObjectDetection }> {
     if (
       !ObjectDetection.instance ||
-      parametersChanged(ObjectDetection.instance, model_id, providerParams)
+      parametersChanged(
+        ObjectDetection.instance,
+        model_id,
+        providerParams,
+        modelParams
+      )
     ) {
-      ObjectDetection.instance = new ObjectDetection(model_id, providerParams);
+      ObjectDetection.instance = new ObjectDetection(
+        model_id,
+        providerParams,
+        modelParams
+      );
       await ObjectDetection.instance.initialize();
     }
     return { instance: ObjectDetection.instance };

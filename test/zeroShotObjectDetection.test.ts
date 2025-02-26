@@ -39,8 +39,8 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     const { instance } = await geobaseAi.pipeline(
       "zero-shot-object-detection",
       mapboxParams,
-      "onnx-community/grounding-dino-tiny-ONNX"
-      // { model_file_name: "model_quantized", cache_dir: "./cache" }
+      "onnx-community/grounding-dino-tiny-ONNX",
+      { model_file_name: "model_quantized", cache_dir: "./cache" }
     );
 
     const text = ["tree."];
