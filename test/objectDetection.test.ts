@@ -35,6 +35,32 @@ describe("geobaseAi.objectDetection", () => {
     expect(result1.instance).toBe(result2.instance);
   });
 
+  it("should throw exception for invalid model parameters", async () => {
+    const invalidOptions = [
+      { revision: "invalid_revision" },
+      { subfolder: "invalid_subfolder" },
+      { model_file_name: "invalid_model_file_name" },
+      { device: "invalid_device" },
+      { dtype: "invalid_dtype" },
+    ];
+
+    for (const options of invalidOptions) {
+      try {
+        await geobaseAi.pipeline(
+          "object-detection",
+          mapboxParams,
+          "geobase/WALDO30_yolov8m_640x640",
+          options
+        );
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toMatch(
+          /Invalid dtype|Unsupported device|Could not locate file|Unauthorized access to file/
+        );
+      }
+    }
+  });
+
   it("should process a polygon for object detection in each quadrant", async () => {
     const { instance } = await geobaseAi.pipeline(
       "object-detection",

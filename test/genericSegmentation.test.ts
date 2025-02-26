@@ -16,6 +16,46 @@ describe("geobaseAi.genericSegmentation", () => {
     expect(result1.instance).toBe(result2.instance);
   });
 
+  it("should create a new instance for different configurations of the model", async () => {
+    const result1 = await geobaseAi.pipeline("mask-generation", mapboxParams);
+    const result2 = await geobaseAi.pipeline(
+      "mask-generation",
+      mapboxParams,
+      "Xenova/slimsam-77-uniform",
+      {
+        revision: "boxes",
+        cache_dir: "./cache",
+      }
+    );
+    expect(result1.instance.model).not.toBe(result2.instance.model);
+  });
+
+  it("should throw exception for invalid model parameters", async () => {
+    const invalidOptions = [
+      { revision: "invalid_revision" },
+      { subfolder: "invalid_subfolder" },
+      { model_file_name: "invalid_model_file_name" },
+      { device: "invalid_device" },
+      { dtype: "invalid_dtype" },
+    ];
+
+    for (const options of invalidOptions) {
+      try {
+        await geobaseAi.pipeline(
+          "mask-generation",
+          mapboxParams,
+          "Xenova/slimsam-77-uniform",
+          options
+        );
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toMatch(
+          /Invalid dtype|Unsupported device|Could not locate file|Unauthorized access to file/
+        );
+      }
+    }
+  });
+
   it("should process a polygon for segmentation and generate valid GeoJSON", async () => {
     const { instance } = await geobaseAi.pipeline(
       "mask-generation",
