@@ -8,7 +8,7 @@ import {
 import { parametersChanged } from "@/utils/utils";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ProviderParams } from "@/geobase-ai";
-import { PretrainedConfig } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 
 interface SegmentationResult {
   masks: any;
@@ -23,12 +23,12 @@ export class GenericSegmentation {
   private model: SamModel | undefined;
   private processor: SamProcessor | undefined;
   private initialized: boolean = false;
-  private modelParams: PretrainedConfig | undefined;
+  private modelParams: PretrainedModelOptions | undefined;
 
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedConfig
+    modelParams?: PretrainedModelOptions
   ) {
     this.model_id = model_id;
     this.providerParams = providerParams;
@@ -38,7 +38,7 @@ export class GenericSegmentation {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedConfig
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: GenericSegmentation }> {
     if (
       !GenericSegmentation.instance ||
@@ -84,7 +84,10 @@ export class GenericSegmentation {
     }
 
     // Then initialize model components
-    this.model = (await SamModel.from_pretrained(this.model_id)) as SamModel;
+    this.model = (await SamModel.from_pretrained(
+      this.model_id,
+      this.modelParams
+    )) as SamModel;
     this.processor = (await AutoProcessor.from_pretrained(
       this.model_id,
       {}
