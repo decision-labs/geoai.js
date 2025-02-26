@@ -77,7 +77,7 @@ const model_metadata: GeobaseAiModelMetadata[] = [
     ): Promise<{
       instance: GenericSegmentation;
     }> => {
-      return GenericSegmentation.getInstance(modelId, params);
+      return GenericSegmentation.getInstance(modelId, params, modelParams);
     },
   },
   {

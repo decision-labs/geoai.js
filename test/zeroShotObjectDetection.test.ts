@@ -46,10 +46,9 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     const text = ["tree."];
 
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const results: ObjectDetectionResults = await instance.detection(
-        polygon,
-        text
-      );
+      const results: ObjectDetectionResults = await (
+        instance as ZeroShotObjectDetection
+      ).detection(polygon, text);
 
       let result = results;
 
@@ -87,10 +86,9 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     const text = ["tree", "car", "vehicle", "building", "road", "person"];
 
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const results: ObjectDetectionResults = await instance.detection(
-        polygon,
-        text
-      );
+      const results: ObjectDetectionResults = await (
+        instance as ZeroShotObjectDetection
+      ).detection(polygon, text);
 
       const geoJson = detectionsToGeoJSON(
         results.detections,
