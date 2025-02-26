@@ -1,6 +1,6 @@
 import { ObjectDectection } from "@/models/zero_shot_object_detection";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedConfig, RawImage } from "@huggingface/transformers";
+import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 
 type detection = {
   x1: number;
@@ -114,7 +114,7 @@ export const parametersChanged = (
   model_id: string,
   // provider: string,
   providerParams: any,
-  modelParams?: PretrainedConfig
+  modelParams?: PretrainedOptions
 ): boolean => {
   return (
     instance.model_id !== model_id ||
