@@ -5,7 +5,7 @@
 import { GenericSegmentation } from "./models/generic_segmentation";
 import { ObjectDetection } from "./models/object_detection";
 import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
-import { PretrainedModelOptions } from "@huggingface/transformers";
+import { PretrainedOptions } from "@huggingface/transformers";
 
 type MapboxParams = {
   provider: "mapbox";
@@ -43,7 +43,7 @@ type GeobaseAiModelMetadata = {
   geobase_ai_pipeline: (
     params: ProviderParams,
     modelId?: string,
-    modelParams?: PretrainedModelOptions
+    modelParams?: PretrainedOptions
   ) => Promise<{
     instance: GenericSegmentation | ZeroShotObjectDetection | ObjectDetection;
   }>;
@@ -58,7 +58,7 @@ const model_metadata: GeobaseAiModelMetadata[] = [
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "onnx-community/grounding-dino-tiny-ONNX",
-      modelParams?: PretrainedModelOptions
+      modelParams?: PretrainedOptions
     ): Promise<{
       instance: ZeroShotObjectDetection;
     }> => {
@@ -73,7 +73,7 @@ const model_metadata: GeobaseAiModelMetadata[] = [
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "Xenova/slimsam-77-uniform",
-      modelParams?: PretrainedModelOptions
+      modelParams?: PretrainedOptions
     ): Promise<{
       instance: GenericSegmentation;
     }> => {
@@ -88,7 +88,7 @@ const model_metadata: GeobaseAiModelMetadata[] = [
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "geobase/WALDO30_yolov8m_640x640",
-      modelParams?: PretrainedModelOptions
+      modelParams?: PretrainedOptions
     ): Promise<{
       instance: ObjectDetection;
     }> => {

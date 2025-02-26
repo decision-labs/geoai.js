@@ -3,8 +3,7 @@ import { pipeline, RawImage } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedModelOptions } from "@huggingface/transformers";
-
+import { PretrainedOptions } from "@huggingface/transformers";
 export type ObjectDectection = {
   label: string;
   score: number;
@@ -22,14 +21,14 @@ export class ZeroShotObjectDetection {
   private dataProvider: Mapbox | undefined;
   private model_id: string;
   private detector: any;
-  private modelParams: PretrainedModelOptions | undefined;
+  private modelParams: PretrainedOptions | undefined;
 
   private initialized: boolean = false;
 
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedModelOptions
+    modelParams?: PretrainedOptions
   ) {
     this.model_id = model_id;
     this.providerParams = providerParams;
@@ -39,7 +38,7 @@ export class ZeroShotObjectDetection {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedModelOptions
+    modelParams?: PretrainedOptions
   ): Promise<{ instance: ZeroShotObjectDetection }> {
     if (
       !ZeroShotObjectDetection.instance ||
