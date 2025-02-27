@@ -14,7 +14,7 @@ describe("geobaseAi.objectDetection", () => {
     const result = await geobaseAi.pipeline(
       "object-detection",
       mapboxParams,
-      "mhassanch/WALDO30_yolov8m_640x640"
+      "geobase/WALDO30_yolov8m_640x640"
     );
 
     expect(result.instance).toBeInstanceOf(ObjectDetection);
@@ -24,12 +24,12 @@ describe("geobaseAi.objectDetection", () => {
     const result1 = await geobaseAi.pipeline(
       "object-detection",
       mapboxParams,
-      "mhassanch/WALDO30_yolov8m_640x640"
+      "geobase/WALDO30_yolov8m_640x640"
     );
     const result2 = await geobaseAi.pipeline(
       "object-detection",
       mapboxParams,
-      "mhassanch/WALDO30_yolov8m_640x640"
+      "geobase/WALDO30_yolov8m_640x640"
     );
 
     expect(result1.instance).toBe(result2.instance);
