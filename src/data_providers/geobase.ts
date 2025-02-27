@@ -19,39 +19,6 @@ const addChain = (receiver: any) =>
   addChain(receiver);
 });
 
-const getTileUrlFromTileCoords = (tileCoords: any, accessToken: string) => {
-  const [x, y, z] = tileCoords;
-  return `https://api.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}.png?access_token=${accessToken}`;
-};
-
-interface TileMetadata {
-  image: RawImage;
-  bbox: [number, number, number, number]; // [west, south, east, north]
-}
-
-interface MergedResult {
-  image: RawImage;
-  bounds: {
-    north: number;
-    south: number;
-    east: number;
-    west: number;
-  };
-}
-
-interface TileInfo {
-  coords: [number, number];
-  tile: [number, number, number];
-  tileGeoJson: GeoJSON.Feature<GeoJSON.Polygon>;
-}
-
-interface TilesForBbox {
-  bottomleft: TileInfo;
-  bottomright: TileInfo;
-  topleft: TileInfo;
-  topright: TileInfo;
-}
-
 interface GeobaseConfig {
   projectRef: string;
   cogImagery: string;
