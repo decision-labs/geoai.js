@@ -99,12 +99,6 @@ const model_metadata: GeobaseAiModelMetadata[] = [
     ): Promise<{
       instance: ObjectDetection;
     }> => {
-      if (modelId === "geobase/WALDO30_yolov8m_640x640") {
-        modelParams = {
-          ...modelParams,
-          model_file_name: "model",
-        };
-      }
       return ObjectDetection.getInstance(modelId, params, modelParams);
     },
   },
