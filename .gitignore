@@ -26,5 +26,4 @@ coverage
 *.sln
 *.sw?
 cache/*
-examples/*
 test_images/*
