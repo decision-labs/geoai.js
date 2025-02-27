@@ -1,4 +1,6 @@
 const geobaseConfig = document.querySelector("config").dataset;
+
+
 const map = new maplibregl.Map({
   container: "map", // container id
   style: {

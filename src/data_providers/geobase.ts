@@ -97,7 +97,31 @@ export class Geobase {
     return GeoRawImage.fromRawImage(mergedImage, bounds, "EPSG:4326");
   }
 
-  calculateTilesForBbox = (bbox: number[], zoom: number) => {
+  calculateTilesForBbox = (
+    bbox: number[],
+    zoom: number
+  ): {
+    bottomleft: {
+      coords: number[];
+      tile: number[];
+      tileGeoJson: GeoJSON.Feature<GeoJSON.Polygon>;
+    };
+    bottomright: {
+      coords: number[];
+      tile: number[];
+      tileGeoJson: GeoJSON.Feature<GeoJSON.Polygon>;
+    };
+    topleft: {
+      coords: number[];
+      tile: number[];
+      tileGeoJson: GeoJSON.Feature<GeoJSON.Polygon>;
+    };
+    topright: {
+      coords: number[];
+      tile: number[];
+      tileGeoJson: GeoJSON.Feature<GeoJSON.Polygon>;
+    };
+  } => {
     const getTileGeoJson = (bbox: any, zoom: number) => {
       const feature = turfBboxPolygon(tileToBBox(pointToTile(bbox, zoom)));
       feature.properties = {

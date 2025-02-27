@@ -1,29 +1,49 @@
-import { geobaseAi } from "../src/geobase-ai";
-
-const geoBaseParams = {
-  provider: "geobase",
-  projectRef: geobaseConfig.projectRef,
-  cogImagery: geobaseConfig.cogImagery,
-  apiKey: geobaseConfig.apikey,
-};
+import { geobaseAi, utils } from "../../build/dist/geobase-ai.js";
 
 async function initializePipeline() {
+  console.log("Initializing pipeline");
+
+  const geobaseConfig = document.querySelector("config").dataset;
+
   // Initialize the pipeline
-  const pipeline = await geobaseAi.pipeline(
+  const { instance: pipeline } = await geobaseAi.pipeline(
     "zero-shot-object-detection",
-    geoBaseParams
+    geobaseConfig
   );
 
   console.log("Pipeline initialized", { pipeline });
 
-  // Function to process data using the pipeline
-
-  // Example usage
-  const exampleData = {
-    // ...example data...
+  const input_polygon = {
+    type: "Feature",
+    properties: {
+      name: "area of interest",
+    },
+    geometry: {
+      type: "Polygon",
+      coordinates: [
+        [
+          [-102.32666, 19.531319],
+          [-102.321167, 19.531319],
+          [-102.321167, 19.536496],
+          [-102.32666, 19.536496],
+          [-102.32666, 19.531319],
+        ],
+      ],
+    },
   };
 
-  processData(exampleData);
+  const input_label = ["building."];
+
+  const output = await pipeline.detection(input_polygon, input_label);
+
+  console.log("Output", { output });
+
+  const output_geojson = utils.detectionsToGeoJSON(
+    output.detections,
+    output.geoRawImage
+  );
+
+  console.log("Output GeoJSON", { output_geojson });
 }
 
 initializePipeline();

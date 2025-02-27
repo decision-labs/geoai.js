@@ -1,4 +1,5 @@
 import "./style.css";
+import * as utils from "./utils/utils";
 
-export { sum } from "./sum";
+export { utils };
 export { geobaseAi } from "./geobase-ai";
