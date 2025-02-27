@@ -16,6 +16,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "rimraf build/**/* && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts && copyfiles ./package.json build",
+    "build:examples": "pnpm build && cp -r ./build ./examples/codepen-geobase",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "lint:scripts": "eslint . --ext .ts",
