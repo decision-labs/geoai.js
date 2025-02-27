@@ -18,8 +18,15 @@ type SentinelParams = {
   apiKey: string;
 };
 
+type GeobaseParams = {
+  provider: "geobase";
+  apikey: string;
+  cogImagery: string;
+  projectRef: string;
+};
+
 // Union type of all possible provider params
-type ProviderParams = MapboxParams | SentinelParams;
+type ProviderParams = MapboxParams | SentinelParams | GeobaseParams;
 
 type HuggingFaceModelTasks =
   | "mask-generation"

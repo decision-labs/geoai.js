@@ -7,17 +7,26 @@ export const mapboxParams: ProviderParams = {
   style: "mapbox://styles/mapbox/satellite-v9",
 };
 
+export const geobaseParams: ProviderParams = {
+  provider: "geobase",
+  projectRef: "wmrosdnjsecywfkvxtrw",
+  apikey:
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTY1NDU4MjUsImlhdCI6MTczODc2MTQyNSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.M8jeru5dbHe4tGh52xe2E2HlUiGCAPbZ8-JrfbxiRk0",
+  cogImagery:
+    "https://oin-hotosm-temp.s3.amazonaws.com/63556b6771072f000580f8cd/0/63556b6771072f000580f8ce.tif",
+};
+
 export const polygon = {
   type: "Feature",
   properties: {},
   geometry: {
     coordinates: [
       [
-        [12.482802629103247, 41.885379230564524],
-        [12.481392196198271, 41.885379230564524],
-        [12.481392196198271, 41.884332326712524],
-        [12.482802629103247, 41.884332326712524],
-        [12.482802629103247, 41.885379230564524],
+        [-102.32245205602885, 19.536415661502275],
+        [-102.32245205602885, 19.534836349733624],
+        [-102.32080637971754, 19.534836349733624],
+        [-102.32080637971754, 19.536415661502275],
+        [-102.32245205602885, 19.536415661502275],
       ],
     ],
     type: "Polygon",

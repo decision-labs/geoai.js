@@ -4,6 +4,7 @@ import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
+import { Geobase } from "@/data_providers/geobase";
 export type ObjectDectection = {
   label: string;
   score: number;
@@ -18,7 +19,7 @@ export interface ObjectDetectionResults {
 export class ZeroShotObjectDetection {
   private static instance: ZeroShotObjectDetection | null = null;
   private providerParams: ProviderParams;
-  private dataProvider: Mapbox | undefined;
+  private dataProvider: Mapbox | Geobase | undefined;
   private model_id: string;
   private detector: any;
   private modelParams: PretrainedOptions | undefined;
@@ -69,6 +70,13 @@ export class ZeroShotObjectDetection {
           this.providerParams.apiKey,
           this.providerParams.style
         );
+        break;
+      case "geobase":
+        this.dataProvider = new Geobase({
+          projectRef: this.providerParams.projectRef,
+          cogImagery: this.providerParams.cogImagery,
+          apikey: this.providerParams.apikey,
+        });
         break;
       case "sentinel":
         throw new Error("Sentinel provider not implemented yet");

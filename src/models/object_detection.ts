@@ -13,11 +13,12 @@ import { postProcessYoloOutput } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
+import { Geobase } from "@/data_providers/geobase";
 
 export class ObjectDetection {
   private static instance: ObjectDetection | null = null;
   private providerParams: ProviderParams;
-  private dataProvider: Mapbox | undefined;
+  private dataProvider: Mapbox | Geobase | undefined;
   private model_id: string;
   private model: YolosForObjectDetection | undefined;
   private processor: Processor | undefined;
@@ -68,6 +69,13 @@ export class ObjectDetection {
           this.providerParams.apiKey,
           this.providerParams.style
         );
+        break;
+      case "geobase":
+        this.dataProvider = new Geobase({
+          projectRef: this.providerParams.projectRef,
+          cogImagery: this.providerParams.cogImagery,
+          apikey: this.providerParams.apikey,
+        });
         break;
       case "sentinel":
         throw new Error("Sentinel provider not implemented yet");
