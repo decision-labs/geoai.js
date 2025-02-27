@@ -5,10 +5,7 @@
 import { GenericSegmentation } from "./models/generic_segmentation";
 import { ObjectDetection } from "./models/object_detection";
 import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
-import {
-  PretrainedOptions,
-  ModelSpecificPretrainedOptions,
-} from "@huggingface/transformers";
+import { PretrainedOptions } from "@huggingface/transformers";
 
 type MapboxParams = {
   provider: "mapbox";
@@ -98,7 +95,7 @@ const model_metadata: GeobaseAiModelMetadata[] = [
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "geobase/WALDO30_yolov8m_640x640",
-      modelParams?: PretrainedOptions | ModelSpecificPretrainedOptions
+      modelParams?: PretrainedOptions
     ): Promise<{
       instance: ObjectDetection;
     }> => {
