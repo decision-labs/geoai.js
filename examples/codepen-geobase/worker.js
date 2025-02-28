@@ -9,14 +9,26 @@ async function getPipelineInstance(task, config, model) {
 
 async function callPipeline(task, instance_id, input) {
   const instance = instances.get(instance_id);
-  if (task === "mask-generation") {
-    const output = await instance.segment(input.polygon, input.input_points);
-    const output_geojson = output.masks; //utils.maskToGeoJSON(output.mask, output.geoRawImage);
-    return output_geojson;
-  } else {
-    const output = await instance.detection(input.polygon, input.label);
-    const output_geojson = output.detections;
-    return output_geojson;
+  // make this a switch statement
+  switch (task) {
+    case "mask-generation": {
+      const output = await instance.segment(input.polygon, input.input_points);
+      const output_geojson = output.masks; //utils.maskToGeoJSON(output.mask, output.geoRawImage);
+      return output_geojson;
+    }
+    case "zero-shot-object-detection": {
+      const output = await instance.detection(input.polygon, input.label);
+      const output_geojson = output.detections;
+      return output_geojson;
+    }
+    case "object-detection": {
+      const output = await instance.detection(input.polygon);
+      const output_geojson = output.detections;
+      return output_geojson;
+    }
+    default: {
+      throw new Error(`Unknown task: ${task}`);
+    }
   }
 }
 

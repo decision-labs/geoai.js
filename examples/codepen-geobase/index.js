@@ -47,8 +47,8 @@ const map = new maplibregl.Map({
 });
 
 // const task = "zero-shot-object-detection";
-// const task = "object-detection";
-const task = "mask-generation";
+const task = "object-detection";
+// const task = "mask-generation";
 
 let polygon = {
   type: "Feature",
@@ -61,7 +61,24 @@ let polygon = {
   },
 };
 
-// const label = ["tree."];
+// Define a variable to store the pipeline instance ID
+let instance_id;
+// Define a variable to store the marker
+let pointMarker;
+// Track if we're currently processing to prevent multiple simultaneous calls
+let isProcessing = false;
+
+// Define point as a global variable
+let point = {
+  type: "Feature",
+  properties: {
+    name: "input point",
+  },
+  geometry: {
+    coordinates: [114.84866438996494, -3.449790763843808],
+    type: "Point",
+  },
+};
 
 map.on("load", async () => {
   const boundsResponse = await fetch(
@@ -72,19 +89,6 @@ map.on("load", async () => {
     [boundsData.bounds[0], boundsData.bounds[1]],
     [boundsData.bounds[2], boundsData.bounds[3]]
   );
-
-  // Create polygon coordinates from bounds
-  // polygon.geometry.coordinates = [
-  //   [
-  //     [bounds.getWest(), bounds.getNorth()], // top left
-  //     [bounds.getEast(), bounds.getNorth()], // top right
-  //     [bounds.getEast(), bounds.getSouth()], // bottom right
-  //     [bounds.getWest(), bounds.getSouth()], // bottom left
-  //     [bounds.getWest(), bounds.getNorth()], // close the polygon by repeating first point
-  //   ],
-  // ];
-
-  // console.log(JSON.stringify(polygon, null, 2));
 
   polygon = {
     type: "Feature",
@@ -105,17 +109,6 @@ map.on("load", async () => {
     },
   };
 
-  let point = {
-    type: "Feature",
-    properties: {
-      name: "input point",
-    },
-    geometry: {
-      coordinates: [114.84866438996494, -3.449790763843808],
-      type: "Point",
-    },
-  };
-
   // Fit the map to the image bounds
   map.fitBounds(bounds, {
     padding: 50,
@@ -128,13 +121,14 @@ map.on("load", async () => {
     data: polygon,
   });
 
-  //Add the input point source
+  // Add the input point source
   if (task === "mask-generation") {
     map.addSource("input-point", {
       type: "geojson",
       data: point,
     });
   }
+
   // Add a fill layer for the input polygon
   map.addLayer({
     id: "input-polygon-fill",
@@ -160,23 +154,60 @@ map.on("load", async () => {
 
   if (task === "mask-generation") {
     // Add a marker for the input point
-    new maplibregl.Marker().setLngLat(point.geometry.coordinates).addTo(map);
+    pointMarker = new maplibregl.Marker()
+      .setLngLat(point.geometry.coordinates)
+      .addTo(map);
+
+    // Show loading indicator with initial position message
+    const loadingElement = document.createElement("div");
+    loadingElement.id = "loading-indicator";
+    loadingElement.innerHTML =
+      "Click anywhere in the polygon to set a new analysis point";
+    loadingElement.style.position = "absolute";
+    loadingElement.style.top = "10px";
+    loadingElement.style.left = "10px";
+    loadingElement.style.backgroundColor = "white";
+    loadingElement.style.padding = "10px";
+    loadingElement.style.borderRadius = "4px";
+    loadingElement.style.zIndex = "1000";
+    document.body.appendChild(loadingElement);
   }
 
-  console.log("map loaded");
-  const instance_id = await initializePipeline(task, geobaseConfig);
-  console.log(instance_id);
-  const output = await callPipeline(task, instance_id, {
-    polygon,
-    // label: ["building ."], //for zero-shot-object-detection,
-    input_points: point.geometry.coordinates, // for mask-generation
-  });
-  console.log(output);
+  // Initialize the segmentation pipeline
+  console.log("Initializing pipeline...");
+  instance_id = await initializePipeline(task, geobaseConfig);
+  console.log("Pipeline initialized:", instance_id);
 
-  // Add the GeoJSON source
+  // Run the initial segmentation
+  switch (task) {
+    case "mask-generation":
+      await runSegmentation();
+      break;
+    case "zero-shot-object-detection":
+    case "object-detection":
+      await runObjectDetection();
+      break;
+    default:
+      throw new Error(`Unknown task: ${task}`);
+  }
+
+  // Add click event listener to update the point and re-run segmentation
+  if (task === "mask-generation") {
+    map.on("click", async e => {
+      // Check if the click is within the polygon
+      const point = map.queryRenderedFeatures(e.point, {
+        layers: ["input-polygon-fill"],
+      });
+      if (point.length > 0) {
+        updatePoint(e.lngLat);
+      }
+    });
+  }
+
+  // Add detected objects source and layers (will be populated after segmentation)
   map.addSource("detected-objects", {
     type: "geojson",
-    data: output, // Your GeoJSON data
+    data: { type: "FeatureCollection", features: [] },
   });
 
   // Add a fill layer to show the polygons
@@ -210,8 +241,8 @@ map.on("load", async () => {
       .setLngLat(e.lngLat)
       .setHTML(
         `
-        <strong>Label:</strong> ${feature.properties.label}<br>
-        <strong>Score:</strong> ${(feature.properties.score * 100).toFixed(2)}%
+        <strong>Label:</strong> ${feature.properties.label || "Segment"}<br>
+        <strong>Score:</strong> ${feature.properties.score ? (feature.properties.score * 100).toFixed(2) + "%" : "N/A"}
       `
       )
       .addTo(map);
@@ -226,3 +257,108 @@ map.on("load", async () => {
     map.getCanvas().style.cursor = "";
   });
 });
+
+// Function to update the point and trigger a new segmentation
+function updatePoint(lngLat) {
+  if (isProcessing) {
+    console.log("Already processing, please wait...");
+    return;
+  }
+
+  // Update the point coordinates
+  point.geometry.coordinates = [lngLat.lng, lngLat.lat];
+
+  // Update the marker position
+  pointMarker.setLngLat(point.geometry.coordinates);
+
+  // Update the source data
+  if (map.getSource("input-point")) {
+    map.getSource("input-point").setData(point);
+  }
+
+  // Run segmentation with new point
+  runSegmentation();
+}
+
+// Function to run the segmentation with the current point
+async function runSegmentation() {
+  if (!instance_id || isProcessing) return;
+
+  isProcessing = true;
+
+  // Update loading indicator
+  const loadingElement = document.getElementById("loading-indicator");
+  if (loadingElement) {
+    loadingElement.innerHTML = "Processing segmentation...";
+  }
+
+  try {
+    const output = await callPipeline(task, instance_id, {
+      polygon,
+      input_points: point.geometry.coordinates, // for mask-generation
+    });
+
+    console.log("Segmentation result:", output);
+
+
+    // Update the map with new results
+    if (map.getSource("detected-objects")) {
+      map.getSource("detected-objects").setData(output);
+    }
+
+    // Update loading indicator
+    if (loadingElement) {
+      loadingElement.innerHTML =
+        "Click anywhere in the polygon to set a new analysis point";
+    }
+  } catch (error) {
+    console.error("Error during segmentation:", error);
+
+    // Update loading indicator with error
+    if (loadingElement) {
+      loadingElement.innerHTML =
+        "Error during segmentation. Click again to retry.";
+    }
+  } finally {
+    isProcessing = false;
+  }
+}
+
+async function runObjectDetection() {
+  if (!instance_id || isProcessing) return;
+
+  isProcessing = true;
+
+  try {
+    const output = await callPipeline(task, instance_id, {
+      polygon,
+    });
+
+    console.log("Object detection result:", output);
+
+    // Update the map with new results
+    console.log(map.getSource("detected-objects"));
+    if (map.getSource("detected-objects")) {
+      map.getSource("detected-objects").setData(output);
+    } else {
+      // add the source
+      map.addSource("detected-objects-1", {
+        type: "geojson",
+        data: output,
+      });
+      map.addLayer({
+        id: "detected-objects-1-fill",
+        type: "fill",
+        source: "detected-objects-1",
+        paint: {
+          "fill-color": "#ff0000",
+          "fill-opacity": 0.3,
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error during object detection:", error);
+  } finally {
+    isProcessing = false;
+  }
+}
