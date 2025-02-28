@@ -1,4 +1,4 @@
-import { geobaseAi, utils } from "../../build/dist/geobase-ai.js";
+import { geobaseAi } from "../../build/dist/geobase-ai.js";
 
 const instances = new Map();
 
@@ -9,11 +9,14 @@ async function getPipelineInstance(task, config, model) {
 
 async function callPipeline(task, instance_id, input) {
   const instance = instances.get(instance_id);
-  // make this a switch statement
+  if (!instance) {
+    throw new Error(`Pipeline instance with id ${instance_id} not found`);
+  }
+
   switch (task) {
     case "mask-generation": {
       const output = await instance.segment(input.polygon, input.input_points);
-      const output_geojson = output.masks; //utils.maskToGeoJSON(output.mask, output.geoRawImage);
+      const output_geojson = output.masks;
       return output_geojson;
     }
     case "zero-shot-object-detection": {
@@ -33,32 +36,61 @@ async function callPipeline(task, instance_id, input) {
 }
 
 self.onmessage = async function (event) {
-  const { type, payload } = JSON.parse(event.data);
+  try {
+    const { id, type, payload } = JSON.parse(event.data);
 
-  console.log(payload);
+    console.log(`Worker received: ${type}`, payload);
 
-  switch (type) {
-    case "init": {
-      const instance = await getPipelineInstance(
-        payload.task,
-        payload.config,
-        payload.model
-      );
-      const uuid = crypto.randomUUID();
-      instances.set(uuid, instance);
-      self.postMessage({ type: "init", payload: { instance_id: uuid } });
-      break;
+    let responsePayload;
+
+    switch (type) {
+      case "init": {
+        const instance = await getPipelineInstance(
+          payload.task,
+          payload.config,
+          payload.model
+        );
+        const uuid = crypto.randomUUID();
+        instances.set(uuid, instance);
+        responsePayload = { instance_id: uuid };
+        break;
+      }
+      case "call": {
+        const output = await callPipeline(
+          payload.task,
+          payload.instance_id,
+          payload.input
+        );
+        responsePayload = { output };
+        break;
+      }
+      default:
+        throw new Error(`Unknown message type: ${type}`);
     }
-    case "call": {
-      const output = await callPipeline(
-        payload.task,
-        payload.instance_id,
-        payload.input
-      );
-      self.postMessage({ type: "call", payload: { output } });
-      break;
-    }
-    default:
-      break;
+
+    self.postMessage(
+      JSON.stringify({
+        id,
+        type,
+        payload: responsePayload,
+        success: true,
+      })
+    );
+  } catch (error) {
+    // Handle any errors and send them back to the main thread
+    const parsedData =
+      typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+
+    self.postMessage(
+      JSON.stringify({
+        id: parsedData.id,
+        type: "error",
+        payload: {
+          message: error.message,
+          stack: error.stack,
+        },
+        success: false,
+      })
+    );
   }
 };

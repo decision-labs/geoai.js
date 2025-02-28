@@ -47,8 +47,8 @@ const map = new maplibregl.Map({
 });
 
 // const task = "zero-shot-object-detection";
-const task = "object-detection";
-// const task = "mask-generation";
+// const task = "object-detection";
+const task = "mask-generation";
 
 let polygon = {
   type: "Feature",
@@ -299,7 +299,6 @@ async function runSegmentation() {
     });
 
     console.log("Segmentation result:", output);
-
 
     // Update the map with new results
     if (map.getSource("detected-objects")) {
