@@ -33,6 +33,8 @@ export const polygon = {
   },
 } as GeoJSON.Feature;
 
+export const input_point = [-102.32207526163147, 19.53570142468871];
+
 export const quadrants = {
   "north-west": {
     type: "Feature",
@@ -98,4 +100,11 @@ export const quadrants = {
       type: "Polygon",
     },
   } as GeoJSON.Feature,
+};
+
+export const quadrants_points = {
+  "north-west": [-119.03412134909516, 47.93472750933009],
+  "north-east": [12.417432949881146, 47.886045665409426],
+  "south-east": [18.587564882328365, -33.98004626342711],
+  "south-west": [-69.2315934241316, -51.60952167421363],
 };

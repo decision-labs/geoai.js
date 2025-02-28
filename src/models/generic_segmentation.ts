@@ -106,7 +106,7 @@ export class GenericSegmentation {
 
   async segment(
     polygon: GeoJSON.Feature,
-    input_points: number[][][]
+    input_points: any
   ): Promise<SegmentationResult> {
     // Ensure initialization is complete
     if (!this.initialized) {
@@ -126,6 +126,9 @@ export class GenericSegmentation {
       if (!this.processor || !this.model) {
         throw new Error("Model or processor not initialized");
       }
+      input_points = [
+        [geoRawImage.worldToPixel(input_points[0], input_points[1])],
+      ];
       const inputs = await this.processor(geoRawImage as RawImage, {
         input_points,
       });

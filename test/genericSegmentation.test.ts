@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { geobaseAi } from "../src/geobase-ai";
 import { GenericSegmentation } from "../src/models/generic_segmentation";
-import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
+import {
+  geobaseParams,
+  input_point,
+  mapboxParams,
+  polygon,
+  quadrants,
+  quadrants_points,
+} from "./constants";
 import { maskToGeoJSON } from "../src/utils/utils";
 
 describe("geobaseAi.genericSegmentation", () => {
@@ -63,7 +70,7 @@ describe("geobaseAi.genericSegmentation", () => {
     );
 
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const input_points = [[[122, 190]]];
+      const input_points = quadrants_points[quadrant];
       const result = await (instance as GenericSegmentation).segment(
         polygon,
         input_points
@@ -94,7 +101,7 @@ describe("geobaseAi.genericSegmentation", () => {
       geobaseParams
     );
 
-    const input_points = [[[122, 190]]];
+    const input_points = input_point;
     const result = await (instance as GenericSegmentation).segment(
       polygon,
       input_points
