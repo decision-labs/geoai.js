@@ -33,13 +33,14 @@ export function initializePipeline(task, config, model = "") {
   });
 }
 
-export function callPipeline(instance_id, input) {
+export function callPipeline(task, instance_id, input) {
   return new Promise((resolve, reject) => {
     console.log("Calling pipeline");
 
     const msg = JSON.stringify({
       type: "call",
       payload: {
+        task,
         instance_id,
         input,
       },

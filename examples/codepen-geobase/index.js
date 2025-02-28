@@ -47,7 +47,8 @@ const map = new maplibregl.Map({
 });
 
 // const task = "zero-shot-object-detection";
-const task = "object-detection";
+// const task = "object-detection";
+const task = "mask-generation";
 
 let polygon = {
   type: "Feature",
@@ -104,6 +105,17 @@ map.on("load", async () => {
     },
   };
 
+  let point = {
+    type: "Feature",
+    properties: {
+      name: "input point",
+    },
+    geometry: {
+      coordinates: [114.84866438996494, -3.449790763843808],
+      type: "Point",
+    },
+  };
+
   // Fit the map to the image bounds
   map.fitBounds(bounds, {
     padding: 50,
@@ -116,6 +128,13 @@ map.on("load", async () => {
     data: polygon,
   });
 
+  //Add the input point source
+  if (task === "mask-generation") {
+    map.addSource("input-point", {
+      type: "geojson",
+      data: point,
+    });
+  }
   // Add a fill layer for the input polygon
   map.addLayer({
     id: "input-polygon-fill",
@@ -138,10 +157,20 @@ map.on("load", async () => {
       "line-dasharray": [2, 2], // Optional: creates a dashed line
     },
   });
+
+  if (task === "mask-generation") {
+    // Add a marker for the input point
+    new maplibregl.Marker().setLngLat(point.geometry.coordinates).addTo(map);
+  }
+
   console.log("map loaded");
   const instance_id = await initializePipeline(task, geobaseConfig);
   console.log(instance_id);
-  const output = await callPipeline(instance_id, { polygon });
+  const output = await callPipeline(task, instance_id, {
+    polygon,
+    // label: ["building ."], //for zero-shot-object-detection,
+    input_points: point.geometry.coordinates, // for mask-generation
+  });
   console.log(output);
 
   // Add the GeoJSON source

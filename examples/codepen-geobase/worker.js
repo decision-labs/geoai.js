@@ -7,14 +7,17 @@ async function getPipelineInstance(task, config, model) {
   return instance;
 }
 
-async function callPipeline(instance_id, input) {
+async function callPipeline(task, instance_id, input) {
   const instance = instances.get(instance_id);
-  const output = await instance.detection(input.polygon, input.label);
-  const output_geojson = utils.detectionsToGeoJSON(
-    output.detections,
-    output.geoRawImage
-  );
-  return output_geojson;
+  if (task === "mask-generation") {
+    const output = await instance.segment(input.polygon, input.input_points);
+    const output_geojson = output.masks; //utils.maskToGeoJSON(output.mask, output.geoRawImage);
+    return output_geojson;
+  } else {
+    const output = await instance.detection(input.polygon, input.label);
+    const output_geojson = output.detections;
+    return output_geojson;
+  }
 }
 
 self.onmessage = async function (event) {
@@ -35,7 +38,11 @@ self.onmessage = async function (event) {
       break;
     }
     case "call": {
-      const output = await callPipeline(payload.instance_id, payload.input);
+      const output = await callPipeline(
+        payload.task,
+        payload.instance_id,
+        payload.input
+      );
       self.postMessage({ type: "call", payload: { output } });
       break;
     }
