@@ -1,4 +1,3 @@
-import { ObjectDectection } from "@/models/zero_shot_object_detection";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 
@@ -9,6 +8,12 @@ type detection = {
   y2: number;
   score: number;
   label: string;
+};
+
+type ObjectDectection = {
+  label: string;
+  score: number;
+  box: [number, number, number, number];
 };
 
 function removeDuplicates(detections: detection[], iouThreshold: number) {
@@ -128,8 +133,8 @@ export const parametersChanged = (
 export const detectionsToGeoJSON = (
   detections: ObjectDectection[],
   geoRawImage: GeoRawImage
-) => {
-  const features = detections.map(detection => {
+): GeoJSON.FeatureCollection => {
+  const features: GeoJSON.Feature[] = detections.map(detection => {
     let { xmin, ymin, xmax, ymax } = detection.box as any;
 
     if (Array.isArray(detection.box)) {
@@ -274,10 +279,13 @@ const getPolygonFromMask = (mask: number[][], geoRawImage: GeoRawImage) => {
   return polygon;
 };
 
-export const maskToGeoJSON = (masks: any, geoRawImage: GeoRawImage) => {
+export const maskToGeoJSON = (
+  masks: any,
+  geoRawImage: GeoRawImage
+): GeoJSON.FeatureCollection => {
   const { mask, scores } = masks;
   const numMasks = scores.length;
-  const features = [];
+  const features: GeoJSON.Feature[] = [];
 
   for (let index = 0; index < numMasks; index++) {
     const height = mask[0].dims[2];

@@ -3,7 +3,6 @@ import { geobaseAi } from "../src/geobase-ai";
 import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import {
-  ObjectDectection,
   ObjectDetectionResults,
   ZeroShotObjectDetection,
 } from "../src/models/zero_shot_object_detection";
@@ -95,12 +94,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       // model can potentially return an array if multiple images are processed
       if (Array.isArray(results)) result = results[0];
 
-      const geoJson = detectionsToGeoJSON(
-        results?.detections,
-        results.geoRawImage
-      );
-
-      const geoJsonString = JSON.stringify(geoJson);
+      const geoJsonString = JSON.stringify(results.detections);
       const encodedGeoJson = encodeURIComponent(geoJsonString);
       const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
 
@@ -111,7 +105,8 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       expect(results).toHaveProperty("geoRawImage");
 
       // Check result types
-      expect(results.detections).toBeInstanceOf(Array<ObjectDectection>);
+      expect(results.detections.type).toBe("FeatureCollection");
+      expect(Array.isArray(results.detections.features)).toBe(true);
       expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
     }
   });
@@ -133,12 +128,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     // model can potentially return an array if multiple images are processed
     if (Array.isArray(results)) result = results[0];
 
-    const geoJson = detectionsToGeoJSON(
-      results?.detections,
-      results.geoRawImage
-    );
-
-    const geoJsonString = JSON.stringify(geoJson);
+    const geoJsonString = JSON.stringify(results.detections);
     const encodedGeoJson = encodeURIComponent(geoJsonString);
     const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
 
@@ -149,7 +139,8 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     expect(results).toHaveProperty("geoRawImage");
 
     // Check result types
-    expect(results.detections).toBeInstanceOf(Array<ObjectDectection>);
+    expect(results.detections.type).toBe("FeatureCollection");
+    expect(Array.isArray(results.detections.features)).toBe(true);
     expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
   });
 
@@ -208,12 +199,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
         instance as ZeroShotObjectDetection
       ).detection(polygon, text);
 
-      const geoJson = detectionsToGeoJSON(
-        results.detections,
-        results.geoRawImage
-      );
-
-      const geoJsonString = JSON.stringify(geoJson);
+      const geoJsonString = JSON.stringify(results.detections);
       const encodedGeoJson = encodeURIComponent(geoJsonString);
       const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
 
@@ -224,7 +210,8 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       expect(results).toHaveProperty("geoRawImage");
 
       // Check result types
-      expect(results.detections).toBeInstanceOf(Array<ObjectDectection>);
+      expect(results.detections.type).toBe("FeatureCollection");
+      expect(Array.isArray(results.detections.features)).toBe(true);
       expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
     }
   });
@@ -242,12 +229,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       instance as ZeroShotObjectDetection
     ).detection(polygon, text);
 
-    const geoJson = detectionsToGeoJSON(
-      results.detections,
-      results.geoRawImage
-    );
-
-    const geoJsonString = JSON.stringify(geoJson);
+    const geoJsonString = JSON.stringify(results.detections);
     const encodedGeoJson = encodeURIComponent(geoJsonString);
     const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
 
@@ -258,7 +240,8 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     expect(results).toHaveProperty("geoRawImage");
 
     // Check result types
-    expect(results.detections).toBeInstanceOf(Array<ObjectDectection>);
+    expect(results.detections.type).toBe("FeatureCollection");
+    expect(Array.isArray(results.detections.features)).toBe(true);
     expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
   });
 });

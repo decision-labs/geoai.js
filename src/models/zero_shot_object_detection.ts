@@ -1,18 +1,13 @@
 import { Mapbox } from "@/data_providers/mapbox";
 import { pipeline, RawImage } from "@huggingface/transformers";
-import { parametersChanged } from "@/utils/utils";
+import { detectionsToGeoJSON, parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { Geobase } from "@/data_providers/geobase";
-export type ObjectDectection = {
-  label: string;
-  score: number;
-  box: [number, number, number, number];
-};
 
 export interface ObjectDetectionResults {
-  detections: Array<ObjectDectection>;
+  detections: GeoJSON.FeatureCollection;
   geoRawImage: GeoRawImage;
 }
 
@@ -137,8 +132,9 @@ export class ZeroShotObjectDetection {
       console.debug("error", error);
       throw error;
     }
+    const detectionsGeoJson = detectionsToGeoJSON(outputs, geoRawImage);
     return {
-      detections: outputs,
+      detections: detectionsGeoJson,
       geoRawImage,
     };
   }

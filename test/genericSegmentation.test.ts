@@ -74,13 +74,12 @@ describe("geobaseAi.genericSegmentation", () => {
         expect(result).toHaveProperty(prop);
       });
 
-      const { geoRawImage, masks } = result;
-      const maskGeoJson = maskToGeoJSON(masks, geoRawImage);
-      expect(maskGeoJson).toHaveProperty("type", "FeatureCollection");
-      expect(maskGeoJson).toHaveProperty("features");
-      expect(maskGeoJson.features).toBeInstanceOf(Array);
+      const { masks } = result;
+      expect(masks).toHaveProperty("type", "FeatureCollection");
+      expect(masks).toHaveProperty("features");
+      expect(masks.features).toBeInstanceOf(Array);
 
-      const geoJsonString = JSON.stringify(maskGeoJson);
+      const geoJsonString = JSON.stringify(masks);
       const encodedGeoJson = encodeURIComponent(geoJsonString);
       const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
 
@@ -106,13 +105,12 @@ describe("geobaseAi.genericSegmentation", () => {
       expect(result).toHaveProperty(prop);
     });
 
-    const { geoRawImage, masks } = result;
-    const maskGeoJson = maskToGeoJSON(masks, geoRawImage);
-    expect(maskGeoJson).toHaveProperty("type", "FeatureCollection");
-    expect(maskGeoJson).toHaveProperty("features");
-    expect(maskGeoJson.features).toBeInstanceOf(Array);
+    const { masks } = result;
+    expect(masks).toHaveProperty("type", "FeatureCollection");
+    expect(masks).toHaveProperty("features");
+    expect(masks.features).toBeInstanceOf(Array);
 
-    const geoJsonString = JSON.stringify(maskGeoJson);
+    const geoJsonString = JSON.stringify(masks);
     const encodedGeoJson = encodeURIComponent(geoJsonString);
     const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
 

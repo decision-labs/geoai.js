@@ -5,14 +5,14 @@ import {
   RawImage,
   SamProcessor,
 } from "@huggingface/transformers";
-import { parametersChanged } from "@/utils/utils";
+import { maskToGeoJSON, parametersChanged } from "@/utils/utils";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { Geobase } from "@/data_providers/geobase";
 
 interface SegmentationResult {
-  masks: any;
+  masks: GeoJSON.FeatureCollection;
   geoRawImage: GeoRawImage;
 }
 
@@ -139,12 +139,16 @@ export class GenericSegmentation {
       console.error(e);
       throw new Error("Failed to segment image");
     }
-
-    return {
-      masks: {
+    const geoJsonMask = maskToGeoJSON(
+      {
         mask: masks,
         scores: outputs.iou_scores.data,
       },
+      geoRawImage
+    );
+
+    return {
+      masks: geoJsonMask,
       geoRawImage: geoRawImage,
     };
   }

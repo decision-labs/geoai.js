@@ -6,7 +6,7 @@ import {
   RawImage,
   YolosForObjectDetection,
 } from "@huggingface/transformers";
-import { parametersChanged } from "@/utils/utils";
+import { detectionsToGeoJSON, parametersChanged } from "@/utils/utils";
 
 import { ObjectDetectionResults } from "../models/zero_shot_object_detection";
 import { postProcessYoloOutput } from "@/utils/utils";
@@ -146,8 +146,10 @@ export class ObjectDetection {
       (this.model.config as any).id2label
     );
 
+    const detectionsGeoJson = detectionsToGeoJSON(results, geoRawImage);
+
     return {
-      detections: results,
+      detections: detectionsGeoJson,
       geoRawImage,
     };
   }

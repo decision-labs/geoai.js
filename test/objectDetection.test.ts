@@ -3,10 +3,7 @@ import { geobaseAi } from "../src/geobase-ai";
 import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
 import { ObjectDetection } from "../src/models/object_detection";
 import { detectionsToGeoJSON } from "../src/utils/utils";
-import {
-  ObjectDectection,
-  ObjectDetectionResults,
-} from "../src/models/zero_shot_object_detection";
+import { ObjectDetectionResults } from "../src/models/zero_shot_object_detection";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 
 describe("geobaseAi.objectDetection", () => {
@@ -69,12 +66,8 @@ describe("geobaseAi.objectDetection", () => {
 
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
       const results: ObjectDetectionResults = await instance.detection(polygon);
-      const geoJson = detectionsToGeoJSON(
-        results.detections,
-        results.geoRawImage
-      );
 
-      const geoJsonString = JSON.stringify(geoJson);
+      const geoJsonString = JSON.stringify(results.detections);
       const encodedGeoJson = encodeURIComponent(geoJsonString);
       const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
 
@@ -85,7 +78,8 @@ describe("geobaseAi.objectDetection", () => {
       expect(results).toHaveProperty("geoRawImage");
 
       // Check result types
-      expect(results.detections).toBeInstanceOf(Array<ObjectDectection>);
+      expect(results.detections.type).toBe("FeatureCollection");
+      expect(Array.isArray(results.detections.features)).toBe(true);
       expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
     }
   });
@@ -96,11 +90,8 @@ describe("geobaseAi.objectDetection", () => {
     );
 
     const results: ObjectDetectionResults = await instance.detection(polygon);
-    const geoJson = detectionsToGeoJSON(
-      results.detections,
-      results.geoRawImage
-    );
-    const geoJsonString = JSON.stringify(geoJson);
+
+    const geoJsonString = JSON.stringify(results.detections);
     const encodedGeoJson = encodeURIComponent(geoJsonString);
     const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
 
@@ -111,7 +102,8 @@ describe("geobaseAi.objectDetection", () => {
     expect(results).toHaveProperty("geoRawImage");
 
     // Check result types
-    expect(results.detections).toBeInstanceOf(Array<ObjectDectection>);
+    expect(results.detections.type).toBe("FeatureCollection");
+    expect(Array.isArray(results.detections.features)).toBe(true);
     expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
   });
 });
