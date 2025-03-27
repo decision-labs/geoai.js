@@ -6,17 +6,26 @@ import { mapboxParams } from "./constants";
 describe("queryAgent", () => {
   it("should select the correct task and return formatted response", async () => {
     const queries = [
-      "Can you find just the trees in this area?",
-      "Can you identify only the buildings here?",
-      "Can you show me just the roads in this place?",
-      "Can you tell me what this area is used for?",
-      "Can you mask  this area into different types of land use?",
+      "What are the green areas on this map?",
+      "Can you highlight the buildings in this region?",
+      "Show me the roads in this area.",
+      "Can you categorize this area by land use?",
+      "Which parts of this map are parks?",
+      "Can you find the residential areas here?",
+      "Where are the commercial zones in this map?",
+      "Identify the water bodies in this region.",
+      "Can you show me the industrial areas on this map?",
+      "identify the wind turbines in this region.",
     ];
 
     await Promise.all(
       queries.map(async userQuery => {
         const response = await queryAgent(userQuery, mapboxParams);
-        console.log({ response: response.task, userQuery });
+        console.log({
+          response: response.task,
+          model_id: response.model_id,
+          userQuery,
+        });
       })
     );
   });

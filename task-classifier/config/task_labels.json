@@ -1,7 +1,8 @@
 {
   "task_labels": [
-    "object-detection",
-    "zero-shot-object-detection",
-    "mask-generation"
+    "object-detection:geobase/WALDO30_yolov8m_640x640",
+    "zero-shot-object-detection:onnx-community/grounding-dino-tiny-ONNX",
+    "zero-shot-object-detection:Xenova/owlvit-base-patch32",
+    "mask-generation:Xenova/slimsam-77-uniform"
   ]
 }

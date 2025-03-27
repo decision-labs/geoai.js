@@ -1,82 +1,326 @@
 [
   {
     "query": "Detect all the cars in this area",
-    "task": "zero-shot-object-detection"
+    "labels": 0
   },
   {
     "query": "Segment the buildings in the image",
-    "task": "mask-generation"
+    "labels": 3
   },
   {
     "query": "Identify all the pedestrians in the scene",
-    "task": "object-detection"
+    "labels": 0
   },
   {
     "query": "Detect all the trees in the park",
-    "task": "zero-shot-object-detection"
+    "labels": 2
   },
   {
     "query": "Segment the roads in the satellite image",
-    "task": "mask-generation"
+    "labels": 3
   },
   {
-    "query": "Identify all the animals in the forest",
-    "task": "object-detection"
+    "query": "Identify all the animals in this area",
+    "labels": 1
   },
   {
     "query": "Detect all the boats in the harbor",
-    "task": "zero-shot-object-detection"
+    "labels": 0
   },
   {
     "query": "Segment the rivers in the map",
-    "task": "mask-generation"
+    "labels": 3
+  },
+  {
+    "query": "Segment the water bodies in this area",
+    "labels": 3
   },
   {
     "query": "Identify all the bicycles in the city",
-    "task": "object-detection"
+    "labels": 0
   },
   {
     "query": "Detect all the airplanes at the airport",
-    "task": "zero-shot-object-detection"
+    "labels": 2
   },
   {
     "query": "Segment the vegetation in the image",
-    "task": "mask-generation"
+    "labels": 3
+  },
+  {
+    "query": "Select the green fields in this area.",
+    "labels": 3
   },
   {
     "query": "Identify all the buses in the traffic",
-    "task": "object-detection"
+    "labels": 0
   },
   {
     "query": "Detect all the people in the crowd",
-    "task": "zero-shot-object-detection"
+    "labels": 0
   },
   {
     "query": "Segment the lakes in the satellite image",
-    "task": "mask-generation"
+    "labels": 3
   },
   {
     "query": "Identify all the trucks on the highway",
-    "task": "object-detection"
+    "labels": 0
   },
   {
     "query": "Detect all the motorcycles in the parking lot",
-    "task": "zero-shot-object-detection"
+    "labels": 0
   },
   {
     "query": "Segment the mountains in the landscape",
-    "task": "mask-generation"
+    "labels": 3
   },
   {
     "query": "Identify all the traffic signs in the street",
-    "task": "object-detection"
+    "labels": 1
   },
   {
     "query": "Detect all the birds in the sky",
-    "task": "zero-shot-object-detection"
+    "labels": 1
   },
   {
     "query": "Segment the fields in the aerial image",
-    "task": "mask-generation"
+    "labels": 3
+  },
+  {
+    "query": "Find all the parked cars in this street",
+    "labels": 0
+  },
+  {
+    "query": "Mark the houses in this picture",
+    "labels": 3
+  },
+  {
+    "query": "Spot all the people near the shops",
+    "labels": 0
+  },
+  {
+    "query": "Find the trees along the roadside",
+    "labels": 2
+  },
+  {
+    "query": "Highlight the streets in this aerial view",
+    "labels": 3
+  },
+  {
+    "query": "Look for any animals in this park",
+    "labels": 1
+  },
+  {
+    "query": "Detect all the ships in the sea",
+    "labels": 0
+  },
+  {
+    "query": "Shade the rivers on this map",
+    "labels": 3
+  },
+  {
+    "query": "Mark all the lakes in this area",
+    "labels": 3
+  },
+  {
+    "query": "Find all the bikes on the road",
+    "labels": 0
+  },
+  {
+    "query": "Spot the airplanes at the airport",
+    "labels": 2
+  },
+  {
+    "query": "Color the greenery in this image",
+    "labels": 3
+  },
+  {
+    "query": "Show me the farms in this region",
+    "labels": 3
+  },
+  {
+    "query": "Find all the buses waiting at the stop",
+    "labels": 0
+  },
+  {
+    "query": "Spot the people walking in the park",
+    "labels": 0
+  },
+  {
+    "query": "Highlight the ponds in this satellite view",
+    "labels": 3
+  },
+  {
+    "query": "Find the big trucks on this road",
+    "labels": 0
+  },
+  {
+    "query": "Locate all the motorbikes in this area",
+    "labels": 0
+  },
+  {
+    "query": "Mark the hills in this landscape",
+    "labels": 3
+  },
+  {
+    "query": "Spot the road signs on this highway",
+    "labels": 1
+  },
+  {
+    "query": "Find the birds flying in the sky",
+    "labels": 1
+  },
+  {
+    "query": "Shade the farmlands in this aerial image",
+    "labels": 3
+  },
+  {
+    "query": "Show me the playgrounds in this area",
+    "labels": 3
+  },
+  {
+    "query": "Detect all the bridges over the river",
+    "labels": 2
+  },
+  {
+    "query": "Spot the taxis waiting near the station",
+    "labels": 0
+  },
+  {
+    "query": "Find the benches in the park",
+    "labels": 1
+  },
+  {
+    "query": "Highlight the rooftops in this city",
+    "labels": 3
+  },
+  {
+    "query": "Locate the train tracks in this view",
+    "labels": 3
+  },
+  {
+    "query": "Find the wind turbines in this field",
+    "labels": 1
+  },
+  {
+    "query": "Find all the vehicles in this parking lot",
+    "labels": 0
+  },
+  {
+    "query": "Mark the residential areas in this city",
+    "labels": 3
+  },
+  {
+    "query": "Identify all the people at the beach",
+    "labels": 0
+  },
+  {
+    "query": "Find the trees in this forest region",
+    "labels": 2
+  },
+  {
+    "query": "Highlight the road network in this town",
+    "labels": 3
+  },
+  {
+    "query": "Look for animals in this farmland",
+    "labels": 1
+  },
+  {
+    "query": "Detect all the boats in the lake",
+    "labels": 0
+  },
+  {
+    "query": "Shade the river running through this region",
+    "labels": 3
+  },
+  {
+    "query": "Mark all the lakes in this aerial image",
+    "labels": 3
+  },
+  {
+    "query": "Find all the bicycles on the streets",
+    "labels": 0
+  },
+  {
+    "query": "Spot the airplanes on the runway",
+    "labels": 2
+  },
+  {
+    "query": "Highlight the green spaces in this city",
+    "labels": 3
+  },
+  {
+    "query": "Show me the farmlands in this area",
+    "labels": 3
+  },
+  {
+    "query": "Find all the buses on the highway",
+    "labels": 0
+  },
+  {
+    "query": "Spot the people in this crowded area",
+    "labels": 0
+  },
+  {
+    "query": "Highlight the ponds in this aerial view",
+    "labels": 3
+  },
+  {
+    "query": "Locate the large trucks on this road",
+    "labels": 0
+  },
+  {
+    "query": "Identify all the motorcycles in this drone image",
+    "labels": 0
+  },
+  {
+    "query": "Mark the mountain ranges in this landscape",
+    "labels": 3
+  },
+  {
+    "query": "Spot the traffic signs along this road",
+    "labels": 1
+  },
+  {
+    "query": "Find the birds flying over the coastline",
+    "labels": 1
+  },
+  {
+    "query": "Shade the agricultural fields in this image",
+    "labels": 3
+  },
+  {
+    "query": "Show me the playgrounds in this town",
+    "labels": 3
+  },
+  {
+    "query": "Detect all the bridges crossing the river",
+    "labels": 2
+  },
+  {
+    "query": "Spot the taxis near the central square",
+    "labels": 0
+  },
+  {
+    "query": "Find the park benches in this image",
+    "labels": 1
+  },
+  {
+    "query": "Highlight the rooftops in this urban area",
+    "labels": 3
+  },
+  {
+    "query": "Locate the train tracks cutting through the city",
+    "labels": 3
+  },
+  {
+    "query": "Find the wind turbines in this rural area",
+    "labels": 1
+  },
+  {
+    "query": "Mark the flood-affected regions in this image",
+    "labels": 3
   }
 ]
