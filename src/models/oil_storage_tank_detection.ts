@@ -252,6 +252,7 @@ export class OilStorageTankDetection {
     }
 
     // Helper function to calculate Intersection over Union
+    // TODO: move to utilities for future reuse
     function calculateIOU(box1: any, box2: any) {
       const x1 = Math.max(
         box1.center_x - box1.width / 2,
