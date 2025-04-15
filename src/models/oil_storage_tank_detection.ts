@@ -112,7 +112,7 @@ export class OilStorageTankDetection {
     if (!this.dataProvider) {
       throw new Error("Data provider not initialized");
     }
-    const image = this.dataProvider.getImage(polygon, 15);
+    const image = this.dataProvider.getImage(polygon);
     return image;
   }
 
