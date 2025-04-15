@@ -12,6 +12,7 @@ import {
 } from "./models/geoai_models";
 import { LandCoverClassification } from "./models/land_cover_classification";
 import { ObjectDetection } from "./models/object_detection";
+import { OilStorageTankDetection } from "./models/oil_storage_tank_detection";
 import { OrientedObjectDetection } from "./models/oriented_object_detection";
 import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
 import { PretrainedOptions } from "@huggingface/transformers";
@@ -55,7 +56,8 @@ type GeobaseAiModelTasks =
   | "ship-detection"
   | "car-detection"
   | "wetland-segmentation"
-  | "building-detection";
+  | "building-detection"
+  | "oil-storage-tank-detection";
 
 type GeobaseAiModelMetadata = {
   task: HuggingFaceModelTasks | GeobaseAiModelTasks;
@@ -77,7 +79,8 @@ type GeobaseAiModelMetadata = {
       | ShipDetection
       | CarDetection
       | WetLandSegmentation
-      | BuildingDetection;
+      | BuildingDetection
+      | OilStorageTankDetection;
   }>;
 };
 
@@ -236,6 +239,22 @@ const model_metadata: GeobaseAiModelMetadata[] = [
       instance: BuildingDetection;
     }> => {
       return BuildingDetection.getInstance(modelId, params, modelParams);
+    },
+  },
+  {
+    task: "oil-storage-tank-detection",
+    library: "geobase-ai",
+    model:
+      "https://huggingface.co/geobase/oil-storage-tank-detection/resolve/main/oil_storage_tank_yolox_quantized.onnx",
+    description: "Land Cover Classification model.",
+    geobase_ai_pipeline: (
+      params: ProviderParams,
+      modelId: string = "https://huggingface.co/geobase/oil-storage-tank-detection/resolve/main/oil_storage_tank_yolox_quantized.onnx",
+      modelParams?: PretrainedOptions
+    ): Promise<{
+      instance: OilStorageTankDetection;
+    }> => {
+      return OilStorageTankDetection.getInstance(modelId, params, modelParams);
     },
   },
 ];

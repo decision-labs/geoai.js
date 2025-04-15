@@ -61,6 +61,23 @@ export const geobaseParamsBuilding: ProviderParams = {
     "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip_train.tif",
 };
 
+export const polygonOilStorage = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [54.686191879921466, 24.7598344253214],
+        [54.686191879921466, 24.755029520893288],
+        [54.69148310706436, 24.755029520893288],
+        [54.69148310706436, 24.7598344253214],
+        [54.686191879921466, 24.7598344253214],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
+
 export const polygonBuilding = {
   type: "Feature",
   properties: {},
