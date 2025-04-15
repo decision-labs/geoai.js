@@ -27,7 +27,7 @@ describe("test model geobase/oil-storage-tank-detection", () => {
 
     expect(result1.instance).toBe(result2.instance);
   });
-  it("should process a polygon for oil-storage-tank detection for polygon for source geobase", async () => {
+  it("should process a polygon for oil-storage-tank detection for polygon for source mapbox", async () => {
     const { instance } = await geobaseAi.pipeline(
       "oil-storage-tank-detection",
       mapboxParams
