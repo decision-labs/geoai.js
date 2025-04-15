@@ -246,7 +246,7 @@ const model_metadata: GeobaseAiModelMetadata[] = [
     library: "geobase-ai",
     model:
       "https://huggingface.co/geobase/oil-storage-tank-detection/resolve/main/oil_storage_tank_yolox_quantized.onnx",
-    description: "Land Cover Classification model.",
+    description: "Oil Storage Tank Detection Model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "https://huggingface.co/geobase/oil-storage-tank-detection/resolve/main/oil_storage_tank_yolox_quantized.onnx",
