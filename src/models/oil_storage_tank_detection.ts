@@ -145,7 +145,6 @@ export class OilStorageTankDetection {
 
     let tensor = resizedRawImage.toTensor("CHW");
     const data = tensor.data as Uint8Array;
-    // Convert to float32 and normalize to [0, 1]
     const float32Data = new Float32Array(data.length);
     for (let i = 0; i < data.length; i++) {
       float32Data[i] = data[i];
