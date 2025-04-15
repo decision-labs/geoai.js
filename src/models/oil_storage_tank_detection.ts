@@ -4,6 +4,7 @@ import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { Geobase } from "@/data_providers/geobase";
+// TODO: check best way in typescript projects to separate types from other objects
 import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import * as ort from "onnxruntime-web";
 const cv = require("@techstark/opencv-js");
