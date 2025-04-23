@@ -349,7 +349,6 @@ export class OrientedObjectDetection {
       without_iouthres = false,
     }: NMSOptions = {}
   ): number[][][] {
-    console.log("prediction", { prediction });
     const batchSize = prediction.length;
     const numClasses = prediction[0][0].length - 9;
 
@@ -491,22 +490,17 @@ export class OrientedObjectDetection {
 
       const h_inds = hbbOvr
         .map((val, idx) => (val > 0 ? idx : -1))
-        .filter(idx => idx !== -1);
+        .filter(idx => idx !== -1 && idx !== i); // exclude self
 
-      const tmp_order = order.filter((_, idx) => h_inds.includes(idx));
+      const tmp_order = order.filter(j => h_inds.includes(j));
 
       for (let j = 0; j < tmp_order.length; j++) {
         const iou = iouPoly(polys[i], polys[tmp_order[j]]);
-        hbbOvr[h_inds[j]] = iou;
+        hbbOvr[tmp_order[j]] = iou;
       }
 
-      const inds = hbbOvr
-        .map((val, idx) => (val < thresh ? idx : -1))
-        .filter(idx => idx !== -1);
-
-      order.push(
-        ...order.splice(0, order.length).filter((_, idx) => inds.includes(idx))
-      );
+      const inds = order.filter(j => hbbOvr[j] < thresh);
+      order = inds;
     }
 
     return keep;
