@@ -488,12 +488,14 @@ export class OrientedObjectDetection {
         (val, idx) => val / (areas[i] + areas[idx] - val)
       );
 
+      // keep only overlapping indexes
       const h_inds = hbbOvr
         .map((val, idx) => (val > 0 ? idx : -1))
         .filter(idx => idx !== -1 && idx !== i); // exclude self
 
       const tmp_order = order.filter(j => h_inds.includes(j));
 
+      // Recompute IOU for overlapping polygons
       for (let j = 0; j < tmp_order.length; j++) {
         const iou = iouPoly(polys[i], polys[tmp_order[j]]);
         hbbOvr[tmp_order[j]] = iou;
