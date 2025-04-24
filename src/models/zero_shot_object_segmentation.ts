@@ -18,6 +18,7 @@ export class ZeroShotObjectSegmentation {
   private static instance: ZeroShotObjectSegmentation | null = null;
   private providerParams: ProviderParams;
   private dataProvider: Mapbox | Geobase | undefined;
+  // TODO: Good first version, in future let's refactor this to create a meta class that either accepts array of model parameters to chain or has a method called `compose` or `chain` that accepts models to chain together.
   private detector_id: string = "onnx-community/grounding-dino-tiny-ONNX";
   private segmenter_id: string = "Xenova/slimsam-77-uniform";
   private detector: ZeroShotObjectDetection | undefined;
