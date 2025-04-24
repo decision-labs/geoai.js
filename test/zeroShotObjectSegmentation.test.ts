@@ -1,18 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { geobaseAi } from "../src/geobase-ai";
-import { mapboxParams, polygon } from "./constants";
+import {
+  geobaseParamsBuilding,
+  mapboxParams,
+  polygon,
+  polygonBuilding,
+} from "./constants";
 import { ZeroShotObjectSegmentation } from "../src/models/zero_shot_object_segmentation";
 
 describe("geobaseAi.genericSegmentation", () => {
   it("should process a polygon for segmentation and generate valid GeoJSON for source geobase with boxes", async () => {
     const { instance } = await geobaseAi.pipeline(
       "zero-shot-object-segmentation",
-      mapboxParams
+      geobaseParamsBuilding
     );
 
     const result = await (
       instance as ZeroShotObjectSegmentation
-    ).detect_and_segment(polygon, "container .");
+    ).detect_and_segment(polygonBuilding, "house .");
 
     // Check basic properties
     ["geoRawImage", "masks"].forEach(prop => {

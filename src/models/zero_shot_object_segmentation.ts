@@ -1,24 +1,17 @@
 import { Mapbox } from "@/data_providers/mapbox";
-import {
-  pipeline,
-  RawImage,
-  SamModel,
-  AutoProcessor,
-} from "@huggingface/transformers";
-import {
-  detectionsToGeoJSON,
-  maskToGeoJSON,
-  parametersChanged,
-} from "@/utils/utils";
+import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { Geobase } from "@/data_providers/geobase";
+import { ZeroShotObjectDetection } from "./zero_shot_object_detection";
+import { GenericSegmentation } from "./generic_segmentation";
 
 export interface SegmentationResults {
   detections: GeoJSON.FeatureCollection;
   masks: GeoJSON.FeatureCollection;
   geoRawImage: GeoRawImage;
+  rawDetections: any[];
 }
 
 export class ZeroShotObjectSegmentation {
@@ -27,9 +20,8 @@ export class ZeroShotObjectSegmentation {
   private dataProvider: Mapbox | Geobase | undefined;
   private detector_id: string = "onnx-community/grounding-dino-tiny-ONNX";
   private segmenter_id: string = "Xenova/slimsam-77-uniform";
-  private detector: any;
-  private segmenter: SamModel | undefined;
-  private processor: any;
+  private detector: ZeroShotObjectDetection | undefined;
+  private segmenter: GenericSegmentation | undefined;
   private modelParams:
     | (PretrainedOptions & {
         detector_id?: string;
@@ -100,32 +92,28 @@ export class ZeroShotObjectSegmentation {
       throw new Error("Failed to initialize data provider");
     }
 
-    // Initialize both models
-    this.detector = await pipeline(
-      "zero-shot-object-detection",
-      this.modelParams?.detector_id || this.detector_id,
-      this.modelParams
-    );
+    // Initialize detector using existing ZeroShotObjectDetection
+    const { instance: detectorInstance } =
+      await ZeroShotObjectDetection.getInstance(
+        this.modelParams?.detector_id || this.detector_id,
+        this.providerParams,
+        this.modelParams
+      );
+    this.detector = detectorInstance;
 
-    this.segmenter = (await SamModel.from_pretrained(
-      this.modelParams?.segmenter_id || this.segmenter_id,
-      {
-        revision: "boxes",
-      }
-    )) as SamModel;
-
-    this.processor = await AutoProcessor.from_pretrained(this.segmenter_id, {});
+    // Initialize segmenter using GenericSegmentation
+    const { instance: segmenterInstance } =
+      await GenericSegmentation.getInstance(
+        this.modelParams?.segmenter_id || this.segmenter_id,
+        this.providerParams,
+        {
+          ...this.modelParams,
+          revision: "boxes",
+        }
+      );
+    this.segmenter = segmenterInstance;
 
     this.initialized = true;
-  }
-
-  private async polygon_to_image(
-    polygon: GeoJSON.Feature
-  ): Promise<GeoRawImage> {
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
-    }
-    return this.dataProvider.getImage(polygon);
   }
 
   async detect_and_segment(
@@ -136,63 +124,61 @@ export class ZeroShotObjectSegmentation {
       await this.initialize();
     }
 
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
+    if (!this.detector || !this.segmenter) {
+      throw new Error("Detector or segmenter not initialized");
     }
 
-    const geoRawImage = await this.polygon_to_image(polygon);
-    geoRawImage.save("zero-segmentation.png");
+    // Use existing detection method
+    const detectionResults = await this.detector.detection(polygon, text);
+    const { geoRawImage } = detectionResults;
+    const rawDetections = this.detector?.rawDetections;
+    if (!rawDetections) {
+      throw new Error("No raw detections found");
+    }
 
-    // First detect objects
-    const candidate_labels = Array.isArray(text) ? text : [text];
-    const detections = await this.detector(
-      geoRawImage as RawImage,
-      candidate_labels,
-      {
-        topk: 4,
-        threshold: 0.2,
-      }
-    );
-
-    // Then segment each detection
-    let masks: any[] = [];
-    for (const detection of detections) {
+    // Then segment each detection using GenericSegmentation
+    let masks: GeoJSON.Feature[] = [];
+    for (const detection of rawDetections) {
       const bbox = detection.box;
-      const minx = bbox.xmin;
-      const miny = bbox.ymin;
-      const maxx = bbox.xmax;
-      const maxy = bbox.ymax;
+      const corner1 = geoRawImage.pixelToWorld(bbox.xmin, bbox.ymin);
+      const corner2 = geoRawImage.pixelToWorld(bbox.xmax, bbox.ymax);
+      const segmentationInput = {
+        type: "boxes" as const,
+        coordinates: [...corner1, ...corner2],
+      };
 
-      const inputs = await this.processor(geoRawImage as RawImage, {
-        input_boxes: [[[minx, miny, maxx, maxy]]],
-      });
-
-      const outputs = await this.segmenter!(inputs);
-      const segmentation_masks = await this.processor.post_process_masks(
-        outputs.pred_masks,
-        inputs.original_sizes,
-        inputs.reshaped_input_sizes
+      const segmentationResult = await this.segmenter.segment(
+        polygon,
+        segmentationInput
       );
 
-      masks.push({
-        mask: segmentation_masks,
-        scores: outputs.iou_scores.data,
-      });
+      const validFeatures = segmentationResult.masks.features.filter(
+        feature =>
+          feature.geometry &&
+          feature.geometry.type !== "GeometryCollection" &&
+          "coordinates" in feature.geometry &&
+          feature.geometry.coordinates[0] &&
+          Array.isArray(feature.geometry.coordinates[0]) &&
+          feature.geometry.coordinates[0].length > 0 &&
+          feature.geometry.coordinates[0].some(
+            coord => Array.isArray(coord) && coord.length > 0
+          )
+      );
+
+      masks.push(...validFeatures);
     }
 
-    const detectionsGeoJson = detectionsToGeoJSON(detections, geoRawImage);
-
+    // Combine all masks into a single FeatureCollection
     const masksGeoJson: GeoJSON.FeatureCollection = {
       type: "FeatureCollection",
-      features: masks.flatMap(
-        mask => maskToGeoJSON(mask, geoRawImage).features
-      ),
+      features: masks,
     };
 
     return {
-      detections: detectionsGeoJson,
+      detections: detectionResults.detections,
       masks: masksGeoJson,
       geoRawImage,
+      rawDetections,
     };
   }
 }

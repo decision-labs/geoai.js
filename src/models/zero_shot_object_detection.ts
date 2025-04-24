@@ -18,6 +18,7 @@ export class ZeroShotObjectDetection {
   private model_id: string;
   private detector: any;
   private modelParams: PretrainedOptions | undefined;
+  public rawDetections: any[] = [];
 
   private initialized: boolean = false;
 
@@ -132,6 +133,7 @@ export class ZeroShotObjectDetection {
       console.debug("error", error);
       throw error;
     }
+    this.rawDetections = outputs;
     const detectionsGeoJson = detectionsToGeoJSON(outputs, geoRawImage);
     return {
       detections: detectionsGeoJson,
