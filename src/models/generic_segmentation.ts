@@ -145,8 +145,8 @@ export class GenericSegmentation {
           const [x1, y1, x2, y2] = input.coordinates;
           const corner1 = geoRawImage.worldToPixel(x1, y1);
           const corner2 = geoRawImage.worldToPixel(x2, y2);
-          const processedInput = [[...corner1, ...corner2]];
-          processorInput = { input_boxes: [processedInput] };
+          const processedInput = [[[...corner1, ...corner2]]];
+          processorInput = { input_boxes: processedInput };
           break;
         }
 
