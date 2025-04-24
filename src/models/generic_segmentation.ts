@@ -11,6 +11,11 @@ import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { Geobase } from "@/data_providers/geobase";
 
+export interface SegmentationInput {
+  type: "points" | "boxes";
+  coordinates: number[]; // [x, y] for points or [x1, y1, x2, y2] for boxes
+}
+
 interface SegmentationResult {
   masks: GeoJSON.FeatureCollection;
   geoRawImage: GeoRawImage;
@@ -106,14 +111,13 @@ export class GenericSegmentation {
 
   async segment(
     polygon: GeoJSON.Feature,
-    input_points: any
+    input: SegmentationInput
   ): Promise<SegmentationResult> {
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
     }
 
-    // Double-check data provider after initialization
     if (!this.dataProvider) {
       throw new Error("Data provider not initialized");
     }
@@ -126,12 +130,34 @@ export class GenericSegmentation {
       if (!this.processor || !this.model) {
         throw new Error("Model or processor not initialized");
       }
-      input_points = [
-        [geoRawImage.worldToPixel(input_points[0], input_points[1])],
-      ];
-      const inputs = await this.processor(geoRawImage as RawImage, {
-        input_points,
-      });
+
+      let processedInput;
+      if (input.type === "points") {
+        processedInput = [
+          [
+            geoRawImage.worldToPixel(
+              input.coordinates[0],
+              input.coordinates[1]
+            ),
+          ],
+        ];
+      } else {
+        // For boxes, transform both corners
+        const [x1, y1, x2, y2] = input.coordinates;
+        const corner1 = geoRawImage.worldToPixel(x1, y1);
+        const corner2 = geoRawImage.worldToPixel(x2, y2);
+        processedInput = [[...corner1, ...corner2]];
+      }
+
+      const processorInput =
+        input.type === "points"
+          ? { input_points: processedInput }
+          : { input_boxes: [processedInput] };
+
+      const inputs = await this.processor(
+        geoRawImage as RawImage,
+        processorInput
+      );
       outputs = await this.model(inputs);
       masks = await this.processor.post_process_masks(
         outputs.pred_masks,
@@ -140,8 +166,9 @@ export class GenericSegmentation {
       );
     } catch (e) {
       console.error(e);
-      throw new Error("Failed to segment image");
+      throw new Error(`Failed to segment image: ${e}`);
     }
+
     const geoJsonMask = maskToGeoJSON(
       {
         mask: masks,

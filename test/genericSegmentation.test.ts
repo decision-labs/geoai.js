@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { geobaseAi } from "../src/geobase-ai";
-import { GenericSegmentation } from "../src/models/generic_segmentation";
+import {
+  GenericSegmentation,
+  SegmentationInput,
+} from "../src/models/generic_segmentation";
 import {
   geobaseParams,
+  geobaseParamsBuilding,
+  input_bbox,
   input_point,
   mapboxParams,
   polygon,
+  polygonBuilding,
   quadrants,
   quadrants_points,
 } from "./constants";
@@ -71,9 +77,13 @@ describe("geobaseAi.genericSegmentation", () => {
 
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
       const input_points = quadrants_points[quadrant];
+      const pointInput: SegmentationInput = {
+        type: "points",
+        coordinates: input_points,
+      };
       const result = await (instance as GenericSegmentation).segment(
         polygon,
-        input_points
+        pointInput
       );
 
       // Check basic properties
@@ -94,17 +104,57 @@ describe("geobaseAi.genericSegmentation", () => {
       console.log(geojsonIoUrl);
     }
   });
-
-  it("should process a polygon for segmentation and generate valid GeoJSON for source geobase", async () => {
+  it("should process a polygon for segmentation and generate valid GeoJSON for source geobase with point", async () => {
     const { instance } = await geobaseAi.pipeline(
       "mask-generation",
       geobaseParams
     );
 
     const input_points = input_point;
+    const pointInput: SegmentationInput = {
+      type: "points",
+      coordinates: input_points,
+    };
     const result = await (instance as GenericSegmentation).segment(
       polygon,
-      input_points
+      pointInput
+    );
+
+    // Check basic properties
+    ["geoRawImage", "masks"].forEach(prop => {
+      expect(result).toHaveProperty(prop);
+    });
+
+    const { masks } = result;
+    expect(masks).toHaveProperty("type", "FeatureCollection");
+    expect(masks).toHaveProperty("features");
+    expect(masks.features).toBeInstanceOf(Array);
+
+    const geoJsonString = JSON.stringify(masks);
+    const encodedGeoJson = encodeURIComponent(geoJsonString);
+    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
+
+    console.log(`View GeoJSON here:`);
+    console.log(geojsonIoUrl);
+  });
+  it("should process a polygon for segmentation and generate valid GeoJSON for source geobase with boxes", async () => {
+    const { instance } = await geobaseAi.pipeline(
+      "mask-generation",
+      geobaseParamsBuilding,
+      "Xenova/slimsam-77-uniform",
+      {
+        revision: "boxes",
+      }
+    );
+
+    const input_box = input_bbox;
+    const pointInput: SegmentationInput = {
+      type: "boxes",
+      coordinates: input_box,
+    };
+    const result = await (instance as GenericSegmentation).segment(
+      polygonBuilding,
+      pointInput
     );
 
     // Check basic properties
