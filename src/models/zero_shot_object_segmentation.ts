@@ -9,11 +9,12 @@ import { GenericSegmentation } from "./generic_segmentation";
 
 // TODO: move this to utils later or find a thirdparty geojson validator
 // ============================================
-import type { Feature, Geometry } from "geojson";
 /**
  * Type guard to check if a GeoJSON Feature has a valid polygon geometry.
  */
-export function isValidPolygonFeature(feature: Feature): feature is Feature<Geometry> {
+export function isValidPolygonFeature(
+  feature: GeoJSON.Feature
+): feature is GeoJSON.Feature<GeoJSON.Geometry> {
   const geom = feature.geometry;
   if (!geom || geom.type === "GeometryCollection") return false;
   if (!("coordinates" in geom)) return false;
@@ -28,7 +29,6 @@ export function isValidPolygonFeature(feature: Feature): feature is Feature<Geom
   );
 }
 // ==================================================================
-
 
 export interface SegmentationResults {
   detections: GeoJSON.FeatureCollection;
@@ -68,16 +68,19 @@ export class ZeroShotObjectSegmentation {
     modelParams?: PretrainedOptions,
     model_id?: string // TODO: to be removed when pipeline api is updated as this model is chaining of two models so this is not required
   ): Promise<{ instance: ZeroShotObjectSegmentation }> {
-    console.info({ model_id });
-    const _instance = ZeroShotObjectSegmentation.instance
-    if (!_instance || parametersChanged(_instance, "", providerParams, modelParams)) {
+    console.info({ model_id }); //To avoid build error, remove this line when pipeline api is updated
+    const _instance = ZeroShotObjectSegmentation.instance;
+    if (
+      !_instance ||
+      parametersChanged(_instance, "", providerParams, modelParams)
+    ) {
       ZeroShotObjectSegmentation.instance = new ZeroShotObjectSegmentation(
         providerParams,
         modelParams
       );
       await ZeroShotObjectSegmentation.instance.initialize();
     }
-    return { instance: ZeroShotObjectSegmentation.instance };
+    return { instance: ZeroShotObjectSegmentation.instance! };
   }
 
   private async initialize(): Promise<void> {
@@ -133,7 +136,10 @@ export class ZeroShotObjectSegmentation {
     this.initialized = true;
   }
 
-  async detect_and_segment(polygon: GeoJSON.Feature, text: string | string[]): Promise<SegmentationResults> {
+  async detect_and_segment(
+    polygon: GeoJSON.Feature,
+    text: string | string[]
+  ): Promise<SegmentationResults> {
     if (!this.initialized) {
       await this.initialize();
     }
@@ -166,7 +172,9 @@ export class ZeroShotObjectSegmentation {
         segmentationInput
       );
 
-      const validFeatures = segmentationResult.masks.features.filter(isValidPolygonFeature);
+      const validFeatures = segmentationResult.masks.features.filter(
+        isValidPolygonFeature
+      );
 
       masks.push(...validFeatures);
     }
