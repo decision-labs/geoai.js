@@ -182,6 +182,9 @@ export const polygon = {
 
 export const input_point = [-102.32207526163147, 19.53570142468871];
 
+export const input_bbox = [
+  -117.59156514616313, 47.65322697023947, -117.59136143816093, 47.6530458073872,
+];
 export const quadrants = {
   "north-west": {
     type: "Feature",

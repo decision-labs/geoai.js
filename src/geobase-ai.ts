@@ -16,6 +16,7 @@ import { OilStorageTankDetection } from "./models/oil_storage_tank_detection";
 import { OrientedObjectDetection } from "./models/oriented_object_detection";
 import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
 import { PretrainedOptions } from "@huggingface/transformers";
+import { ZeroShotObjectSegmentation } from "./models/zero_shot_object_segmentation";
 
 type MapboxParams = {
   provider: "mapbox";
@@ -57,7 +58,8 @@ type GeobaseAiModelTasks =
   | "car-detection"
   | "wetland-segmentation"
   | "building-detection"
-  | "oil-storage-tank-detection";
+  | "oil-storage-tank-detection"
+  | "zero-shot-object-segmentation";
 
 type GeobaseAiModelMetadata = {
   task: HuggingFaceModelTasks | GeobaseAiModelTasks;
@@ -80,7 +82,8 @@ type GeobaseAiModelMetadata = {
       | CarDetection
       | WetLandSegmentation
       | BuildingDetection
-      | OilStorageTankDetection;
+      | OilStorageTankDetection
+      | ZeroShotObjectSegmentation;
   }>;
 };
 
@@ -255,6 +258,25 @@ const model_metadata: GeobaseAiModelMetadata[] = [
       instance: OilStorageTankDetection;
     }> => {
       return OilStorageTankDetection.getInstance(modelId, params, modelParams);
+    },
+  },
+  {
+    task: "zero-shot-object-segmentation",
+    library: "geobase-ai",
+    model: "zero-shot-object-segmentation",
+    description: "Zero shot object segmentation Model.",
+    geobase_ai_pipeline: (
+      params: ProviderParams,
+      modelId?: string,
+      modelParams?: PretrainedOptions
+    ): Promise<{
+      instance: ZeroShotObjectSegmentation;
+    }> => {
+      return ZeroShotObjectSegmentation.getInstance(
+        params,
+        modelParams,
+        modelId
+      );
     },
   },
 ];

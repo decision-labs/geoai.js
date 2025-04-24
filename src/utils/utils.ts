@@ -285,7 +285,8 @@ export const getPolygonFromMask = (
 
 export const maskToGeoJSON = (
   masks: any,
-  geoRawImage: GeoRawImage
+  geoRawImage: GeoRawImage,
+  topN: number = 1
 ): GeoJSON.FeatureCollection => {
   const { mask, scores } = masks;
   const numMasks = scores.length;
@@ -338,9 +339,17 @@ export const maskToGeoJSON = (
     });
   }
 
+  // Sort features by score in descending order and take top N
+  const sortedFeatures = features
+    .sort((a, b) => {
+      if (!a.properties?.score || !b.properties?.score) return 0;
+      return b.properties.score - a.properties.score;
+    })
+    .slice(0, topN);
+
   return {
     type: "FeatureCollection",
-    features,
+    features: sortedFeatures,
   };
 };
 
