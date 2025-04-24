@@ -45,16 +45,8 @@ export class ZeroShotObjectSegmentation {
     modelParams?: PretrainedOptions,
     model_id?: string // TODO: to be removed when pipeline api is updated as this model is chaining of two models so this is not required
   ): Promise<{ instance: ZeroShotObjectSegmentation }> {
-    console.log({ model_id });
-    if (
-      !ZeroShotObjectSegmentation.instance ||
-      parametersChanged(
-        ZeroShotObjectSegmentation.instance,
-        "",
-        providerParams,
-        modelParams
-      )
-    ) {
+    const _instance = ZeroShotObjectSegmentation.instance
+    if (!_instance || parametersChanged(_instance, "", providerParams, modelParams)) {
       ZeroShotObjectSegmentation.instance = new ZeroShotObjectSegmentation(
         providerParams,
         modelParams
@@ -93,7 +85,7 @@ export class ZeroShotObjectSegmentation {
       throw new Error("Failed to initialize data provider");
     }
 
-    // Initialize detector using existing ZeroShotObjectDetection
+    // Model 1: Initialize detector using existing ZeroShotObjectDetection
     const { instance: detectorInstance } =
       await ZeroShotObjectDetection.getInstance(
         this.modelParams?.detector_id || this.detector_id,
@@ -102,7 +94,7 @@ export class ZeroShotObjectSegmentation {
       );
     this.detector = detectorInstance;
 
-    // Initialize segmenter using GenericSegmentation
+    // Model 2: Initialize segmenter using GenericSegmentation
     const { instance: segmenterInstance } =
       await GenericSegmentation.getInstance(
         this.modelParams?.segmenter_id || this.segmenter_id,
@@ -117,10 +109,7 @@ export class ZeroShotObjectSegmentation {
     this.initialized = true;
   }
 
-  async detect_and_segment(
-    polygon: GeoJSON.Feature,
-    text: string | string[]
-  ): Promise<SegmentationResults> {
+  async detect_and_segment(polygon: GeoJSON.Feature, text: string | string[]): Promise<SegmentationResults> {
     if (!this.initialized) {
       await this.initialize();
     }
