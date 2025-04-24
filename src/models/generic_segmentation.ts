@@ -131,28 +131,28 @@ export class GenericSegmentation {
         throw new Error("Model or processor not initialized");
       }
 
-      let processedInput;
-      if (input.type === "points") {
-        processedInput = [
-          [
-            geoRawImage.worldToPixel(
-              input.coordinates[0],
-              input.coordinates[1]
-            ),
-          ],
-        ];
-      } else {
-        // For boxes, transform both corners
-        const [x1, y1, x2, y2] = input.coordinates;
-        const corner1 = geoRawImage.worldToPixel(x1, y1);
-        const corner2 = geoRawImage.worldToPixel(x2, y2);
-        processedInput = [[...corner1, ...corner2]];
-      }
+      let processorInput;
 
-      const processorInput =
-        input.type === "points"
-          ? { input_points: processedInput }
-          : { input_boxes: [processedInput] };
+      switch (input.type) {
+        case "points": {
+          const [x, y] = input.coordinates;
+          const processedInput = [[geoRawImage.worldToPixel(x, y)]];
+          processorInput = { input_points: processedInput };
+          break;
+        }
+
+        case "boxes": {
+          const [x1, y1, x2, y2] = input.coordinates;
+          const corner1 = geoRawImage.worldToPixel(x1, y1);
+          const corner2 = geoRawImage.worldToPixel(x2, y2);
+          const processedInput = [[...corner1, ...corner2]];
+          processorInput = { input_boxes: [processedInput] };
+          break;
+        }
+
+        default:
+          throw new Error(`Unsupported input type: ${input.type}`);
+      }
 
       const inputs = await this.processor(
         geoRawImage as RawImage,
