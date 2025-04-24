@@ -7,6 +7,29 @@ import { Geobase } from "@/data_providers/geobase";
 import { ZeroShotObjectDetection } from "./zero_shot_object_detection";
 import { GenericSegmentation } from "./generic_segmentation";
 
+// TODO: move this to utils later or find a thirdparty geojson validator
+// ============================================
+import type { Feature, Geometry } from "geojson";
+/**
+ * Type guard to check if a GeoJSON Feature has a valid polygon geometry.
+ */
+export function isValidPolygonFeature(feature: Feature): feature is Feature<Geometry> {
+  const geom = feature.geometry;
+  if (!geom || geom.type === "GeometryCollection") return false;
+  if (!("coordinates" in geom)) return false;
+
+  const coords = geom.coordinates;
+  return (
+    Array.isArray(coords) &&
+    coords.length > 0 &&
+    Array.isArray(coords[0]) &&
+    coords[0].length > 0 &&
+    coords[0].some(coord => Array.isArray(coord) && coord.length > 0)
+  );
+}
+// ==================================================================
+
+
 export interface SegmentationResults {
   detections: GeoJSON.FeatureCollection;
   masks: GeoJSON.FeatureCollection;
@@ -142,18 +165,7 @@ export class ZeroShotObjectSegmentation {
         segmentationInput
       );
 
-      const validFeatures = segmentationResult.masks.features.filter(
-        feature =>
-          feature.geometry &&
-          feature.geometry.type !== "GeometryCollection" &&
-          "coordinates" in feature.geometry &&
-          feature.geometry.coordinates[0] &&
-          Array.isArray(feature.geometry.coordinates[0]) &&
-          feature.geometry.coordinates[0].length > 0 &&
-          feature.geometry.coordinates[0].some(
-            coord => Array.isArray(coord) && coord.length > 0
-          )
-      );
+      const validFeatures = segmentationResult.masks.features.filter(isValidPolygonFeature);
 
       masks.push(...validFeatures);
     }
