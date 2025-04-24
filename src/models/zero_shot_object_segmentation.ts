@@ -68,6 +68,7 @@ export class ZeroShotObjectSegmentation {
     modelParams?: PretrainedOptions,
     model_id?: string // TODO: to be removed when pipeline api is updated as this model is chaining of two models so this is not required
   ): Promise<{ instance: ZeroShotObjectSegmentation }> {
+    console.info({ model_id });
     const _instance = ZeroShotObjectSegmentation.instance
     if (!_instance || parametersChanged(_instance, "", providerParams, modelParams)) {
       ZeroShotObjectSegmentation.instance = new ZeroShotObjectSegmentation(
