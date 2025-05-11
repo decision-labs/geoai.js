@@ -353,10 +353,30 @@ export const maskToGeoJSON = (
   };
 };
 
+/**
+ * Refines binary masks into GeoJSON feature collections by applying various image processing operations
+ * and converting the resulting contours into geographic polygons.
+ *
+ * @param binaryMasks - Array of raw image masks to be processed
+ * @param geoRawImage - Geographic reference image containing projection information
+ * @param classes - Optional array of class labels corresponding to each mask
+ * @param minArea - Minimum area threshold for contour filtering (default: 20)
+ *
+ * @returns Array of GeoJSON FeatureCollections, each containing polygon features derived from the masks
+ *
+ * @remarks
+ * The function performs the following steps:
+ * 1. Converts masks to binary images and finds contours
+ * 2. Refines contours through approximation and area filtering
+ * 3. Applies morphological operations to fill gaps
+ * 4. Converts processed contours to GeoJSON polygons
+ * 5. Associates class labels with the resulting features
+ */
 export const refineMasks = (
   binaryMasks: RawImage[],
   geoRawImage: GeoRawImage,
-  classes: string[] = []
+  classes: string[] = [],
+  minArea: number = 20
 ): GeoJSON.FeatureCollection[] => {
   const maskGeojson: GeoJSON.FeatureCollection[] = [];
   binaryMasks.forEach((mask, index) => {
@@ -416,7 +436,6 @@ export const refineMasks = (
     );
 
     const finalRefinedMask = cv.Mat.zeros(mask.height, mask.width, cv.CV_8UC1);
-    const minArea = 20; // Adjust threshold based on noise size
 
     for (let i = 0; i < cleanedMaskContours.size(); i++) {
       const contour = cleanedMaskContours.get(i);
@@ -550,7 +569,7 @@ export const refineMasks = (
 
     maskGeojson.push(featureCollection);
 
-    // Clean up
+    // Clean up resources
     maskMat.delete();
     gray.delete();
     thresh.delete();

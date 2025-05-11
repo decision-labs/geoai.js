@@ -211,7 +211,21 @@ export class LandCoverClassification {
     return image;
   }
 
-  async inference(polygon: GeoJSON.Feature): Promise<any> {
+  /**
+   * Performs inference on a geographic polygon using the initialized model.
+   *
+   * @param polygon - A GeoJSON Feature representing the geographic area to analyze
+   * @param minArea - Minimum area threshold for contour detection (in pixels). Default is 20.
+   * @returns Promise resolving to an object containing:
+   *   - detections: GeoJSON FeatureCollection of detected areas
+   *   - binaryMasks: Array of RawImage binary masks for each class
+   *   - outputImage: GeoRawImage containing the visualization of classifications
+   * @throws Error if model or data provider is not properly initialized
+   */
+  async inference(
+    polygon: GeoJSON.Feature,
+    minArea: number = 20
+  ): Promise<any> {
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
@@ -286,7 +300,8 @@ export class LandCoverClassification {
     const featureCollection: GeoJSON.FeatureCollection[] = refineMasks(
       binaryMasks,
       geoRawImage,
-      this.classes
+      this.classes,
+      minArea
     );
     // Assign color to each pixel based on class index
     for (let i = 0; i < height * width; i++) {

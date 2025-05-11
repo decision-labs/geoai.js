@@ -109,9 +109,28 @@ export class GenericSegmentation {
     this.initialized = true;
   }
 
+  /**
+   * Performs segmentation on a geographic area based on the provided input parameters.
+   *
+   * @param polygon - A GeoJSON Feature representing the area to be segmented
+   * @param input - Segmentation input parameters containing either points or boxes coordinates
+   *                - For points: Single coordinate pair [x, y]
+   *                - For boxes: Two coordinate pairs defining opposite corners [x1, y1, x2, y2]
+   * @param maxMasks - Maximum number of segmentation masks to return (defaults to 1)
+   *
+   * @returns Promise<SegmentationResult> containing:
+   *          - masks: GeoJSON representation of the segmentation masks
+   *          - geoRawImage: Raw image data with geographic reference
+   *
+   * @throws {Error} If data provider is not initialized
+   * @throws {Error} If model or processor is not initialized
+   * @throws {Error} If segmentation process fails
+   * @throws {Error} If input type is not supported
+   */
   async segment(
     polygon: GeoJSON.Feature,
-    input: SegmentationInput
+    input: SegmentationInput,
+    maxMasks: number = 1
   ): Promise<SegmentationResult> {
     // Ensure initialization is complete
     if (!this.initialized) {
@@ -174,7 +193,8 @@ export class GenericSegmentation {
         mask: masks,
         scores: outputs.iou_scores.data,
       },
-      geoRawImage
+      geoRawImage,
+      maxMasks
     );
 
     return {

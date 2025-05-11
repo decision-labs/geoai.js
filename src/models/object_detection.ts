@@ -110,7 +110,18 @@ export class ObjectDetection {
     return image;
   }
 
-  async detection(polygon: GeoJSON.Feature): Promise<ObjectDetectionResults> {
+  /**
+   * Performs object detection on a geographic area specified by a GeoJSON polygon.
+   *
+   * @param polygon - A GeoJSON Feature representing the geographic area to analyze
+   * @param confidence - Detection confidence threshold between 0 and 1. Detections below this threshold will be filtered out. Defaults to 0.9
+   * @returns Promise<ObjectDetectionResults> containing detected objects as GeoJSON features and the raw image used for detection
+   * @throws {Error} If data provider, model or processor are not properly initialized
+   */
+  async detection(
+    polygon: GeoJSON.Feature,
+    confidence: number = 0.9
+  ): Promise<ObjectDetectionResults> {
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
@@ -132,7 +143,7 @@ export class ObjectDetection {
       inputs = await this.processor(geoRawImage as RawImage);
       outputs = await this.model({
         images: inputs.pixel_values,
-        confidence: 0.9,
+        confidence,
       });
     } catch (error) {
       console.debug("error", error);

@@ -178,6 +178,14 @@ export class OrientedObjectDetection {
     return image;
   }
 
+  /**
+   * Performs object detection on a given geographic polygon.
+   * @param polygon - A GeoJSON Feature representing the area for detection
+   * @param options - Optional NMS (Non-Maximum Suppression) configuration options
+   * @param {NMSOptions} [options={}] - Configuration options for NMS post-processing
+   * @returns {Promise<ObjectDetectionResults>} A promise that resolves to the detection results, including the detections array and raw image
+   * @throws {Error} If the data provider or model is not properly initialized
+   */
   async detection(
     polygon: GeoJSON.Feature,
     options: NMSOptions = {}

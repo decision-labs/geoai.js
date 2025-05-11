@@ -106,9 +106,23 @@ export class ZeroShotObjectDetection {
     return image;
   }
 
+  /**
+   * Performs object detection on a geographic area using a zero-shot learning model
+   * @param polygon - A GeoJSON Feature representing the geographic area to analyze
+   * @param text - Label or array of labels to detect in the image
+   * @param options - Detection configuration options
+   * @param options.topk - Maximum number of detections to return (default: 4)
+   * @param options.threshold - Confidence threshold for detections (default: 0.2)
+   * @returns Promise resolving to object detection results containing GeoJSON features and raw image data
+   * @throws Error if data provider is not initialized
+   */
   async detection(
     polygon: GeoJSON.Feature,
-    text: string | string[]
+    text: string | string[],
+    options = {
+      topk: 4,
+      threshold: 0.2,
+    }
   ): Promise<ObjectDetectionResults> {
     // Ensure initialization is complete
     if (!this.initialized) {
@@ -126,8 +140,8 @@ export class ZeroShotObjectDetection {
     try {
       const candidate_labels = Array.isArray(text) ? text : [text];
       outputs = await this.detector(geoRawImage as RawImage, candidate_labels, {
-        topk: 4,
-        threshold: 0.2,
+        topk: options.topk,
+        threshold: options.threshold,
       });
     } catch (error) {
       console.debug("error", error);
