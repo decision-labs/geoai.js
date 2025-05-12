@@ -83,7 +83,7 @@ export class OilStorageTankDetection {
     }
   }
 
-// TODO: refactor that's common across models
+  // TODO: refactor that's common across models
   private initializeDataProvider(): void {
     switch (this.providerParams.provider) {
       case "mapbox":
