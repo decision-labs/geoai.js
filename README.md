@@ -104,6 +104,17 @@ The starter contains the following scripts:
 - `prepare` - script for setting up husky pre-commit hook
 - `uninstall-husky` - script for removing husky from repository
 
+## Testing
+
+```bash
+# run all tests:
+pnpm run test
+# run a specific test:
+pnpm run test genericSegmentation
+# run a specific section of a test:
+pnpm run test -t "thresholds parameters"
+```
+
 ## Acknowledgment
 
 If you found it useful somehow, I would be grateful if you could leave a star in the project's GitHub repository.

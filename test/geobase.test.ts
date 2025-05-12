@@ -131,7 +131,7 @@ describe("Geobase", () => {
       cogImagery: geobaseParamsWetLand.cogImagery,
     });
     const image = await geobase.getImage(polygonWetLand, [1, 2, 3]);
-    image.save("bands_image.png");
+    // image.save("bands_image.png"); // for debugging
     expect(image).toBeInstanceOf(GeoRawImage);
     expect(image.channels).toBe(3);
   });

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
 import { geobaseAi } from "../src/geobase-ai";
 import {
   GenericSegmentation,
@@ -148,13 +148,13 @@ describe("geobaseAi.genericSegmentation", () => {
     );
 
     const input_box = input_bbox;
-    const pointInput: SegmentationInput = {
+    const boxInput: SegmentationInput = {
       type: "boxes",
       coordinates: input_box,
     };
     const result = await (instance as GenericSegmentation).segment(
       polygonBuilding,
-      pointInput
+      boxInput
     );
 
     // Check basic properties
@@ -173,5 +173,35 @@ describe("geobaseAi.genericSegmentation", () => {
 
     console.log(`View GeoJSON here:`);
     console.log(geojsonIoUrl);
+  });
+});
+
+// describe thresholds parameters
+describe("boxes pipeline with thresholds parameter", () => {
+  let boxesInstance: GenericSegmentation;
+
+  beforeAll(async () => {
+    const { instance } = await geobaseAi.pipeline(
+      "mask-generation",
+      geobaseParamsBuilding,
+      "Xenova/slimsam-77-uniform",
+      {
+        revision: "boxes",
+      }
+    );
+    boxesInstance = instance as GenericSegmentation;
+  });
+
+  it("should set the maxMasks to the requested value", async () => {
+    const boxInput: SegmentationInput = {
+      type: "boxes",
+      coordinates: input_bbox,
+    };
+    // Request 2 masks
+    const result2 = await boxesInstance.segment(polygonBuilding, boxInput, 2);
+    expect(result2.masks.features.length).toEqual(2);
+    // Request 1 mask
+    const result1 = await boxesInstance.segment(polygonBuilding, boxInput, 1);
+    expect(result1.masks.features.length).toEqual(1);
   });
 });
