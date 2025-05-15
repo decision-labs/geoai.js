@@ -15,17 +15,20 @@ async function callPipeline(task, instance_id, input) {
 
   switch (task) {
     case "mask-generation": {
-      const output = await instance.segment(input.polygon, input.input_points);
+      const output = await instance.inference(
+        input.polygon,
+        input.input_points
+      );
       const output_geojson = output.masks;
       return output_geojson;
     }
     case "zero-shot-object-detection": {
-      const output = await instance.detection(input.polygon, input.label);
+      const output = await instance.inference(input.polygon, input.label);
       const output_geojson = output.detections;
       return output_geojson;
     }
     case "object-detection": {
-      const output = await instance.detection(input.polygon);
+      const output = await instance.inference(input.polygon);
       const output_geojson = output.detections;
       return output_geojson;
     }
@@ -35,7 +38,7 @@ async function callPipeline(task, instance_id, input) {
         iou_thres: 0.45,
         multi_label: true,
       };
-      const output = await instance.detection(input.polygon, options);
+      const output = await instance.inference(input.polygon, options);
       const output_geojson = output.detections;
       return output_geojson;
     }

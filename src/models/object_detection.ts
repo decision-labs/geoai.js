@@ -118,7 +118,7 @@ export class ObjectDetection {
    * @returns Promise<ObjectDetectionResults> containing detected objects as GeoJSON features and the raw image used for detection
    * @throws {Error} If data provider, model or processor are not properly initialized
    */
-  async detection(
+  async inference(
     polygon: GeoJSON.Feature,
     confidence: number = 0.9
   ): Promise<ObjectDetectionResults> {

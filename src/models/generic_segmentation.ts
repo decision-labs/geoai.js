@@ -127,7 +127,7 @@ export class GenericSegmentation {
    * @throws {Error} If segmentation process fails
    * @throws {Error} If input type is not supported
    */
-  async segment(
+  async inference(
     polygon: GeoJSON.Feature,
     input: SegmentationInput,
     maxMasks: number = 1

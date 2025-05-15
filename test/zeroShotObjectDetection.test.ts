@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { geobaseAi } from "../src/geobase-ai";
-import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
+import {
+  geobaseParamsBuilding,
+  mapboxParams,
+  polygon,
+  polygonBuilding,
+  quadrants,
+} from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import {
   ObjectDetectionResults,
   ZeroShotObjectDetection,
 } from "../src/models/zero_shot_object_detection";
-import { detectionsToGeoJSON } from "../src/utils/utils";
 
 describe("geobaseAi.zeroShotObjectDetection", () => {
   it("should initialize a zero-shot object detection pipeline", async () => {
@@ -87,7 +92,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
       const results: ObjectDetectionResults = await (
         instance as ZeroShotObjectDetection
-      ).detection(polygon, text);
+      ).inference(polygon, text);
 
       let result = results;
 
@@ -114,14 +119,14 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
   it("should process a polygon for object detection using onnx-community/grounding-dino-tiny-ONNX for source geobase", async () => {
     const { instance } = await geobaseAi.pipeline(
       "zero-shot-object-detection",
-      geobaseParams
+      geobaseParamsBuilding
     );
 
-    const text = ["tree."];
+    const text = ["house ."];
 
     const results: ObjectDetectionResults = await (
       instance as ZeroShotObjectDetection
-    ).detection(polygon, text);
+    ).inference(polygonBuilding, text);
 
     let result = results;
 
@@ -197,7 +202,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
       const results: ObjectDetectionResults = await (
         instance as ZeroShotObjectDetection
-      ).detection(polygon, text);
+      ).inference(polygon, text);
 
       const geoJsonString = JSON.stringify(results.detections);
       const encodedGeoJson = encodeURIComponent(geoJsonString);
@@ -227,7 +232,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
 
     const results: ObjectDetectionResults = await (
       instance as ZeroShotObjectDetection
-    ).detection(polygon, text);
+    ).inference(polygon, text);
 
     const geoJsonString = JSON.stringify(results.detections);
     const encodedGeoJson = encodeURIComponent(geoJsonString);

@@ -136,7 +136,7 @@ export class ZeroShotObjectSegmentation {
     this.initialized = true;
   }
 
-  async detect_and_segment(
+  async inference(
     polygon: GeoJSON.Feature,
     text: string | string[]
   ): Promise<SegmentationResults> {
@@ -149,7 +149,7 @@ export class ZeroShotObjectSegmentation {
     }
 
     // Use existing detection method
-    const detectionResults = await this.detector.detection(polygon, text);
+    const detectionResults = await this.detector.inference(polygon, text);
     const { geoRawImage } = detectionResults;
     const rawDetections = this.detector?.rawDetections;
     if (!rawDetections) {
@@ -167,7 +167,7 @@ export class ZeroShotObjectSegmentation {
         coordinates: [...corner1, ...corner2],
       };
 
-      const segmentationResult = await this.segmenter.segment(
+      const segmentationResult = await this.segmenter.inference(
         polygon,
         segmentationInput
       );

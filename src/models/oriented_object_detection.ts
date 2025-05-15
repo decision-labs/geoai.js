@@ -186,7 +186,7 @@ export class OrientedObjectDetection {
    * @returns {Promise<ObjectDetectionResults>} A promise that resolves to the detection results, including the detections array and raw image
    * @throws {Error} If the data provider or model is not properly initialized
    */
-  async detection(
+  async inference(
     polygon: GeoJSON.Feature,
     options: NMSOptions = {}
   ): Promise<ObjectDetectionResults> {

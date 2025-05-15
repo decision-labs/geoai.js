@@ -81,7 +81,7 @@ describe("geobaseAi.genericSegmentation", () => {
         type: "points",
         coordinates: input_points,
       };
-      const result = await (instance as GenericSegmentation).segment(
+      const result = await (instance as GenericSegmentation).inference(
         polygon,
         pointInput
       );
@@ -115,7 +115,7 @@ describe("geobaseAi.genericSegmentation", () => {
       type: "points",
       coordinates: input_points,
     };
-    const result = await (instance as GenericSegmentation).segment(
+    const result = await (instance as GenericSegmentation).inference(
       polygon,
       pointInput
     );
@@ -152,7 +152,7 @@ describe("geobaseAi.genericSegmentation", () => {
       type: "boxes",
       coordinates: input_box,
     };
-    const result = await (instance as GenericSegmentation).segment(
+    const result = await (instance as GenericSegmentation).inference(
       polygonBuilding,
       boxInput
     );
@@ -198,10 +198,10 @@ describe("boxes pipeline with thresholds parameter", () => {
       coordinates: input_bbox,
     };
     // Request 2 masks
-    const result2 = await boxesInstance.segment(polygonBuilding, boxInput, 2);
+    const result2 = await boxesInstance.inference(polygonBuilding, boxInput, 2);
     expect(result2.masks.features.length).toEqual(2);
     // Request 1 mask
-    const result1 = await boxesInstance.segment(polygonBuilding, boxInput, 1);
+    const result1 = await boxesInstance.inference(polygonBuilding, boxInput, 1);
     expect(result1.masks.features.length).toEqual(1);
   });
 });

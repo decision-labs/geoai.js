@@ -65,7 +65,7 @@ describe("geobaseAi.objectDetection", () => {
     );
 
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const results: ObjectDetectionResults = await instance.detection(polygon);
+      const results: ObjectDetectionResults = await instance.inference(polygon);
 
       const geoJsonString = JSON.stringify(results.detections);
       const encodedGeoJson = encodeURIComponent(geoJsonString);
@@ -89,7 +89,7 @@ describe("geobaseAi.objectDetection", () => {
       geobaseParams
     );
 
-    const results: ObjectDetectionResults = await instance.detection(polygon);
+    const results: ObjectDetectionResults = await instance.inference(polygon);
 
     const geoJsonString = JSON.stringify(results.detections);
     const encodedGeoJson = encodeURIComponent(geoJsonString);

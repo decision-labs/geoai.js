@@ -15,9 +15,10 @@ describe("geobaseAi.genericSegmentation", () => {
       geobaseParamsBuilding
     );
 
-    const result = await (
-      instance as ZeroShotObjectSegmentation
-    ).detect_and_segment(polygonBuilding, "house .");
+    const result = await (instance as ZeroShotObjectSegmentation).inference(
+      polygonBuilding,
+      "house ."
+    );
 
     // Check basic properties
     ["geoRawImage", "masks"].forEach(prop => {

@@ -47,7 +47,7 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
       const results: ObjectDetectionResults = await (
         instance as OrientedObjectDetection
-      ).detection(polygon, options);
+      ).inference(polygon, options);
 
       const geoJsonString = JSON.stringify(results.detections);
       const encodedGeoJson = encodeURIComponent(geoJsonString);
@@ -80,7 +80,7 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
 
     const results: ObjectDetectionResults = await (
       instance as OrientedObjectDetection
-    ).detection(polygon, options);
+    ).inference(polygon, options);
 
     const geoJsonString = JSON.stringify(results.detections);
     const encodedGeoJson = encodeURIComponent(geoJsonString);

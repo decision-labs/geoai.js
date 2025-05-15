@@ -17,7 +17,7 @@ const tokenizer = await AutoTokenizer.from_pretrained(model_id);
  * Parses user queries and determines which geospatial AI task(s) to run.
  */
 async function parseQuery(userQuery: string) {
-  const tasks = geobaseAi.tasks();
+  const tasks = geobaseAi.listTasks();
   const inputs = tokenizer(new Array(tasks.length).fill(userQuery), {
     text_pair: tasks,
     padding: true,
@@ -34,7 +34,7 @@ async function parseQuery(userQuery: string) {
 async function queryAgent(userQuery: string, providerParams: ProviderParams) {
   const task = await parseQuery(userQuery);
 
-  const model = geobaseAi.models().find(m => m.task === task);
+  const model = geobaseAi.listModels().find(m => m.task === task);
   if (!model) throw new Error(`No model found for task: ${task}`);
 
   // Execute the model in transformers.js

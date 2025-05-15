@@ -116,7 +116,7 @@ export class ZeroShotObjectDetection {
    * @returns Promise resolving to object detection results containing GeoJSON features and raw image data
    * @throws Error if data provider is not initialized
    */
-  async detection(
+  async inference(
     polygon: GeoJSON.Feature,
     text: string | string[],
     options = {
