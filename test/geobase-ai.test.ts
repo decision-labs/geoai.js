@@ -10,7 +10,6 @@ describe("geobase-ai", () => {
   it("should have core API functions", () => {
     expect(geobaseAi.listTasks).toBeInstanceOf(Function);
     expect(geobaseAi.listModels).toBeInstanceOf(Function);
-    expect(geobaseAi.listDomains).toBeInstanceOf(Function);
     expect(geobaseAi.pipeline).toBeInstanceOf(Function);
     expect(geobaseAi.chain).toBeInstanceOf(Function);
   });
@@ -28,16 +27,7 @@ describe("geobase-ai", () => {
     expect(models.length).toBeGreaterThan(0);
     expect(models[0]).toHaveProperty("task");
     expect(models[0]).toHaveProperty("library");
-    expect(models[0]).toHaveProperty("model");
     expect(models).toBeInstanceOf(Array);
-  });
-
-  it("should list domains", () => {
-    const domains = geobaseAi.listDomains();
-    expect(domains).toContain("geospatial");
-    expect(domains).toContain("computer-vision");
-    expect(domains).toBeInstanceOf(Array);
-    expect(domains.length).toBeGreaterThan(0);
   });
 });
 
@@ -78,3 +68,44 @@ describe("Pipeline", () => {
 });
 
 //TODO: Add more tests for the chain function
+
+describe.skip("Chain", () => {
+  it("should create chain with multiple pipelines", async () => {
+    const chain = await geobaseAi.chain([
+      {
+        task: "zero-shot-object-detection",
+        params: {
+          provider: "mapbox",
+          apiKey: "test",
+        } as ProviderParams,
+      },
+      // Add more pipeline configurations here
+    ]);
+
+    expect(chain).toBeDefined();
+    expect(chain.pipelines.length).toBe(1);
+    expect(chain.pipelines[0].instance).toBeInstanceOf(ZeroShotObjectDetection);
+  });
+
+  it("should throw error when chain configuration is empty", async () => {
+    await expect(geobaseAi.chain([])).rejects.toThrow();
+  });
+
+  it("should throw error when any pipeline in chain is invalid", async () => {
+    await expect(
+      geobaseAi.chain([
+        {
+          task: "zero-shot-object-detection",
+          params: {
+            provider: "mapbox",
+            apiKey: "test",
+          } as ProviderParams,
+        },
+        {
+          task: "invalid-task",
+          params: {} as ProviderParams,
+        },
+      ])
+    ).rejects.toThrow();
+  });
+});

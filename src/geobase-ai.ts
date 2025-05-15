@@ -21,7 +21,7 @@ class Pipeline {
 
     return config.geobase_ai_pipeline(
       params,
-      modelId || config.defaultModelId,
+      modelId,
       modelParams || config.modelParams
     );
   }
@@ -61,10 +61,6 @@ class Pipeline {
   static listModels(): ModelConfig[] {
     return modelRegistry;
   }
-
-  static listDomains(): string[] {
-    return ["geospatial", "computer-vision", "remote-sensing"];
-  }
 }
 
 const geobaseAi = {
@@ -72,7 +68,6 @@ const geobaseAi = {
   chain: Pipeline.chain,
   listTasks: Pipeline.listTasks,
   listModels: Pipeline.listModels,
-  listDomains: Pipeline.listDomains,
 };
 
 export { geobaseAi, type ProviderParams };

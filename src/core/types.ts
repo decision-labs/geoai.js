@@ -73,7 +73,6 @@ export type ModelsInstances =
 export type ModelConfig = {
   task: HuggingFaceModelTasks | GeobaseAiModelTasks;
   library: string;
-  model: string;
   description: string;
   geobase_ai_pipeline: (
     params: ProviderParams,

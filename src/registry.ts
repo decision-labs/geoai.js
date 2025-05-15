@@ -19,7 +19,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "zero-shot-object-detection",
     library: "transformers.js",
-    model: "onnx-community/grounding-dino-tiny-ONNX",
     description: "Zero-shot object detection model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -34,7 +33,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "mask-generation",
     library: "transformers.js",
-    model: "Xenova/slimsam-77-uniform",
     description: "Mask generation model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -49,7 +47,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "object-detection",
     library: "transformers.js",
-    model: "geobase/WALDO30_yolov8m_640x640",
     description: "Object Detection model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -64,7 +61,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "oriented-object-detection",
     library: "transformers.js",
-    model: "geobase/gghl-oriented-object-detection",
     description: "Oriented Object Detection model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -79,8 +75,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "land-cover-classification",
     library: "geobase-ai",
-    model:
-      "https://huggingface.co/geobase/sparsemask/resolve/main/onnx/sparsemask_model.onnx",
     description: "Land Cover Classification model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -95,8 +89,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "solar-panel-detection",
     library: "geobase-ai",
-    model:
-      "https://huggingface.co/geobase/geoai_models/resolve/main/solarPanelDetection_quantized.onnx",
     description: "Land Cover Classification model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -111,8 +103,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "ship-detection",
     library: "geobase-ai",
-    model:
-      "https://huggingface.co/geobase/geoai_models/resolve/main/shipDetection_quantized.onnx",
     description: "Land Cover Classification model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -127,8 +117,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "car-detection",
     library: "geobase-ai",
-    model:
-      "https://huggingface.co/geobase/geoai_models/resolve/main/carDetectionUSA_quantized.onnx",
     description: "Land Cover Classification model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -143,8 +131,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "wetland-segmentation",
     library: "geobase-ai",
-    model:
-      "https://huggingface.co/geobase/geoai_models/resolve/main/wetland_detection_quantized.onnx",
     description: "Land Cover Classification model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -159,8 +145,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "building-detection",
     library: "geobase-ai",
-    model:
-      "https://huggingface.co/geobase/geoai_models/resolve/main/buildingDetection_quantized.onnx",
     description: "Land Cover Classification model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -175,8 +159,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "oil-storage-tank-detection",
     library: "geobase-ai",
-    model:
-      "https://huggingface.co/geobase/oil-storage-tank-detection/resolve/main/oil_storage_tank_yolox_quantized.onnx",
     description: "Oil Storage Tank Detection Model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
@@ -191,7 +173,6 @@ export const modelRegistry: ModelConfig[] = [
   {
     task: "zero-shot-object-segmentation",
     library: "geobase-ai",
-    model: "zero-shot-object-segmentation",
     description: "Zero shot object segmentation Model.",
     geobase_ai_pipeline: (
       params: ProviderParams,
