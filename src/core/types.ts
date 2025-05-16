@@ -1,4 +1,7 @@
-import { GenericSegmentation } from "@/models/generic_segmentation";
+import {
+  GenericSegmentation,
+  SegmentationInput,
+} from "@/models/generic_segmentation";
 import {
   BuildingDetection,
   CarDetection,
@@ -10,8 +13,14 @@ import { LandCoverClassification } from "@/models/land_cover_classification";
 import { ObjectDetection } from "@/models/object_detection";
 import { OilStorageTankDetection } from "@/models/oil_storage_tank_detection";
 import { OrientedObjectDetection } from "@/models/oriented_object_detection";
-import { ZeroShotObjectDetection } from "@/models/zero_shot_object_detection";
-import { ZeroShotObjectSegmentation } from "@/models/zero_shot_object_segmentation";
+import {
+  ObjectDetectionResults,
+  ZeroShotObjectDetection,
+} from "@/models/zero_shot_object_detection";
+import {
+  SegmentationResults,
+  ZeroShotObjectSegmentation,
+} from "@/models/zero_shot_object_segmentation";
 import { PretrainedOptions } from "@huggingface/transformers";
 
 export type MapboxParams = {
@@ -81,6 +90,37 @@ export type ModelConfig = {
   ) => Promise<{
     instance: ModelsInstances;
   }>;
+  chainableTasks?: string[];
+  ioConfig?: {
+    inputs: any;
+    outputs: any;
+  };
   defaultModelId?: string;
   modelParams?: PretrainedOptions;
+};
+
+export type zeroShotModelIOConfig = {
+  inputs: {
+    polygon: GeoJSON.Feature;
+    text: string;
+    options?: any;
+  };
+  outputs: ObjectDetectionResults;
+};
+
+export type maskGenerationIOConfig = {
+  inputs: {
+    polygon: GeoJSON.Feature;
+    input: SegmentationInput;
+    maxMasks?: number;
+  };
+  outputs: SegmentationResults;
+};
+
+export type baseIOConfig = {
+  inputs: {
+    polygon: GeoJSON.Feature;
+    options?: any;
+  };
+  outputs: ObjectDetectionResults;
 };

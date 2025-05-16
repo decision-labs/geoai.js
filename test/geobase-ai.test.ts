@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { geobaseAi, ProviderParams } from "../src/geobase-ai";
 import { ZeroShotObjectDetection } from "../src/models/zero_shot_object_detection";
+import { GenericSegmentation } from "../src/models/generic_segmentation";
+import {
+  geobaseParams,
+  geobaseParamsBuilding,
+  polygonBuilding,
+} from "./constants";
+import { build } from "vite";
 
 describe("geobase-ai", () => {
   it("should be an object", () => {
@@ -67,45 +74,130 @@ describe("Pipeline", () => {
   });
 });
 
-//TODO: Add more tests for the chain function
-
-describe.skip("Chain", () => {
-  it("should create chain with multiple pipelines", async () => {
-    const chain = await geobaseAi.chain([
-      {
-        task: "zero-shot-object-detection",
-        params: {
-          provider: "mapbox",
-          apiKey: "test",
-        } as ProviderParams,
-      },
-      // Add more pipeline configurations here
+describe("Chain", () => {
+  it("should list valid chains", () => {
+    const chains = geobaseAi.listChains([
+      "mask-generation",
+      "zero-shot-object-detection",
     ]);
+    expect(chains).toBeInstanceOf(Array);
+    expect(chains.length).toBeGreaterThan(0);
+  });
 
+  it("should create chain with multiple pipelines", async () => {
+    const chain = await geobaseAi.chain(
+      [
+        {
+          task: "zero-shot-object-detection",
+        },
+        {
+          task: "mask-generation",
+        },
+      ],
+      {
+        provider: "mapbox",
+        apiKey: "test",
+      } as ProviderParams
+    );
     expect(chain).toBeDefined();
-    expect(chain.pipelines.length).toBe(1);
     expect(chain.pipelines[0].instance).toBeInstanceOf(ZeroShotObjectDetection);
+    expect(chain.pipelines[0].task).toBe("zero-shot-object-detection");
+    expect(chain.pipelines[1].instance).toBeInstanceOf(GenericSegmentation);
+    expect(chain.pipelines[1].task).toBe("mask-generation");
   });
 
   it("should throw error when chain configuration is empty", async () => {
-    await expect(geobaseAi.chain([])).rejects.toThrow();
+    await expect(
+      geobaseAi.chain([], {
+        provider: "mapbox",
+        apiKey: "test",
+      } as ProviderParams)
+    ).rejects.toThrow();
   });
 
   it("should throw error when any pipeline in chain is invalid", async () => {
     await expect(
-      geobaseAi.chain([
+      geobaseAi.chain(
+        [
+          {
+            task: "zero-shot-object-detection",
+          },
+          {
+            task: "invalid-task",
+          },
+        ],
+        {
+          provider: "mapbox",
+          apiKey: "test",
+        } as ProviderParams
+      )
+    ).rejects.toThrow();
+  });
+
+  it("should return detection results for valid input", async () => {
+    const chain = await geobaseAi.chain(
+      [
         {
           task: "zero-shot-object-detection",
-          params: {
-            provider: "mapbox",
-            apiKey: "test",
-          } as ProviderParams,
         },
         {
-          task: "invalid-task",
-          params: {} as ProviderParams,
+          task: "mask-generation",
+          modelParams: {
+            revision: "boxes",
+          },
         },
-      ])
-    ).rejects.toThrow();
+      ],
+      geobaseParamsBuilding
+    );
+
+    const inputs = {
+      polygon: polygonBuilding,
+      text: "house .",
+    };
+
+    const result = await chain.run(inputs);
+
+    // Check basic properties
+    ["geoRawImage", "masks"].forEach(prop => {
+      expect(result).toHaveProperty(prop);
+    });
+
+    const { masks } = result;
+    expect(masks).toHaveProperty("type", "FeatureCollection");
+    expect(masks).toHaveProperty("features");
+    expect(masks.features).toBeInstanceOf(Array);
+
+    const geoJsonString = JSON.stringify(masks);
+    const encodedGeoJson = encodeURIComponent(geoJsonString);
+    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
+
+    console.log(`View GeoJSON here:`);
+    console.log(geojsonIoUrl);
+    // expect(result).toBeDefined();
+    // expect(result).toHaveProperty("masks");
+  });
+
+  it("should throw error when input is invalid", async () => {
+    const chain = await geobaseAi.chain(
+      [
+        {
+          task: "zero-shot-object-detection",
+        },
+        {
+          task: "mask-generation",
+          modelParams: {
+            revision: "boxes",
+          },
+        },
+      ],
+      geobaseParamsBuilding
+    );
+
+    const inputs = {
+      polygon: null,
+      text: "house .",
+    };
+
+    await expect(chain.run(inputs)).rejects.toThrow();
   });
 });

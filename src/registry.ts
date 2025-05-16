@@ -1,6 +1,15 @@
 import { PretrainedOptions } from "@huggingface/transformers";
-import { ModelConfig, ProviderParams } from "./core/types";
-import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
+import {
+  baseIOConfig,
+  maskGenerationIOConfig,
+  ModelConfig,
+  ProviderParams,
+  zeroShotModelIOConfig,
+} from "./core/types";
+import {
+  ObjectDetectionResults,
+  ZeroShotObjectDetection,
+} from "./models/zero_shot_object_detection";
 import { GenericSegmentation } from "./models/generic_segmentation";
 import { ObjectDetection } from "./models/object_detection";
 import { OrientedObjectDetection } from "./models/oriented_object_detection";
@@ -20,6 +29,8 @@ export const modelRegistry: ModelConfig[] = [
     task: "zero-shot-object-detection",
     library: "transformers.js",
     description: "Zero-shot object detection model.",
+    chainableTasks: ["mask-generation"],
+    ioConfig: {} as zeroShotModelIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "onnx-community/grounding-dino-tiny-ONNX",
@@ -34,6 +45,7 @@ export const modelRegistry: ModelConfig[] = [
     task: "mask-generation",
     library: "transformers.js",
     description: "Mask generation model.",
+    ioConfig: {} as maskGenerationIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "Xenova/slimsam-77-uniform",
@@ -48,6 +60,8 @@ export const modelRegistry: ModelConfig[] = [
     task: "object-detection",
     library: "transformers.js",
     description: "Object Detection model.",
+    chainableTasks: ["mask-generation"],
+    ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "geobase/WALDO30_yolov8m_640x640",
@@ -62,6 +76,7 @@ export const modelRegistry: ModelConfig[] = [
     task: "oriented-object-detection",
     library: "transformers.js",
     description: "Oriented Object Detection model.",
+    ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "https://huggingface.co/geobase/gghl-oriented-object-detection/resolve/main/onnx/model_quantized.onnx",
@@ -76,6 +91,13 @@ export const modelRegistry: ModelConfig[] = [
     task: "land-cover-classification",
     library: "geobase-ai",
     description: "Land Cover Classification model.",
+    ioConfig: {} as {
+      inputs: {
+        polygon: GeoJSON.Feature;
+        minArea?: number;
+      };
+      outputs: ObjectDetectionResults;
+    },
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "https://huggingface.co/geobase/sparsemask/resolve/main/onnx/sparsemask_model.onnx",
@@ -90,6 +112,7 @@ export const modelRegistry: ModelConfig[] = [
     task: "solar-panel-detection",
     library: "geobase-ai",
     description: "Land Cover Classification model.",
+    ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/solarPanelDetection_quantized.onnx",
@@ -104,6 +127,7 @@ export const modelRegistry: ModelConfig[] = [
     task: "ship-detection",
     library: "geobase-ai",
     description: "Land Cover Classification model.",
+    ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/shipDetection_quantized.onnx",
@@ -118,6 +142,7 @@ export const modelRegistry: ModelConfig[] = [
     task: "car-detection",
     library: "geobase-ai",
     description: "Land Cover Classification model.",
+    ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/carDetectionUSA_quantized.onnx",
@@ -132,6 +157,7 @@ export const modelRegistry: ModelConfig[] = [
     task: "wetland-segmentation",
     library: "geobase-ai",
     description: "Land Cover Classification model.",
+    ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/wetland_detection_quantized.onnx",
@@ -146,6 +172,7 @@ export const modelRegistry: ModelConfig[] = [
     task: "building-detection",
     library: "geobase-ai",
     description: "Land Cover Classification model.",
+    ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/buildingDetection_quantized.onnx",
@@ -160,6 +187,14 @@ export const modelRegistry: ModelConfig[] = [
     task: "oil-storage-tank-detection",
     library: "geobase-ai",
     description: "Oil Storage Tank Detection Model.",
+    ioConfig: {} as {
+      inputs: {
+        polygon: GeoJSON.Feature;
+        confidenceThreshold?: number;
+        nmsThreshold?: number;
+      };
+      outputs: ObjectDetectionResults;
+    },
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "https://huggingface.co/geobase/oil-storage-tank-detection/resolve/main/oil_storage_tank_yolox_quantized.onnx",

@@ -38,7 +38,7 @@ async function queryAgent(userQuery: string, providerParams: ProviderParams) {
   if (!model) throw new Error(`No model found for task: ${task}`);
 
   // Execute the model in transformers.js
-  const result = await geobaseAi.pipeline(task, providerParams, model.model);
+  const result = await geobaseAi.pipeline(task, providerParams);
 
   return {
     task,

@@ -162,8 +162,8 @@ export class OilStorageTankDetection {
 
   async inference(
     polygon: GeoJSON.Feature,
-    confidenceThreshold: number,
-    nmsThreshold: number
+    confidenceThreshold: number = 0.5,
+    nmsThreshold: number = 0.3
   ): Promise<ObjectDetectionResults> {
     // Ensure initialization is complete
     if (!this.initialized) {
