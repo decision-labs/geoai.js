@@ -2,12 +2,7 @@ import { describe, expect, it } from "vitest";
 import { geobaseAi, ProviderParams } from "../src/geobase-ai";
 import { ZeroShotObjectDetection } from "../src/models/zero_shot_object_detection";
 import { GenericSegmentation } from "../src/models/generic_segmentation";
-import {
-  geobaseParams,
-  geobaseParamsBuilding,
-  polygonBuilding,
-} from "./constants";
-import { build } from "vite";
+import { geobaseParamsBuilding, polygonBuilding } from "./constants";
 
 describe("geobase-ai", () => {
   it("should be an object", () => {
@@ -15,14 +10,14 @@ describe("geobase-ai", () => {
   });
 
   it("should have core API functions", () => {
-    expect(geobaseAi.listTasks).toBeInstanceOf(Function);
-    expect(geobaseAi.listModels).toBeInstanceOf(Function);
+    expect(geobaseAi.tasks).toBeInstanceOf(Function);
+    expect(geobaseAi.models).toBeInstanceOf(Function);
     expect(geobaseAi.pipeline).toBeInstanceOf(Function);
     expect(geobaseAi.chain).toBeInstanceOf(Function);
   });
 
   it("should list tasks", () => {
-    const tasks = geobaseAi.listTasks();
+    const tasks = geobaseAi.tasks();
     expect(tasks).toContain("zero-shot-object-detection");
     expect(tasks).toContain("mask-generation");
     expect(tasks).toBeInstanceOf(Array);
@@ -30,7 +25,7 @@ describe("geobase-ai", () => {
   });
 
   it("should list models", () => {
-    const models = geobaseAi.listModels();
+    const models = geobaseAi.models();
     expect(models.length).toBeGreaterThan(0);
     expect(models[0]).toHaveProperty("task");
     expect(models[0]).toHaveProperty("library");
@@ -76,7 +71,7 @@ describe("Pipeline", () => {
 
 describe("Chain", () => {
   it("should list valid chains", () => {
-    const chains = geobaseAi.listChains([
+    const chains = geobaseAi.validateChain([
       "mask-generation",
       "zero-shot-object-detection",
     ]);
