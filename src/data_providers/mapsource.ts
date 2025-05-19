@@ -1,7 +1,6 @@
 import { bbox as turfBbox } from "@turf/bbox";
 import { GeoRawImage } from "../types/images/GeoRawImage";
 import { calculateTilesForBbox, getImageFromTiles } from "./common";
-import { MapSource } from "./mapsource";
 
 const addChain = (receiver: any) =>
   Object.defineProperty(receiver.prototype, "chain", {
@@ -18,41 +17,13 @@ const addChain = (receiver: any) =>
   addChain(receiver);
 });
 
-interface GeobaseConfig {
-  projectRef: string;
-  cogImagery: string;
-  apikey: string;
-}
-
-export class Geobase extends MapSource {
-  projectRef: string;
-  cogImagery: string;
-  apikey: string;
-
-  constructor(config: GeobaseConfig) {
-    super();
-    this.projectRef = config.projectRef;
-    this.cogImagery = config.cogImagery;
-    this.apikey = config.apikey;
-  }
-
-  protected getTileUrlFromTileCoords(
+export abstract class MapSource {
+  protected abstract getTileUrlFromTileCoords(
     tileCoords: [number, number, number],
-    instance: Geobase,
+    instance: any,
     bands?: number[],
     expression?: string
-  ): string {
-    const [x, y, z] = tileCoords;
-    let baseUrl = `https://${instance.projectRef}.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/${z}/${x}/${y}?url=${instance.cogImagery}&apikey=${instance.apikey}`;
-    if (bands && Array.isArray(bands) && bands.length > 0) {
-      baseUrl += bands.map(b => `&bidx=${b}`).join("");
-    }
-    if (expression && typeof expression === "string") {
-      expression = encodeURIComponent(expression);
-      baseUrl += `&expression=${expression}`;
-    }
-    return baseUrl;
-  }
+  ): string;
 
   async getImage(
     polygon: any,
@@ -61,8 +32,7 @@ export class Geobase extends MapSource {
     zoomLevel?: number
   ): Promise<GeoRawImage> {
     const bbox = turfBbox(polygon);
-
-    let zoom = 22;
+    let zoom = 20;
 
     if (zoomLevel) {
       const tilesGrid = calculateTilesForBbox(
@@ -89,11 +59,10 @@ export class Geobase extends MapSource {
     let yTileNum = tilesGrid.length;
 
     while (
-      xTileNum > 2 &&
-      yTileNum > 2
-      // (xTileNum === 1 && yTileNum === 1 && zoom > 22) ||
-      // (xTileNum > 2 && yTileNum > 1) ||
-      // (xTileNum > 1 && yTileNum > 2)
+      (xTileNum > 2 && yTileNum > 2) ||
+      (xTileNum === 1 && yTileNum === 1 && zoom > 22) ||
+      (xTileNum > 2 && yTileNum > 1) ||
+      (xTileNum > 1 && yTileNum > 2)
     ) {
       zoom--;
       tilesGrid = calculateTilesForBbox(
@@ -108,14 +77,6 @@ export class Geobase extends MapSource {
       yTileNum = tilesGrid.length;
     }
 
-    // if require better quality image then un comment this code but it cause problem the resultant grid's columns and rows might not be equal
-
-    // tilesGrid = calculateTilesForBbox(
-    //   bbox,
-    //   this.getTileUrlFromTileCoords,
-    //   zoom + 1,
-    //   this
-    // );
     return await getImageFromTiles(tilesGrid);
   }
 }
