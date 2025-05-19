@@ -233,9 +233,9 @@ class Pipeline {
 const geobaseAi = {
   pipeline: Pipeline.pipeline,
   chain: Pipeline.chain,
-  listTasks: Pipeline.listTasks,
-  listModels: Pipeline.listModels,
-  listChains: Pipeline.findValidChains,
+  tasks: Pipeline.listTasks,
+  models: Pipeline.listModels,
+  validateChain: Pipeline.findValidChains,
 };
 
 export { geobaseAi, type ProviderParams };
