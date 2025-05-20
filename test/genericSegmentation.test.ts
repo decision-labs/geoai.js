@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll } from "vitest";
+import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { geobaseAi } from "../src/geobase-ai";
 import {
   GenericSegmentation,
@@ -18,32 +18,50 @@ import {
 import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("geobaseAi.genericSegmentation", () => {
-  let mapboxInstance: GenericSegmentation;
-  let geobaseInstance: GenericSegmentation;
-  let geobaseBuildingInstance: GenericSegmentation;
+  let mapboxInstance: GenericSegmentation | undefined;
+  let geobaseInstance: GenericSegmentation | undefined;
+  let geobaseBuildingInstance: GenericSegmentation | undefined;
 
   beforeAll(async () => {
-    // Initialize instances for reuse across tests
-    const mapboxResult = await geobaseAi.pipeline(
-      "mask-generation",
-      mapboxParams
-    );
-    mapboxInstance = mapboxResult.instance as GenericSegmentation;
+    try {
+      // Initialize instances for reuse across tests
+      const mapboxResult = await geobaseAi.pipeline(
+        "mask-generation",
+        mapboxParams
+      );
+      mapboxInstance = mapboxResult.instance as GenericSegmentation;
 
-    const geobaseResult = await geobaseAi.pipeline(
-      "mask-generation",
-      geobaseParams
-    );
-    geobaseInstance = geobaseResult.instance as GenericSegmentation;
+      const geobaseResult = await geobaseAi.pipeline(
+        "mask-generation",
+        geobaseParams
+      );
+      geobaseInstance = geobaseResult.instance as GenericSegmentation;
 
-    const geobaseBuildingResult = await geobaseAi.pipeline(
-      "mask-generation",
-      geobaseParamsBuilding,
-      "Xenova/slimsam-77-uniform",
-      { revision: "boxes" }
-    );
-    geobaseBuildingInstance =
-      geobaseBuildingResult.instance as GenericSegmentation;
+      const geobaseBuildingResult = await geobaseAi.pipeline(
+        "mask-generation",
+        geobaseParamsBuilding,
+        "Xenova/slimsam-77-uniform",
+        { revision: "boxes" }
+      );
+      geobaseBuildingInstance =
+        geobaseBuildingResult.instance as GenericSegmentation;
+    } catch (error) {
+      console.error("Error initializing test instances:", error);
+      throw error;
+    }
+  });
+
+  afterAll(async () => {
+    // Cleanup any resources if needed
+    if (mapboxInstance) {
+      mapboxInstance = undefined;
+    }
+    if (geobaseInstance) {
+      geobaseInstance = undefined;
+    }
+    if (geobaseBuildingInstance) {
+      geobaseBuildingInstance = undefined;
+    }
   });
 
   it("should initialize a segmentation pipeline", async () => {
@@ -102,37 +120,48 @@ describe("geobaseAi.genericSegmentation", () => {
   });
 
   it("should process a polygon for segmentation and generate valid GeoJSON", async () => {
+    if (!mapboxInstance) {
+      throw new Error("Mapbox instance not initialized");
+    }
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const input_points = quadrants_points[quadrant];
-      const pointInput: SegmentationInput = {
-        type: "points",
-        coordinates: input_points,
-      };
-      const result = await mapboxInstance.inference(polygon, pointInput);
+      try {
+        const input_points = quadrants_points[quadrant];
+        const pointInput: SegmentationInput = {
+          type: "points",
+          coordinates: input_points,
+        };
+        const result = await mapboxInstance.inference(polygon, pointInput);
 
-      // Check basic properties
-      expect(result).toHaveProperty("geoRawImage");
-      expect(result).toHaveProperty("masks");
-      expect(result.geoRawImage).toBeDefined();
-      expect(result.geoRawImage).not.toBeNull();
+        // Check basic properties
+        expect(result).toHaveProperty("geoRawImage");
+        expect(result).toHaveProperty("masks");
+        expect(result.geoRawImage).toBeDefined();
+        expect(result.geoRawImage).not.toBeNull();
 
-      const { masks } = result;
-      expect(masks).toHaveProperty("type", "FeatureCollection");
-      expect(masks).toHaveProperty("features");
-      expect(masks.features).toBeInstanceOf(Array);
-      expect(masks.features.length).toBeGreaterThan(0);
+        const { masks } = result;
+        expect(masks).toHaveProperty("type", "FeatureCollection");
+        expect(masks).toHaveProperty("features");
+        expect(masks.features).toBeInstanceOf(Array);
+        expect(masks.features.length).toBeGreaterThan(0);
 
-      // Save output to gist
-      await geoJsonToGist({
-        content: masks,
-        fileName: "genericSegmentationMapbox.geojson",
-        description:
-          "result genericSegmentation - should process a polygon for segmentation and generate valid GeoJSON",
-      });
+        // Save output to gist
+        await geoJsonToGist({
+          content: masks,
+          fileName: "genericSegmentationMapbox.geojson",
+          description:
+            "result genericSegmentation - should process a polygon for segmentation and generate valid GeoJSON",
+        });
+      } catch (error) {
+        console.error(`Error processing quadrant ${quadrant}:`, error);
+        throw error;
+      }
     }
   });
 
   it("should process a polygon for segmentation and generate valid GeoJSON for source geobase with point", async () => {
+    if (!geobaseInstance) {
+      throw new Error("Geobase instance not initialized");
+    }
     const pointInput: SegmentationInput = {
       type: "points",
       coordinates: input_point,
@@ -161,6 +190,9 @@ describe("geobaseAi.genericSegmentation", () => {
   });
 
   it("should process a polygon for segmentation and generate valid GeoJSON for source geobase with boxes", async () => {
+    if (!geobaseBuildingInstance) {
+      throw new Error("Geobase building instance not initialized");
+    }
     const boxInput: SegmentationInput = {
       type: "boxes",
       coordinates: input_bbox,
@@ -193,34 +225,62 @@ describe("geobaseAi.genericSegmentation", () => {
 });
 
 describe("boxes pipeline with thresholds parameter", () => {
-  let boxesInstance: GenericSegmentation;
+  let boxesInstance: GenericSegmentation | undefined;
 
   beforeAll(async () => {
-    const { instance } = await geobaseAi.pipeline(
-      "mask-generation",
-      geobaseParamsBuilding,
-      "Xenova/slimsam-77-uniform",
-      { revision: "boxes" }
-    );
-    boxesInstance = instance as GenericSegmentation;
+    try {
+      const { instance } = await geobaseAi.pipeline(
+        "mask-generation",
+        geobaseParamsBuilding,
+        "Xenova/slimsam-77-uniform",
+        { revision: "boxes" }
+      );
+      boxesInstance = instance as GenericSegmentation;
+    } catch (error) {
+      console.error("Error initializing boxes instance:", error);
+      throw error;
+    }
   }, 10000);
 
+  afterAll(async () => {
+    // Cleanup
+    if (boxesInstance) {
+      boxesInstance = undefined;
+    }
+  });
+
   it("should set the maxMasks to the requested value", async () => {
-    const boxInput: SegmentationInput = {
-      type: "boxes",
-      coordinates: input_bbox,
-    };
+    if (!boxesInstance) {
+      throw new Error("Boxes instance not initialized");
+    }
+    try {
+      const boxInput: SegmentationInput = {
+        type: "boxes",
+        coordinates: input_bbox,
+      };
 
-    // Test with 2 masks
-    const result2 = await boxesInstance.inference(polygonBuilding, boxInput, 2);
-    expect(result2.masks.features.length).toEqual(2);
-    expect(result2.masks.features).toBeInstanceOf(Array);
-    expect(result2.masks.type).toBe("FeatureCollection");
+      // Test with 2 masks
+      const result2 = await boxesInstance.inference(
+        polygonBuilding,
+        boxInput,
+        2
+      );
+      expect(result2.masks.features.length).toEqual(2);
+      expect(result2.masks.features).toBeInstanceOf(Array);
+      expect(result2.masks.type).toBe("FeatureCollection");
 
-    // Test with 1 mask
-    const result1 = await boxesInstance.inference(polygonBuilding, boxInput, 1);
-    expect(result1.masks.features.length).toEqual(1);
-    expect(result1.masks.features).toBeInstanceOf(Array);
-    expect(result1.masks.type).toBe("FeatureCollection");
+      // Test with 1 mask
+      const result1 = await boxesInstance.inference(
+        polygonBuilding,
+        boxInput,
+        1
+      );
+      expect(result1.masks.features.length).toEqual(1);
+      expect(result1.masks.features).toBeInstanceOf(Array);
+      expect(result1.masks.type).toBe("FeatureCollection");
+    } catch (error) {
+      console.error("Error in maxMasks test:", error);
+      throw error;
+    }
   });
 });
