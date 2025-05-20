@@ -6,7 +6,7 @@ export async function geoJsonToGist({
   description = "GeoJSON output from test",
   isPublic = true,
 }) {
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.TOKEN_GITHUB;
   if (!token) {
     console.warn("⚠️ No GitHub token found. Skipping Gist creation.");
     return null;
