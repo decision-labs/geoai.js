@@ -194,7 +194,7 @@ describe("boxes pipeline with thresholds parameter", () => {
       { revision: "boxes" }
     );
     boxesInstance = instance as GenericSegmentation;
-  });
+  }, 10000);
 
   it("should set the maxMasks to the requested value", async () => {
     const boxInput: SegmentationInput = {
