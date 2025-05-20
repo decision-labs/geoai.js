@@ -2,61 +2,54 @@ import { ProviderParams } from "../src/geobase-ai";
 
 export const mapboxParams: ProviderParams = {
   provider: "mapbox",
-  apiKey:
-    "pk.eyJ1Ijoic2FiIiwiYSI6ImNsNDE3bGR3bzB2MmczaXF5dmxpaTloNmcifQ.NQ-B8jBPtOd53tNYt42Gqw",
+  apiKey: process.env.MAPBOX_API_KEY || "test",
   style: "mapbox://styles/mapbox/satellite-v9",
 };
 
 export const geobaseParams: ProviderParams = {
   provider: "geobase",
-  projectRef: "wmrosdnjsecywfkvxtrw",
-  apikey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTY1NDU4MjUsImlhdCI6MTczODc2MTQyNSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.M8jeru5dbHe4tGh52xe2E2HlUiGCAPbZ8-JrfbxiRk0",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
     "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif",
 };
 
 export const geobaseParamsSolarPanel: ProviderParams = {
   provider: "geobase",
-  projectRef: "wmrosdnjsecywfkvxtrw",
-  apikey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTY1NDU4MjUsImlhdCI6MTczODc2MTQyNSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.M8jeru5dbHe4tGh52xe2E2HlUiGCAPbZ8-JrfbxiRk0",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
     "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/solar_panels_davis_ca.tif",
 };
 
 export const geobaseParamsShip: ProviderParams = {
   provider: "geobase",
-  projectRef: "wmrosdnjsecywfkvxtrw",
-  apikey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTY1NDU4MjUsImlhdCI6MTczODc2MTQyNSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.M8jeru5dbHe4tGh52xe2E2HlUiGCAPbZ8-JrfbxiRk0",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
     "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/ships_dubai.tif",
 };
 
 export const geobaseParamsCar: ProviderParams = {
   provider: "geobase",
-  projectRef: "wmrosdnjsecywfkvxtrw",
-  apikey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTY1NDU4MjUsImlhdCI6MTczODc2MTQyNSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.M8jeru5dbHe4tGh52xe2E2HlUiGCAPbZ8-JrfbxiRk0",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
     "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/cars_7cm.tif",
 };
 
 export const geobaseParamsWetLand: ProviderParams = {
   provider: "geobase",
-  projectRef: "wmrosdnjsecywfkvxtrw",
-  apikey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTY1NDU4MjUsImlhdCI6MTczODc2MTQyNSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.M8jeru5dbHe4tGh52xe2E2HlUiGCAPbZ8-JrfbxiRk0",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
     "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip/m_4609932_nw_14_1_20100629.tif",
 };
 
 export const geobaseParamsBuilding: ProviderParams = {
   provider: "geobase",
-  projectRef: "wmrosdnjsecywfkvxtrw",
-  apikey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTY1NDU4MjUsImlhdCI6MTczODc2MTQyNSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.M8jeru5dbHe4tGh52xe2E2HlUiGCAPbZ8-JrfbxiRk0",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
     "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip_train.tif",
 };
@@ -84,11 +77,11 @@ export const polygonBuilding = {
   geometry: {
     coordinates: [
       [
-        [-117.59296583303752, 47.65404422995658],
-        [-117.59296583303752, 47.6522039738382],
-        [-117.59050486430851, 47.6522039738382],
-        [-117.59050486430851, 47.65404422995658],
-        [-117.59296583303752, 47.65404422995658],
+        [-117.59239617156095, 47.653614113446906],
+        [-117.59239617156095, 47.652878388765174],
+        [-117.59040545822742, 47.652878388765174],
+        [-117.59040545822742, 47.653614113446906],
+        [-117.59239617156095, 47.653614113446906],
       ],
     ],
     type: "Polygon",

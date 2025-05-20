@@ -72,7 +72,7 @@ describe("Geobase", () => {
 
     beforeAll(() => {
       testGeobase = new Geobase({
-        projectRef: "wmrosdnjsecywfkvxtrw",
+        projectRef: process.env.GEOBASE_PROJECT_REF,
         apikey: "test-key",
         cogImagery: "test-imagery",
       });

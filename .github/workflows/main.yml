@@ -24,6 +24,13 @@ jobs:
         #   standalone: # optional, default is false
       - name: Install dependencies
         run: pnpm install
+
+      - name: Create .env file from secrets
+        run: |
+          echo "MAPBOX_API_KEY=${{ secrets.MAPBOX_API_KEY }}" >> .env
+          echo "GEOBASE_PROJECT_REF=${{ secrets.GEOBASE_PROJECT_REF }}" >> .env
+          echo "GEOBASE_API_KEY=${{ secrets.GEOBASE_API_KEY }}" >> .env
+
       - name: Build
         run: pnpm build
       - name: Test

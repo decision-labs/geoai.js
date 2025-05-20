@@ -3,6 +3,9 @@ import path from "path";
 import { defineConfig } from "vite";
 import packageJson from "./package.json";
 import commonjs from "vite-plugin-commonjs";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const getPackageName = () => {
   return packageJson.name;
