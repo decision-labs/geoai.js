@@ -15,7 +15,7 @@ import {
   quadrants,
   quadrants_points,
 } from "./constants";
-import { maskToGeoJSON } from "../src/utils/utils";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("geobaseAi.genericSegmentation", () => {
   let mapboxInstance: GenericSegmentation;
@@ -122,10 +122,13 @@ describe("geobaseAi.genericSegmentation", () => {
       expect(masks.features).toBeInstanceOf(Array);
       expect(masks.features.length).toBeGreaterThan(0);
 
-      const geoJsonString = JSON.stringify(masks);
-      const encodedGeoJson = encodeURIComponent(geoJsonString);
-      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-      console.log(`View GeoJSON for quadrant ${quadrant}: ${geojsonIoUrl}`);
+      // Save output to gist
+      await geoJsonToGist({
+        content: masks,
+        fileName: "genericSegmentationMapbox.geojson",
+        description:
+          "result genericSegmentation - should process a polygon for segmentation and generate valid GeoJSON",
+      });
     }
   });
 
@@ -148,10 +151,13 @@ describe("geobaseAi.genericSegmentation", () => {
     expect(masks.features).toBeInstanceOf(Array);
     expect(masks.features.length).toBeGreaterThan(0);
 
-    const geoJsonString = JSON.stringify(masks);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON for geobase point: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: masks,
+      fileName: "genericSegmentationGeobase.geojson",
+      description:
+        "result genericSegmentation - should process a polygon for segmentation and generate valid GeoJSON for source geobase with point",
+    });
   });
 
   it("should process a polygon for segmentation and generate valid GeoJSON for source geobase with boxes", async () => {
@@ -176,10 +182,13 @@ describe("geobaseAi.genericSegmentation", () => {
     expect(masks.features).toBeInstanceOf(Array);
     expect(masks.features.length).toBeGreaterThan(0);
 
-    const geoJsonString = JSON.stringify(masks);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON for geobase boxes: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: masks,
+      fileName: "genericSegmentationGeobaseBoxes.geojson",
+      description:
+        "result genericSegmentation - should process a polygon for segmentation and generate valid GeoJSON for source geobase with boxes",
+    });
   });
 });
 

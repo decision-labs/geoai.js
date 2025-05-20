@@ -12,6 +12,7 @@ import {
   ObjectDetectionResults,
   ZeroShotObjectDetection,
 } from "../src/models/zero_shot_object_detection";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("geobaseAi.zeroShotObjectDetection", () => {
   let owlvitInstance: ZeroShotObjectDetection;
@@ -123,11 +124,13 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       expect(result.geoRawImage.width).toBeGreaterThan(0);
       expect(result.geoRawImage.height).toBeGreaterThan(0);
 
-      // Log visualization URL
-      const geoJsonString = JSON.stringify(result.detections);
-      const encodedGeoJson = encodeURIComponent(geoJsonString);
-      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-      console.log(`View GeoJSON for ${quadrant}: ${geojsonIoUrl}`);
+      // Save output to gist
+      await geoJsonToGist({
+        content: result.detections,
+        fileName: "zeroShotODGroundingDino.geojson",
+        description:
+          "result zeroShotObjectDetection - should process polygons and detect objects with Grounding DINO",
+      });
     }
   });
 
@@ -149,11 +152,13 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       expect(result.geoRawImage.width).toBeGreaterThan(0);
       expect(result.geoRawImage.height).toBeGreaterThan(0);
 
-      // Log visualization URL
-      const geoJsonString = JSON.stringify(result.detections);
-      const encodedGeoJson = encodeURIComponent(geoJsonString);
-      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-      console.log(`View GeoJSON for ${quadrant}: ${geojsonIoUrl}`);
+      // Save output to gist
+      await geoJsonToGist({
+        content: result.detections,
+        fileName: "zeroShotODOwlVitMapbox.geojson",
+        description:
+          "result zeroShotObjectDetection - should process polygons and detect multiple object types with OWL-ViT",
+      });
     }
   });
 
@@ -173,10 +178,12 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     expect(result.geoRawImage.width).toBeGreaterThan(0);
     expect(result.geoRawImage.height).toBeGreaterThan(0);
 
-    // Log visualization URL
-    const geoJsonString = JSON.stringify(result.detections);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON for geobase source: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: result.detections,
+      fileName: "zeroShotODOwlVitGeobase.geojson",
+      description:
+        "result zeroShotObjectDetection - should process geobase source polygons with OWL-ViT",
+    });
   });
 });

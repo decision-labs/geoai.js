@@ -17,7 +17,7 @@
     "dev": "vite --host",
     "build": "rimraf build/**/* && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts && copyfiles ./package.json build",
     "build:examples": "pnpm build && cp -r ./build ./examples/codepen-geobase",
-    "test": "vitest run --testTimeout 420000",
+    "test": "vitest",
     "test:coverage": "vitest --coverage",
     "lint:scripts": "eslint . --ext .ts",
     "lint:styles": "stylelint ./**/*.{css,scss}",
@@ -67,6 +67,7 @@
     "@turf/polygon-smooth": "^7.2.0",
     "@turf/turf": "^7.2.0",
     "global-mercator": "github:decision-labs/global-mercator",
+    "node-fetch": "^3.3.2",
     "onnxruntime-web": "^1.21.0"
   },
   "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf"

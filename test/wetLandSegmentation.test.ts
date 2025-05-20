@@ -8,6 +8,7 @@ import {
 } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { WetLandSegmentation } from "../src/models/geoai_models";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("test model geobase/wetland-detection", () => {
   let wetlandInstance: WetLandSegmentation;
@@ -75,8 +76,12 @@ describe("test model geobase/wetland-detection", () => {
     const geoJsonString = JSON.stringify(results.detections, (_, value) =>
       typeof value === "bigint" ? value.toString() : value
     );
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON here: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: geoJsonString,
+      fileName: "wetLandSegmentation.geojson",
+      description:
+        "result wetLandSegmentation - should process a polygon for wetland detection",
+    });
   });
 });

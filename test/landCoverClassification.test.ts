@@ -6,6 +6,7 @@ import { geobaseParams, polygon } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { LandCoverClassification } from "../src/models/land_cover_classification";
 import { RawImage } from "@huggingface/transformers";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("test model geobase/land-cover-classification", () => {
   let landCoverInstance: LandCoverClassification;
@@ -53,17 +54,17 @@ describe("test model geobase/land-cover-classification", () => {
 
     // Validate detections
     expect(Array.isArray(results.detections)).toBe(true);
-    results.detections.forEach((detection: GeoJSON.FeatureCollection) => {
+    results.detections.forEach(async (detection: GeoJSON.FeatureCollection) => {
       expect(detection.type).toBe("FeatureCollection");
       expect(Array.isArray(detection.features)).toBe(true);
 
-      // Log visualization URL
-      const geoJsonString = JSON.stringify(detection);
-      const encodedGeoJson = encodeURIComponent(geoJsonString);
-      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-      console.log(
-        `View GeoJSON for land cover classification: ${geojsonIoUrl}`
-      );
+      // Save output to gist
+      await geoJsonToGist({
+        content: detection,
+        fileName: "landCoverClassification.geojson",
+        description:
+          "result landCoverClassification - should process a polygon for land cover classification",
+      });
     });
 
     // Validate output image

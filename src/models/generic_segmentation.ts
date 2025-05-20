@@ -10,6 +10,7 @@ import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import { BaseModel } from "./base_model";
+import { mapSourceConfig } from "@/core/types";
 
 export interface SegmentationInput {
   type: "points" | "boxes";
@@ -122,7 +123,8 @@ export class GenericSegmentation extends BaseModel {
   async inference(
     polygon: GeoJSON.Feature,
     input: SegmentationInput | ObjectDetectionResults,
-    maxMasks: number = 1
+    maxMasks: number = 1,
+    mapSourceOptions: mapSourceConfig = {}
   ): Promise<SegmentationResult> {
     const isChained =
       (input as ObjectDetectionResults).detections !== undefined;
@@ -137,7 +139,12 @@ export class GenericSegmentation extends BaseModel {
 
     const geoRawImage: GeoRawImage = isChained
       ? (input as ObjectDetectionResults).geoRawImage
-      : await this.polygon_to_image(polygon);
+      : await this.polygon_to_image(
+          polygon,
+          mapSourceOptions.zoomLevel,
+          mapSourceOptions.bands,
+          mapSourceOptions.expression
+        );
 
     const batch_input = isChained
       ? (input as ObjectDetectionResults).detections.features.map(feature => {

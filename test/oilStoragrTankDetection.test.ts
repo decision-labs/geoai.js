@@ -4,6 +4,7 @@ import { geobaseAi } from "../src/geobase-ai";
 import { mapboxParams, polygonOilStorage } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { OilStorageTankDetection } from "../src/models/oil_storage_tank_detection";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("test model geobase/oil-storage-tank-detection", () => {
   let oilStorageInstance: OilStorageTankDetection;
@@ -59,10 +60,12 @@ describe("test model geobase/oil-storage-tank-detection", () => {
     expect(results.geoRawImage.width).toBeGreaterThan(0);
     expect(results.geoRawImage.height).toBeGreaterThan(0);
 
-    // Log visualization URL
-    const geoJsonString = JSON.stringify(results.detections);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON for oil storage tank detection: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: results.detections,
+      fileName: "oilStorageTankDetection.geojson",
+      description:
+        "result oilStorageTankDetection - should process a polygon for oil-storage-tank detection",
+    });
   });
 });

@@ -5,6 +5,7 @@ import { ObjectDetection } from "../src/models/object_detection";
 import { detectionsToGeoJSON } from "../src/utils/utils";
 import { ObjectDetectionResults } from "../src/models/zero_shot_object_detection";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("geobaseAi.objectDetection", () => {
   let objectDetectionInstance: ObjectDetection;
@@ -90,11 +91,13 @@ describe("geobaseAi.objectDetection", () => {
       expect(results.geoRawImage.width).toBeGreaterThan(0);
       expect(results.geoRawImage.height).toBeGreaterThan(0);
 
-      // Log visualization URL
-      const geoJsonString = JSON.stringify(results.detections);
-      const encodedGeoJson = encodeURIComponent(geoJsonString);
-      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-      console.log(`View GeoJSON for ${quadrant}: ${geojsonIoUrl}`);
+      // Save output to gist
+      await geoJsonToGist({
+        content: results.detections,
+        fileName: "objectDetectionMapbox.geojson",
+        description:
+          "result objectDetectionMapbox - should process a polygon for object detection in each quadrant",
+      });
     }
   });
 
@@ -113,10 +116,12 @@ describe("geobaseAi.objectDetection", () => {
     expect(results.geoRawImage.width).toBeGreaterThan(0);
     expect(results.geoRawImage.height).toBeGreaterThan(0);
 
-    // Log visualization URL
-    const geoJsonString = JSON.stringify(results.detections);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON for geobase source: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: results.detections,
+      fileName: "objectDetectionGeobase.geojson",
+      description:
+        "result objectDetectionMapbox - should process a polygon for object detection for source geobase",
+    });
   });
 });

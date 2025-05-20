@@ -30,6 +30,7 @@ jobs:
           echo "MAPBOX_API_KEY=${{ secrets.MAPBOX_API_KEY }}" >> .env
           echo "GEOBASE_PROJECT_REF=${{ secrets.GEOBASE_PROJECT_REF }}" >> .env
           echo "GEOBASE_API_KEY=${{ secrets.GEOBASE_API_KEY }}" >> .env
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> .env
 
       - name: Build
         run: pnpm build

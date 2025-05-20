@@ -4,6 +4,7 @@ import { geobaseAi } from "../src/geobase-ai";
 import { geobaseParamsShip, mapboxParams, polygonShip } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { ShipDetection } from "../src/models/geoai_models";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("test model geobase/ship-detection", () => {
   let shipInstance: ShipDetection;
@@ -52,10 +53,12 @@ describe("test model geobase/ship-detection", () => {
     expect(results.geoRawImage.width).toBeGreaterThan(0);
     expect(results.geoRawImage.height).toBeGreaterThan(0);
 
-    // Log visualization URL
-    const geoJsonString = JSON.stringify(results.detections);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON for ship detection: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: results.detections,
+      fileName: "shipDetection.geojson",
+      description:
+        "result shipDetection - should process a polygon for ship detection",
+    });
   });
 });

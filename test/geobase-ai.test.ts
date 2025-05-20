@@ -3,6 +3,7 @@ import { geobaseAi, ProviderParams } from "../src/geobase-ai";
 import { ZeroShotObjectDetection } from "../src/models/zero_shot_object_detection";
 import { GenericSegmentation } from "../src/models/generic_segmentation";
 import { geobaseParamsBuilding, polygonBuilding } from "./constants";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("geobase-ai", () => {
   it("should be an object", () => {
@@ -129,7 +130,7 @@ describe("Chain", () => {
     ).rejects.toThrow();
   });
 
-  it("should return detection results for valid input", async () => {
+  it("should return detection results for valid input chain", async () => {
     const chain = await geobaseAi.chain(
       [
         {
@@ -162,12 +163,13 @@ describe("Chain", () => {
     expect(masks).toHaveProperty("features");
     expect(masks.features).toBeInstanceOf(Array);
 
-    const geoJsonString = JSON.stringify(masks);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-
-    console.log(`View GeoJSON here:`);
-    console.log(geojsonIoUrl);
+    // Save output to gist
+    await geoJsonToGist({
+      content: masks,
+      fileName: "chainObjectDetectionandMaskGeneration.geojson",
+      description:
+        "result chainObjectDetectionandMaskGeneration - should return detection results for valid input chain",
+    });
     // expect(result).toBeDefined();
     // expect(result).toHaveProperty("masks");
   });

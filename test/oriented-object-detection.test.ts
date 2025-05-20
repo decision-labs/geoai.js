@@ -9,6 +9,7 @@ import {
   OrientedObjectDetection,
 } from "../src/models/oriented_object_detection";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("test model geobase/gghl-oriented-object-detection", () => {
   let orientedObjectInstance: OrientedObjectDetection;
@@ -79,11 +80,13 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
       expect(results.geoRawImage.width).toBeGreaterThan(0);
       expect(results.geoRawImage.height).toBeGreaterThan(0);
 
-      // Log visualization URL
-      const geoJsonString = JSON.stringify(results.detections);
-      const encodedGeoJson = encodeURIComponent(geoJsonString);
-      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-      console.log(`View GeoJSON for ${quadrant}: ${geojsonIoUrl}`);
+      // Save output to gist
+      await geoJsonToGist({
+        content: results.detections,
+        fileName: "orientedObjectDetectionMapboxQuadrants.geojson",
+        description:
+          "result orientedObjectDetection - should process a polygon for oriented object detection in each quadrant",
+      });
     }
   });
 
@@ -108,10 +111,12 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
     expect(results.geoRawImage.width).toBeGreaterThan(0);
     expect(results.geoRawImage.height).toBeGreaterThan(0);
 
-    // Log visualization URL
-    const geoJsonString = JSON.stringify(results.detections);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON for geobase source: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: results.detections,
+      fileName: "orientedObjectDetectionGeobase.geojson",
+      description:
+        "result orientedObjectDetection - should process a polygon for oriented object detection for polygon for source geobase",
+    });
   });
 });
