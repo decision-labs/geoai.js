@@ -1,4 +1,3 @@
-import { Mapbox } from "@/data_providers/mapbox";
 import {
   SamModel,
   AutoProcessor,
@@ -9,8 +8,8 @@ import { maskToGeoJSON, parametersChanged } from "@/utils/utils";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { Geobase } from "@/data_providers/geobase";
 import { ObjectDetectionResults } from "./zero_shot_object_detection";
+import { BaseModel } from "./base_model";
 
 export interface SegmentationInput {
   type: "points" | "boxes";
@@ -22,7 +21,7 @@ interface SegmentationResult {
   geoRawImage: GeoRawImage;
 }
 
-function getOppositePoints(coordinates: number[][]): number[][] {
+const getOppositePoints = (coordinates: number[][]): number[][] => {
   // Validate input
   if (!Array.isArray(coordinates) || coordinates.length < 4) {
     throw new Error("Input must be an array of at least 4 coordinate pairs");
@@ -50,26 +49,19 @@ function getOppositePoints(coordinates: number[][]): number[][] {
     [minLng, maxLat], // Southwest corner (min longitude, max latitude)
     [maxLng, minLat], // Northeast corner (max longitude, min latitude)
   ];
-}
+};
 
-export class GenericSegmentation {
-  private static instance: GenericSegmentation | null = null;
-  private providerParams: ProviderParams;
-  private dataProvider: Mapbox | Geobase | undefined;
-  private model_id: string;
+export class GenericSegmentation extends BaseModel {
+  protected static instance: GenericSegmentation | null = null;
   private model: SamModel | undefined;
   private processor: SamProcessor | undefined;
-  private initialized: boolean = false;
-  private modelParams: PretrainedOptions | undefined;
 
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
     modelParams?: PretrainedOptions
   ) {
-    this.model_id = model_id;
-    this.providerParams = providerParams;
-    this.modelParams = modelParams;
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
@@ -96,38 +88,8 @@ export class GenericSegmentation {
     return { instance: GenericSegmentation.instance };
   }
 
-  private async initialize(): Promise<void> {
-    if (this.initialized) return;
-
-    // Initialize data provider first
-    switch (this.providerParams.provider) {
-      case "mapbox":
-        this.dataProvider = new Mapbox(
-          this.providerParams.apiKey,
-          this.providerParams.style
-        );
-        break;
-      case "geobase":
-        this.dataProvider = new Geobase({
-          projectRef: this.providerParams.projectRef,
-          cogImagery: this.providerParams.cogImagery,
-          apikey: this.providerParams.apikey,
-        });
-        break;
-      case "sentinel":
-        throw new Error("Sentinel provider not implemented yet");
-      default:
-        throw new Error(
-          `Unknown provider: ${(this.providerParams as any).provider}`
-        );
-    }
-
-    // Verify data provider was initialized
-    if (!this.dataProvider) {
-      throw new Error("Failed to initialize data provider");
-    }
-
-    // Then initialize model components
+  protected async initializeModel(): Promise<void> {
+    // Initialize model components
     this.model = (await SamModel.from_pretrained(
       this.model_id,
       this.modelParams
@@ -136,8 +98,6 @@ export class GenericSegmentation {
       this.model_id,
       {}
     )) as SamProcessor;
-
-    this.initialized = true;
   }
 
   /**
@@ -269,15 +229,5 @@ export class GenericSegmentation {
       masks: combinedMasks,
       geoRawImage: geoRawImage,
     };
-  }
-
-  private async polygon_to_image(
-    polygon: GeoJSON.Feature
-  ): Promise<GeoRawImage> {
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
-    }
-    const image = this.dataProvider.getImage(polygon);
-    return image;
   }
 }

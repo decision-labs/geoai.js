@@ -22,7 +22,6 @@ import {
   WetLandSegmentation,
 } from "./models/geoai_models";
 import { OilStorageTankDetection } from "./models/oil_storage_tank_detection";
-import { ZeroShotObjectSegmentation } from "./models/zero_shot_object_segmentation";
 
 export const modelRegistry: ModelConfig[] = [
   {
@@ -203,24 +202,6 @@ export const modelRegistry: ModelConfig[] = [
       instance: OilStorageTankDetection;
     }> => {
       return OilStorageTankDetection.getInstance(modelId, params, modelParams);
-    },
-  },
-  {
-    task: "zero-shot-object-segmentation",
-    library: "geobase-ai",
-    description: "Zero shot object segmentation Model.",
-    geobase_ai_pipeline: (
-      params: ProviderParams,
-      modelId?: string,
-      modelParams?: PretrainedOptions
-    ): Promise<{
-      instance: ZeroShotObjectSegmentation;
-    }> => {
-      return ZeroShotObjectSegmentation.getInstance(
-        params,
-        modelParams,
-        modelId
-      );
     },
   },
 ];

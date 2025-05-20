@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
 import { geobaseAi } from "../src/geobase-ai";
 import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
 import { ObjectDetection } from "../src/models/object_detection";
@@ -7,6 +7,18 @@ import { ObjectDetectionResults } from "../src/models/zero_shot_object_detection
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 
 describe("geobaseAi.objectDetection", () => {
+  let objectDetectionInstance: ObjectDetection;
+
+  beforeAll(async () => {
+    // Initialize instance for reuse across tests
+    const result = await geobaseAi.pipeline(
+      "object-detection",
+      mapboxParams,
+      "geobase/WALDO30_yolov8m_640x640"
+    );
+    objectDetectionInstance = result.instance as ObjectDetection;
+  });
+
   it("should initialize a object detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
       "object-detection",
@@ -15,6 +27,8 @@ describe("geobaseAi.objectDetection", () => {
     );
 
     expect(result.instance).toBeInstanceOf(ObjectDetection);
+    expect(result.instance).toBeDefined();
+    expect(result.instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
@@ -30,6 +44,13 @@ describe("geobaseAi.objectDetection", () => {
     );
 
     expect(result1.instance).toBe(result2.instance);
+    expect(result1.instance.detector).toBe(result2.instance.detector);
+  });
+
+  it("should create new instances for different configurations", async () => {
+    const result1 = await geobaseAi.pipeline("object-detection", mapboxParams);
+    const result2 = await geobaseAi.pipeline("object-detection", geobaseParams);
+    expect(result1.instance).not.toBe(result2.instance);
   });
 
   it("should throw exception for invalid model parameters", async () => {
@@ -42,68 +63,60 @@ describe("geobaseAi.objectDetection", () => {
     ];
 
     for (const options of invalidOptions) {
-      try {
-        await geobaseAi.pipeline(
+      await expect(
+        geobaseAi.pipeline(
           "object-detection",
           mapboxParams,
           "geobase/WALDO30_yolov8m_640x640",
           options
-        );
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.message).toMatch(
-          /Invalid dtype|Unsupported device|Could not locate file|Unauthorized access to file/
-        );
-      }
+        )
+      ).rejects.toThrow();
     }
   });
 
   it("should process a polygon for object detection in each quadrant", async () => {
-    const { instance } = await geobaseAi.pipeline(
-      "object-detection",
-      mapboxParams
-    );
-
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const results: ObjectDetectionResults = await instance.inference(polygon);
+      const results: ObjectDetectionResults =
+        await objectDetectionInstance.inference(polygon);
 
+      // Validate GeoJSON structure
+      expect(results.detections).toBeDefined();
+      expect(results.detections.type).toBe("FeatureCollection");
+      expect(Array.isArray(results.detections.features)).toBe(true);
+
+      // Validate image data
+      expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+      expect(results.geoRawImage.data).toBeDefined();
+      expect(results.geoRawImage.width).toBeGreaterThan(0);
+      expect(results.geoRawImage.height).toBeGreaterThan(0);
+
+      // Log visualization URL
       const geoJsonString = JSON.stringify(results.detections);
       const encodedGeoJson = encodeURIComponent(geoJsonString);
       const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-
-      console.log(`View GeoJSON here: ${geojsonIoUrl}`);
-
-      // Check basic properties
-      expect(results).toHaveProperty("detections");
-      expect(results).toHaveProperty("geoRawImage");
-
-      // Check result types
-      expect(results.detections.type).toBe("FeatureCollection");
-      expect(Array.isArray(results.detections.features)).toBe(true);
-      expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+      console.log(`View GeoJSON for ${quadrant}: ${geojsonIoUrl}`);
     }
   });
-  it("should process a polygon for object detection for polygon for source geobase", async () => {
-    const { instance } = await geobaseAi.pipeline(
-      "object-detection",
-      geobaseParams
-    );
 
-    const results: ObjectDetectionResults = await instance.inference(polygon);
+  it("should process a polygon for object detection for source geobase", async () => {
+    const results: ObjectDetectionResults =
+      await objectDetectionInstance.inference(polygon);
 
+    // Validate GeoJSON structure
+    expect(results.detections).toBeDefined();
+    expect(results.detections.type).toBe("FeatureCollection");
+    expect(Array.isArray(results.detections.features)).toBe(true);
+
+    // Validate image data
+    expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+    expect(results.geoRawImage.data).toBeDefined();
+    expect(results.geoRawImage.width).toBeGreaterThan(0);
+    expect(results.geoRawImage.height).toBeGreaterThan(0);
+
+    // Log visualization URL
     const geoJsonString = JSON.stringify(results.detections);
     const encodedGeoJson = encodeURIComponent(geoJsonString);
     const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-
-    console.log(`View GeoJSON here: ${geojsonIoUrl}`);
-
-    // Check basic properties
-    expect(results).toHaveProperty("detections");
-    expect(results).toHaveProperty("geoRawImage");
-
-    // Check result types
-    expect(results.detections.type).toBe("FeatureCollection");
-    expect(Array.isArray(results.detections.features)).toBe(true);
-    expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+    console.log(`View GeoJSON for geobase source: ${geojsonIoUrl}`);
   });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
 
 import { geobaseAi } from "../src/geobase-ai";
 import {
@@ -10,6 +10,17 @@ import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { WetLandSegmentation } from "../src/models/geoai_models";
 
 describe("test model geobase/wetland-detection", () => {
+  let wetlandInstance: WetLandSegmentation;
+
+  beforeAll(async () => {
+    // Initialize instance for reuse across tests
+    const result = await geobaseAi.pipeline(
+      "wetland-segmentation",
+      geobaseParamsWetLand
+    );
+    wetlandInstance = result.instance as WetLandSegmentation;
+  });
+
   it("should initialize a wetland detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
       "wetland-segmentation",
@@ -17,6 +28,8 @@ describe("test model geobase/wetland-detection", () => {
     );
 
     expect(result.instance).toBeInstanceOf(WetLandSegmentation);
+    expect(result.instance).toBeDefined();
+    expect(result.instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
@@ -31,31 +44,39 @@ describe("test model geobase/wetland-detection", () => {
 
     expect(result1.instance).toBe(result2.instance);
   });
-  it("should process a polygon for wetland detection for polygon for source geobase", async () => {
-    const { instance } = await geobaseAi.pipeline(
+
+  it("should create new instances for different configurations", async () => {
+    const result1 = await geobaseAi.pipeline(
+      "wetland-segmentation",
+      mapboxParams
+    );
+    const result2 = await geobaseAi.pipeline(
       "wetland-segmentation",
       geobaseParamsWetLand
     );
+    expect(result1.instance).not.toBe(result2.instance);
+  });
 
-    const results: any = await (instance as WetLandSegmentation).inference(
-      polygonWetLand
-    );
+  it("should process a polygon for wetland detection", async () => {
+    const results = await wetlandInstance.inference(polygonWetLand);
 
+    // Validate GeoJSON structure
+    expect(results.detections).toBeDefined();
+    expect(results.detections.type).toBe("FeatureCollection");
+    expect(Array.isArray(results.detections.features)).toBe(true);
+
+    // Validate image data
+    expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+    expect(results.geoRawImage.data).toBeDefined();
+    expect(results.geoRawImage.width).toBeGreaterThan(0);
+    expect(results.geoRawImage.height).toBeGreaterThan(0);
+
+    // Log visualization URL
     const geoJsonString = JSON.stringify(results.detections, (_, value) =>
       typeof value === "bigint" ? value.toString() : value
     );
     const encodedGeoJson = encodeURIComponent(geoJsonString);
     const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-
     console.log(`View GeoJSON here: ${geojsonIoUrl}`);
-
-    // Check basic properties
-    expect(results).toHaveProperty("detections");
-    expect(results).toHaveProperty("geoRawImage");
-
-    // Check result types
-    expect(results.detections.type).toBe("FeatureCollection");
-    expect(Array.isArray(results.detections.features)).toBe(true);
-    expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
   });
 });

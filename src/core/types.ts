@@ -17,11 +17,9 @@ import {
   ObjectDetectionResults,
   ZeroShotObjectDetection,
 } from "@/models/zero_shot_object_detection";
-import {
-  SegmentationResults,
-  ZeroShotObjectSegmentation,
-} from "@/models/zero_shot_object_segmentation";
 import { PretrainedOptions } from "@huggingface/transformers";
+import * as ort from "onnxruntime-web";
+import { GeoRawImage } from "@/types/images/GeoRawImage";
 
 export type MapboxParams = {
   provider: "mapbox";
@@ -40,6 +38,14 @@ export type GeobaseParams = {
   cogImagery: string;
   projectRef: string;
 };
+
+export type mapSourceConfig = {
+  zoomLevel?: number;
+  bands?: number[];
+  expression?: string;
+};
+
+export type onnxModel = ort.InferenceSession;
 
 export type ProviderParams = MapboxParams | SentinelParams | GeobaseParams;
 
@@ -62,8 +68,7 @@ export type GeobaseAiModelTasks =
   | "car-detection"
   | "wetland-segmentation"
   | "building-detection"
-  | "oil-storage-tank-detection"
-  | "zero-shot-object-segmentation";
+  | "oil-storage-tank-detection";
 
 export type ModelsInstances =
   | GenericSegmentation
@@ -76,8 +81,7 @@ export type ModelsInstances =
   | CarDetection
   | WetLandSegmentation
   | BuildingDetection
-  | OilStorageTankDetection
-  | ZeroShotObjectSegmentation;
+  | OilStorageTankDetection;
 
 export type ModelConfig = {
   task: HuggingFaceModelTasks | GeobaseAiModelTasks;
@@ -107,6 +111,13 @@ export type zeroShotModelIOConfig = {
   };
   outputs: ObjectDetectionResults;
 };
+
+export interface SegmentationResults {
+  detections: GeoJSON.FeatureCollection;
+  masks: GeoJSON.FeatureCollection;
+  geoRawImage: GeoRawImage;
+  rawDetections: any[];
+}
 
 export type maskGenerationIOConfig = {
   inputs: {

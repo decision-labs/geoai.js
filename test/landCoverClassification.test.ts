@@ -1,50 +1,84 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
 
 import { geobaseAi } from "../src/geobase-ai";
-import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
+import { geobaseParams, polygon } from "./constants";
 
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { LandCoverClassification } from "../src/models/land_cover_classification";
 import { RawImage } from "@huggingface/transformers";
 
 describe("test model geobase/land-cover-classification", () => {
-  it("should process a polygon for land cover classification for polygon for source geobase", async () => {
-    const { instance } = await geobaseAi.pipeline(
+  let landCoverInstance: LandCoverClassification;
+
+  beforeAll(async () => {
+    // Initialize instance for reuse across tests
+    const result = await geobaseAi.pipeline(
+      "land-cover-classification",
+      geobaseParams
+    );
+    landCoverInstance = result.instance as LandCoverClassification;
+  });
+
+  it("should initialize a land cover classification pipeline", async () => {
+    const result = await geobaseAi.pipeline(
       "land-cover-classification",
       geobaseParams
     );
 
-    const results: any = await (instance as LandCoverClassification).inference(
-      polygon
+    expect(result.instance).toBeInstanceOf(LandCoverClassification);
+    expect(result.instance).toBeDefined();
+    expect(result.instance).not.toBeNull();
+  });
+
+  it("should reuse the same instance for the same model", async () => {
+    const result1 = await geobaseAi.pipeline(
+      "land-cover-classification",
+      geobaseParams
+    );
+    const result2 = await geobaseAi.pipeline(
+      "land-cover-classification",
+      geobaseParams
     );
 
-    const { detections } = results;
-    detections.forEach((detection: GeoJSON.FeatureCollection) => {
-      expect(detection.type).toBe("FeatureCollection");
-      expect(Array.isArray(detection.features)).toBe(true);
-      const geoJsonString = JSON.stringify(detection);
-      const encodedGeoJson = encodeURIComponent(geoJsonString);
-      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
+    expect(result1.instance).toBe(result2.instance);
+  });
 
-      console.log(`View GeoJSON here: ${geojsonIoUrl}`);
-    });
+  it("should process a polygon for land cover classification", async () => {
+    const results = await landCoverInstance.inference(polygon);
 
-    // console.log(`View GeoJSON here: ${geojsonIoUrl}`);
-
-    // Check basic properties
+    // Validate basic properties
     expect(results).toHaveProperty("detections");
     expect(results).toHaveProperty("outputImage");
     expect(results).toHaveProperty("binaryMasks");
 
-    // Check result types
+    // Validate detections
     expect(Array.isArray(results.detections)).toBe(true);
     results.detections.forEach((detection: GeoJSON.FeatureCollection) => {
       expect(detection.type).toBe("FeatureCollection");
+      expect(Array.isArray(detection.features)).toBe(true);
+
+      // Log visualization URL
+      const geoJsonString = JSON.stringify(detection);
+      const encodedGeoJson = encodeURIComponent(geoJsonString);
+      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
+      console.log(
+        `View GeoJSON for land cover classification: ${geojsonIoUrl}`
+      );
     });
+
+    // Validate output image
     expect(results.outputImage).toBeInstanceOf(GeoRawImage);
+    expect(results.outputImage.data).toBeDefined();
+    expect(results.outputImage.width).toBeGreaterThan(0);
+    expect(results.outputImage.height).toBeGreaterThan(0);
+
+    // Validate binary masks
     expect(Array.isArray(results.binaryMasks)).toBe(true);
-    results.binaryMasks.forEach((mask: any) => {
+    results.binaryMasks.forEach((mask: RawImage) => {
       expect(mask).toBeInstanceOf(RawImage);
+      expect(mask.data).toBeDefined();
+      expect(mask.width).toBeGreaterThan(0);
+      expect(mask.height).toBeGreaterThan(0);
     });
   });
 });

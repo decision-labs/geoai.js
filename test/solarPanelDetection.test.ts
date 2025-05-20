@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
 
 import { geobaseAi } from "../src/geobase-ai";
 import {
@@ -10,6 +10,17 @@ import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { SolarPanelDetection } from "../src/models/geoai_models";
 
 describe("test model solar pannel detection", () => {
+  let solarPanelInstance: SolarPanelDetection;
+
+  beforeAll(async () => {
+    // Initialize instance for reuse across tests
+    const result = await geobaseAi.pipeline(
+      "solar-panel-detection",
+      mapboxParams
+    );
+    solarPanelInstance = result.instance as SolarPanelDetection;
+  });
+
   it("should initialize a solar panel detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
       "solar-panel-detection",
@@ -17,6 +28,8 @@ describe("test model solar pannel detection", () => {
     );
 
     expect(result.instance).toBeInstanceOf(SolarPanelDetection);
+    expect(result.instance).toBeDefined();
+    expect(result.instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
@@ -31,29 +44,37 @@ describe("test model solar pannel detection", () => {
 
     expect(result1.instance).toBe(result2.instance);
   });
-  it("should process a polygon for solar pannel detection for polygon for source geobase", async () => {
-    const { instance } = await geobaseAi.pipeline(
+
+  it("should create new instances for different configurations", async () => {
+    const result1 = await geobaseAi.pipeline(
+      "solar-panel-detection",
+      mapboxParams
+    );
+    const result2 = await geobaseAi.pipeline(
       "solar-panel-detection",
       geobaseParamsSolarPanel
     );
+    expect(result1.instance).not.toBe(result2.instance);
+  });
 
-    const results: any = await (instance as SolarPanelDetection).inference(
-      polygonSolarPannel
-    );
+  it("should process a polygon for solar panel detection", async () => {
+    const results = await solarPanelInstance.inference(polygonSolarPannel);
 
+    // Validate GeoJSON structure
+    expect(results.detections).toBeDefined();
+    expect(results.detections.type).toBe("FeatureCollection");
+    expect(Array.isArray(results.detections.features)).toBe(true);
+
+    // Validate image data
+    expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+    expect(results.geoRawImage.data).toBeDefined();
+    expect(results.geoRawImage.width).toBeGreaterThan(0);
+    expect(results.geoRawImage.height).toBeGreaterThan(0);
+
+    // Log visualization URL
     const geoJsonString = JSON.stringify(results.detections);
     const encodedGeoJson = encodeURIComponent(geoJsonString);
     const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-
-    console.log(`View GeoJSON here: ${geojsonIoUrl}`);
-
-    // Check basic properties
-    expect(results).toHaveProperty("detections");
-    expect(results).toHaveProperty("geoRawImage");
-
-    // Check result types
-    expect(results.detections.type).toBe("FeatureCollection");
-    expect(Array.isArray(results.detections.features)).toBe(true);
-    expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+    console.log(`View GeoJSON for solar panel detection: ${geojsonIoUrl}`);
   });
 });

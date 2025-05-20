@@ -1,4 +1,3 @@
-import { Mapbox } from "@/data_providers/mapbox";
 import { RawImage } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 
@@ -6,9 +5,11 @@ import { ObjectDetectionResults } from "../models/zero_shot_object_detection";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { Geobase } from "@/data_providers/geobase";
 import * as ort from "onnxruntime-web";
 import { iouPoly } from "@/utils/gghl/polyiou";
+import { BaseModel } from "./base_model"; // <-- import BaseModel
+import { loadOnnxModel } from "./model_utils";
+import { mapSourceConfig } from "@/core/types";
 
 interface ConvertPredParams {
   pred_bbox: number[][];
@@ -28,14 +29,11 @@ export interface NMSOptions {
   without_iouthres?: boolean;
 }
 
-export class OrientedObjectDetection {
-  private static instance: OrientedObjectDetection | null = null;
-  private providerParams: ProviderParams;
-  private dataProvider: Mapbox | Geobase | undefined;
-  private model_id: string; //model name or path
-  private model: ort.InferenceSession | undefined;
-  private initialized: boolean = false;
-  private classes: string[] = [
+export class OrientedObjectDetection extends BaseModel {
+  protected static instance: OrientedObjectDetection | null = null;
+  protected model: ort.InferenceSession | undefined;
+  protected initialized: boolean = false;
+  protected classes: string[] = [
     "plane",
     "baseball-diamond",
     "bridge",
@@ -53,9 +51,12 @@ export class OrientedObjectDetection {
     "helicopter",
   ];
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    this.model_id = model_id;
-    this.providerParams = providerParams;
+  protected constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams?: PretrainedOptions
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
@@ -81,7 +82,7 @@ export class OrientedObjectDetection {
     return { instance: OrientedObjectDetection.instance };
   }
 
-  private async preProcessor(image: GeoRawImage): Promise<any> {
+  protected async preProcessor(image: GeoRawImage): Promise<any> {
     // Create RawImage instance and resize it
     let rawImage = new RawImage(
       image.data,
@@ -125,57 +126,10 @@ export class OrientedObjectDetection {
     return inputs;
   }
 
-  private async initialize(): Promise<void> {
-    if (this.initialized) return;
-
-    // Initialize data provider first
-    switch (this.providerParams.provider) {
-      case "mapbox":
-        this.dataProvider = new Mapbox(
-          this.providerParams.apiKey,
-          this.providerParams.style
-        );
-        break;
-      case "geobase":
-        this.dataProvider = new Geobase({
-          projectRef: this.providerParams.projectRef,
-          cogImagery: this.providerParams.cogImagery,
-          apikey: this.providerParams.apikey,
-        });
-        break;
-      case "sentinel":
-        throw new Error("Sentinel provider not implemented yet");
-      default:
-        throw new Error(
-          `Unknown provider: ${(this.providerParams as any).provider}`
-        );
-    }
-
-    // Verify data provider was initialized
-    if (!this.dataProvider) {
-      throw new Error("Failed to initialize data provider");
-    }
-
-    const response = await fetch(this.model_id);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch model from URL: ${response.statusText}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-
-    // Load model using ONNX Runtime
-    this.model = await ort.InferenceSession.create(uint8Array);
-    this.initialized = true;
-  }
-
-  private async polygon_to_image(
-    polygon: GeoJSON.Feature
-  ): Promise<GeoRawImage> {
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
-    }
-    const image = this.dataProvider.getImage(polygon);
-    return image;
+  protected async initializeModel(): Promise<void> {
+    // Only load the model if not already loaded
+    if (this.model) return;
+    this.model = await loadOnnxModel(this.model_id);
   }
 
   /**
@@ -188,7 +142,8 @@ export class OrientedObjectDetection {
    */
   async inference(
     polygon: GeoJSON.Feature,
-    options: NMSOptions = {}
+    options: NMSOptions = {},
+    mapSourceOptions: mapSourceConfig = {}
   ): Promise<ObjectDetectionResults> {
     // Ensure initialization is complete
     if (!this.initialized) {
@@ -200,7 +155,12 @@ export class OrientedObjectDetection {
       throw new Error("Data provider not initialized");
     }
 
-    const geoRawImage = await this.polygon_to_image(polygon);
+    const geoRawImage = await this.polygon_to_image(
+      polygon,
+      mapSourceOptions.zoomLevel,
+      mapSourceOptions.bands,
+      mapSourceOptions.expression
+    );
 
     const inputs = await this.preProcessor(geoRawImage);
     let outputs;
@@ -222,7 +182,7 @@ export class OrientedObjectDetection {
     };
   }
 
-  private convertPred({
+  protected convertPred({
     pred_bbox,
     test_input_size,
     org_img_shape,
@@ -347,7 +307,7 @@ export class OrientedObjectDetection {
    * @param without_iouthres Whether to skip IoU thresholding.
    * @returns Array of filtered boxes after NMS.
    */
-  private nonMaxSuppression4Points(
+  protected nonMaxSuppression4Points(
     prediction: number[][][],
     {
       conf_thres = 0.4,
@@ -451,7 +411,7 @@ export class OrientedObjectDetection {
    * @param thresh IoU threshold.
    * @returns Array of indices to keep after NMS.
    */
-  private pyCpuNmsPolyFast(
+  protected pyCpuNmsPolyFast(
     dets: number[][],
     scores: number[],
     thresh: number
@@ -516,7 +476,7 @@ export class OrientedObjectDetection {
     return keep;
   }
 
-  private async postProcessor(
+  protected async postProcessor(
     outputs: any,
     geoRawImage: GeoRawImage,
     options: NMSOptions = {}

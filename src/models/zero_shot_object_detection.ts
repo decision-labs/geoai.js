@@ -1,35 +1,27 @@
-import { Mapbox } from "@/data_providers/mapbox";
 import { pipeline, RawImage } from "@huggingface/transformers";
 import { detectionsToGeoJSON, parametersChanged } from "@/utils/utils";
+import { BaseModel } from "./base_model";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { Geobase } from "@/data_providers/geobase";
+import { mapSourceConfig } from "@/core/types";
 
 export interface ObjectDetectionResults {
   detections: GeoJSON.FeatureCollection;
   geoRawImage: GeoRawImage;
 }
 
-export class ZeroShotObjectDetection {
-  private static instance: ZeroShotObjectDetection | null = null;
-  private providerParams: ProviderParams;
-  private dataProvider: Mapbox | Geobase | undefined;
-  private model_id: string;
+export class ZeroShotObjectDetection extends BaseModel {
+  protected static instance: ZeroShotObjectDetection | null = null;
   private detector: any;
-  private modelParams: PretrainedOptions | undefined;
   public rawDetections: any[] = [];
 
-  private initialized: boolean = false;
-
-  private constructor(
+  protected constructor(
     model_id: string,
     providerParams: ProviderParams,
     modelParams?: PretrainedOptions
   ) {
-    this.model_id = model_id;
-    this.providerParams = providerParams;
-    this.modelParams = modelParams;
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
@@ -56,54 +48,12 @@ export class ZeroShotObjectDetection {
     return { instance: ZeroShotObjectDetection.instance };
   }
 
-  private async initialize(): Promise<void> {
-    if (this.initialized) return;
-
-    // Initialize data provider first
-    switch (this.providerParams.provider) {
-      case "mapbox":
-        this.dataProvider = new Mapbox(
-          this.providerParams.apiKey,
-          this.providerParams.style
-        );
-        break;
-      case "geobase":
-        this.dataProvider = new Geobase({
-          projectRef: this.providerParams.projectRef,
-          cogImagery: this.providerParams.cogImagery,
-          apikey: this.providerParams.apikey,
-        });
-        break;
-      case "sentinel":
-        throw new Error("Sentinel provider not implemented yet");
-      default:
-        throw new Error(
-          `Unknown provider: ${(this.providerParams as any).provider}`
-        );
-    }
-
-    // Verify data provider was initialized
-    if (!this.dataProvider) {
-      throw new Error("Failed to initialize data provider");
-    }
-
+  protected async initializeModel(): Promise<void> {
     this.detector = await pipeline(
       "zero-shot-object-detection",
       this.model_id,
       this.modelParams
     );
-
-    this.initialized = true;
-  }
-
-  private async polygon_to_image(
-    polygon: GeoJSON.Feature
-  ): Promise<GeoRawImage> {
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
-    }
-    const image = this.dataProvider.getImage(polygon);
-    return image;
   }
 
   /**
@@ -122,19 +72,21 @@ export class ZeroShotObjectDetection {
     options = {
       topk: 4,
       threshold: 0.2,
-    }
+    },
+    mapSourceOptions: mapSourceConfig = {}
   ): Promise<ObjectDetectionResults> {
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
     }
 
-    // Double-check data provider after initialization
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
-    }
-
-    const geoRawImage = await this.polygon_to_image(polygon);
+    const geoRawImage = await this.polygon_to_image(
+      polygon,
+      mapSourceOptions.zoomLevel,
+      mapSourceOptions.bands,
+      mapSourceOptions.expression
+    );
+    geoRawImage.save("buildings_test.png");
 
     let outputs;
     try {

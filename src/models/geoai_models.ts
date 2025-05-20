@@ -1,28 +1,27 @@
-import { Mapbox } from "@/data_providers/mapbox";
 import { getPolygonFromMask, parametersChanged } from "@/utils/utils";
 
 import { ObjectDetectionResults } from "../models/zero_shot_object_detection";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { Geobase } from "@/data_providers/geobase";
 import * as ort from "onnxruntime-web";
+import { BaseModel } from "./base_model";
+import { loadOnnxModel } from "./model_utils";
+import { mapSourceConfig } from "@/core/types";
 
 /**
  * Base class for all geo-based detection models
  */
-abstract class BaseDetectionModel {
-  protected static instance: BaseDetectionModel | null = null;
-  protected providerParams: ProviderParams;
-  protected dataProvider: Mapbox | Geobase | undefined;
-  protected model_id: string; // model name or path
+abstract class BaseDetectionModel extends BaseModel {
   protected model: ort.InferenceSession | undefined;
-  protected initialized: boolean = false;
   protected zoom?: number;
 
-  protected constructor(model_id: string, providerParams: ProviderParams) {
-    this.model_id = model_id;
-    this.providerParams = providerParams;
+  protected constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams?: PretrainedOptions
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   protected async preProcessor(
@@ -47,103 +46,8 @@ abstract class BaseDetectionModel {
     };
   }
 
-  protected async initialize(): Promise<void> {
-    if (this.initialized) return;
-
-    // Initialize data provider
-    this.initializeDataProvider();
-
-    // Verify data provider was initialized
-    if (!this.dataProvider) {
-      throw new Error("Failed to initialize data provider");
-    }
-
-    // Fetch and load model
-    await this.loadModel();
-    this.initialized = true;
-  }
-
-  private initializeDataProvider(): void {
-    switch (this.providerParams.provider) {
-      case "mapbox":
-        this.dataProvider = new Mapbox(
-          this.providerParams.apiKey,
-          this.providerParams.style
-        );
-        break;
-      case "geobase":
-        this.dataProvider = new Geobase({
-          projectRef: this.providerParams.projectRef,
-          cogImagery: this.providerParams.cogImagery,
-          apikey: this.providerParams.apikey,
-        });
-        break;
-      case "sentinel":
-        throw new Error("Sentinel provider not implemented yet");
-      default:
-        throw new Error(
-          `Unknown provider: ${(this.providerParams as any).provider}`
-        );
-    }
-  }
-
-  private async loadModel(): Promise<void> {
-    const response = await fetch(this.model_id);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch model from URL: ${response.statusText}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-
-    // Load model using ONNX Runtime
-    this.model = await ort.InferenceSession.create(uint8Array);
-  }
-
-  protected async polygon_to_image(
-    polygon: GeoJSON.Feature
-  ): Promise<GeoRawImage> {
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
-    }
-    return await this.dataProvider.getImage(
-      polygon,
-      undefined,
-      undefined,
-      this.zoom
-    );
-  }
-
-  async inference(polygon: GeoJSON.Feature): Promise<ObjectDetectionResults> {
-    // Ensure initialization is complete
-    if (!this.initialized) {
-      await this.initialize();
-    }
-
-    // Double-check data provider after initialization
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
-    }
-
-    const geoRawImage = await this.polygon_to_image(polygon);
-
-    const inputs = await this.preProcessor(geoRawImage);
-    let outputs;
-    try {
-      if (!this.model) {
-        throw new Error("Model not initialized");
-      }
-      outputs = await this.model.run({ image: inputs.input });
-    } catch (error) {
-      console.debug("error", error);
-      throw error;
-    }
-
-    outputs = await this.postProcessor(outputs, geoRawImage);
-
-    return {
-      detections: outputs,
-      geoRawImage,
-    };
+  protected async initializeModel(): Promise<void> {
+    this.model = await loadOnnxModel(this.model_id);
   }
 
   protected async postProcessor(
@@ -202,6 +106,47 @@ abstract class BaseDetectionModel {
     return {
       type: "FeatureCollection",
       features: [],
+    };
+  }
+
+  async inference(
+    polygon: GeoJSON.Feature,
+    mapSourceOptions: mapSourceConfig = {}
+  ): Promise<ObjectDetectionResults> {
+    // Ensure initialization is complete
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    // Double-check data provider after initialization
+    if (!this.dataProvider) {
+      throw new Error("Data provider not initialized");
+    }
+
+    const geoRawImage = await this.polygon_to_image(
+      polygon,
+      mapSourceOptions.zoomLevel,
+      mapSourceOptions.bands,
+      mapSourceOptions.expression
+    );
+
+    const inputs = await this.preProcessor(geoRawImage);
+    let outputs;
+    try {
+      if (!this.model) {
+        throw new Error("Model not initialized");
+      }
+      outputs = await this.model.run({ image: inputs.input });
+    } catch (error) {
+      console.debug("error", error);
+      throw error;
+    }
+
+    outputs = await this.postProcessor(outputs, geoRawImage);
+
+    return {
+      detections: outputs,
+      geoRawImage,
     };
   }
 }
@@ -326,17 +271,16 @@ export class BuildingDetection extends BaseDetectionModel {
 }
 
 //todo: wetland segmentation works with multiband band images need to write the code to get the mulibands from the source.
-export class WetLandSegmentation {
-  private static instance: WetLandSegmentation | null = null;
-  private providerParams: ProviderParams;
-  private dataProvider: Mapbox | Geobase | undefined;
-  private model_id: string; //model name or path
-  private model: ort.InferenceSession | undefined;
-  private initialized: boolean = false;
+export class WetLandSegmentation extends BaseModel {
+  protected static instance: WetLandSegmentation | null = null;
+  protected model: ort.InferenceSession | undefined;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    this.model_id = model_id;
-    this.providerParams = providerParams;
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams?: PretrainedOptions
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
@@ -355,14 +299,19 @@ export class WetLandSegmentation {
     ) {
       WetLandSegmentation.instance = new WetLandSegmentation(
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       );
       await WetLandSegmentation.instance.initialize();
     }
     return { instance: WetLandSegmentation.instance };
   }
 
-  private async preProcessor(
+  protected async initializeModel(): Promise<void> {
+    this.model = await loadOnnxModel(this.model_id);
+  }
+
+  protected async preProcessor(
     image: GeoRawImage
   ): Promise<{ input: ort.Tensor }> {
     // Convert RawImage to a tensor in CHW format
@@ -375,7 +324,7 @@ export class WetLandSegmentation {
     }
 
     // Create the ONNX Runtime tensor
-    const inputs = {
+    return {
       input: new ort.Tensor(floatData, [
         1,
         tensor.dims[0],
@@ -383,64 +332,12 @@ export class WetLandSegmentation {
         tensor.dims[2],
       ]),
     };
-
-    return inputs;
   }
 
-  private async initialize(): Promise<void> {
-    if (this.initialized) return;
-
-    // Initialize data provider first
-    switch (this.providerParams.provider) {
-      case "mapbox":
-        this.dataProvider = new Mapbox(
-          this.providerParams.apiKey,
-          this.providerParams.style
-        );
-        break;
-      case "geobase":
-        this.dataProvider = new Geobase({
-          projectRef: this.providerParams.projectRef,
-          cogImagery: this.providerParams.cogImagery,
-          apikey: this.providerParams.apikey,
-        });
-        break;
-      case "sentinel":
-        throw new Error("Sentinel provider not implemented yet");
-      default:
-        throw new Error(
-          `Unknown provider: ${(this.providerParams as any).provider}`
-        );
-    }
-
-    // Verify data provider was initialized
-    if (!this.dataProvider) {
-      throw new Error("Failed to initialize data provider");
-    }
-
-    const response = await fetch(this.model_id);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch model from URL: ${response.statusText}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-
-    // Load model using ONNX Runtime
-    this.model = await ort.InferenceSession.create(uint8Array);
-    this.initialized = true;
-  }
-
-  private async polygon_to_image(
-    polygon: GeoJSON.Feature
-  ): Promise<GeoRawImage> {
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
-    }
-    const image = await this.dataProvider.getImage(polygon);
-    return image;
-  }
-
-  async inference(polygon: GeoJSON.Feature): Promise<ObjectDetectionResults> {
+  public async inference(
+    polygon: GeoJSON.Feature,
+    mapSourceOptions: mapSourceConfig = {}
+  ): Promise<ObjectDetectionResults> {
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
@@ -451,7 +348,12 @@ export class WetLandSegmentation {
       throw new Error("Data provider not initialized");
     }
 
-    const geoRawImage = await this.polygon_to_image(polygon);
+    const geoRawImage = await this.polygon_to_image(
+      polygon,
+      mapSourceOptions.zoomLevel,
+      mapSourceOptions.bands,
+      mapSourceOptions.expression
+    );
 
     const inputs = await this.preProcessor(geoRawImage);
     let outputs;
@@ -473,7 +375,7 @@ export class WetLandSegmentation {
     };
   }
 
-  private async postProcessor(
+  protected async postProcessor(
     outputs: any,
     geoRawImage: GeoRawImage
   ): Promise<GeoJSON.FeatureCollection> {
@@ -511,19 +413,6 @@ export class WetLandSegmentation {
           }
           binaryMask2D.push(row);
         }
-
-        // //save binaryMask2D as png
-        // const visualMaskArray = new Uint8Array(maskArray.length);
-        // for (let i = 0; i < maskArray.length; i++) {
-        //   visualMaskArray[i] = maskArray[i] * 255;
-        // }
-        // const binaryMaskImage = new RawImage(
-        //   visualMaskArray,
-        //   maskHeight,
-        //   maskWidth,
-        //   1
-        // );
-        // binaryMaskImage.save(`mask_wetland_${idx}.png`);
 
         // Convert mask to polygon
         const polygon = getPolygonFromMask(binaryMask2D, geoRawImage);

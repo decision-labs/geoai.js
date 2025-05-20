@@ -1,26 +1,24 @@
-import { Mapbox } from "@/data_providers/mapbox";
+import { BaseModel } from "@/models/base_model";
 import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { Geobase } from "@/data_providers/geobase";
-// TODO: check best way in typescript projects to separate types from other objects
 import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import * as ort from "onnxruntime-web";
+import { loadOnnxModel } from "./model_utils";
+import { mapSourceConfig } from "@/core/types";
 const cv = require("@techstark/opencv-js");
 
-export class OilStorageTankDetection {
-  private static instance: OilStorageTankDetection | null = null;
-  protected providerParams: ProviderParams;
-  protected dataProvider: Mapbox | Geobase | undefined;
-  protected model_id: string; // model name or path
+export class OilStorageTankDetection extends BaseModel {
+  protected static instance: OilStorageTankDetection | null = null;
   protected model: ort.InferenceSession | undefined;
-  protected initialized: boolean = false;
-  protected zoom?: number;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    this.model_id = model_id;
-    this.providerParams = providerParams;
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams?: PretrainedOptions
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
@@ -39,83 +37,18 @@ export class OilStorageTankDetection {
     ) {
       OilStorageTankDetection.instance = new OilStorageTankDetection(
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       );
       await OilStorageTankDetection.instance.initialize();
     }
     return { instance: OilStorageTankDetection.instance };
   }
 
-  protected async initialize(): Promise<void> {
-    if (this.initialized) return;
-
-    // Initialize data provider
-    this.initializeDataProvider();
-
-    // Verify data provider was initialized
-    if (!this.dataProvider) {
-      throw new Error("Failed to initialize data provider");
-    }
-
-    // Fetch and load model
-    await this.loadModel();
-    this.initialized = true;
-  }
-
-  private async loadModel(): Promise<void> {
-    // Load model from local file path
-    try {
-      const response = await fetch(this.model_id);
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch model from URL: ${response.statusText}`
-        );
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-
-      // Load model using ONNX Runtime
-      this.model = await ort.InferenceSession.create(uint8Array);
-    } catch (error) {
-      throw new Error(
-        `Failed to load model from URL ${this.model_id}: ${error}`
-      );
-    }
-  }
-
-  // TODO: refactor that's common across models
-  private initializeDataProvider(): void {
-    switch (this.providerParams.provider) {
-      case "mapbox":
-        this.dataProvider = new Mapbox(
-          this.providerParams.apiKey,
-          this.providerParams.style
-        );
-        break;
-      case "geobase":
-        this.dataProvider = new Geobase({
-          projectRef: this.providerParams.projectRef,
-          cogImagery: this.providerParams.cogImagery,
-          apikey: this.providerParams.apikey,
-        });
-        break;
-      case "sentinel":
-        throw new Error("Sentinel provider not implemented yet");
-      default:
-        throw new Error(
-          `Unknown provider: ${(this.providerParams as any).provider}`
-        );
-    }
-  }
-
-  private async polygon_to_image(
-    polygon: GeoJSON.Feature
-  ): Promise<GeoRawImage> {
-    if (!this.dataProvider) {
-      throw new Error("Data provider not initialized");
-    }
-    const image = this.dataProvider.getImage(polygon);
-    return image;
+  protected async initializeModel(): Promise<void> {
+    // Only load the model if not already loaded
+    if (this.model) return;
+    this.model = await loadOnnxModel(this.model_id);
   }
 
   protected async preProcessor(
@@ -160,22 +93,26 @@ export class OilStorageTankDetection {
     };
   }
 
-  async inference(
+  public async inference(
     polygon: GeoJSON.Feature,
     confidenceThreshold: number = 0.5,
-    nmsThreshold: number = 0.3
+    nmsThreshold: number = 0.3,
+    mapSourceOptions: mapSourceConfig = {}
   ): Promise<ObjectDetectionResults> {
     // Ensure initialization is complete
-    if (!this.initialized) {
-      await this.initialize();
-    }
+    await this.initialize();
 
     // Double-check data provider after initialization
     if (!this.dataProvider) {
       throw new Error("Data provider not initialized");
     }
 
-    const geoRawImage = await this.polygon_to_image(polygon);
+    const geoRawImage = await this.polygon_to_image(
+      polygon,
+      mapSourceOptions.zoomLevel,
+      mapSourceOptions.bands,
+      mapSourceOptions.expression
+    );
 
     const inputs = await this.preProcessor(geoRawImage);
     let outputs;
