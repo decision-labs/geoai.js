@@ -8,6 +8,7 @@ import {
 } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { BuildingDetection } from "../src/models/geoai_models";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("test model building detection", () => {
   let buildingInstance: BuildingDetection;
@@ -66,10 +67,12 @@ describe("test model building detection", () => {
     expect(results.geoRawImage.width).toBeGreaterThan(0);
     expect(results.geoRawImage.height).toBeGreaterThan(0);
 
-    // Log visualization URL
-    const geoJsonString = JSON.stringify(results.detections);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON for building detection: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: results.detections,
+      fileName: "buildingDetection.geojson",
+      description:
+        "result buildingDetection - should process a polygon for building detection",
+    });
   });
 });

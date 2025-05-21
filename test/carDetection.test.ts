@@ -4,6 +4,7 @@ import { geobaseAi } from "../src/geobase-ai";
 import { geobaseParamsCar, mapboxParams, polygonCar } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { CarDetection } from "../src/models/geoai_models";
+import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("test model geobase/car-detection", () => {
   let carInstance: CarDetection;
@@ -50,10 +51,12 @@ describe("test model geobase/car-detection", () => {
     expect(results.geoRawImage.width).toBeGreaterThan(0);
     expect(results.geoRawImage.height).toBeGreaterThan(0);
 
-    // Log visualization URL
-    const geoJsonString = JSON.stringify(results.detections);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-    console.log(`View GeoJSON for car detection: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: results.detections,
+      fileName: "carDetetcion.geojson",
+      description:
+        "result carDetetcion - should process a polygon for car detection",
+    });
   });
 });
