@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:geobase-ai": "cd ../../ && pnpm run build && cp -r build ./examples/next-geobase/node_modules/geobase-ai"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.5.1",

@@ -101,29 +101,29 @@ export default function ObjectDetection() {
     setDetecting(true);
     setDetectionResult(null);
 
+    let _objectDetector = objectDetector;
     try {
       // Initialize object detection pipeline
-      if (!objectDetector) {
+      if (!_objectDetector) {
         const geobaseParams = {
+          provider: "geobase",
           projectRef: GEOBASE_CONFIG.projectRef,
           apikey: GEOBASE_CONFIG.apikey,
           cogImagery: GEOBASE_CONFIG.cogImagery,
         };
 
         // Use the imported geobaseAi
-        const response = await geobaseAi.pipeline({
-          task: "object-detection",
-          geobaseParams,
-        });
-        setObjectDetector(response.instance);
+        const response = await geobaseAi.pipeline("object-detection", geobaseParams);
+        _objectDetector = response.instance;
       }
 
       // Process detection request
-      if (objectDetector && typeof objectDetector.inference === "function") {
-        const result = await objectDetector.inference(polygon);
+      if (_objectDetector && typeof _objectDetector.inference === "function") {
+        const result = await _objectDetector.inference(polygon);
         console.log({ result });
         setDetecting(false);
         setDetectionResult("Object detection complete!");
+        setObjectDetector(_objectDetector);
       } else {
         throw new Error("Object detector not properly initialized");
       }

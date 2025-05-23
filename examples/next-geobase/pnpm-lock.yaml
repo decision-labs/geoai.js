@@ -2060,13 +2060,6 @@ packages:
       '@huggingface/transformers': ^3.3.3
       '@techstark/opencv-js': ^4.10.0-release.1
       onnxruntime-web: ^1.21.0
-    peerDependenciesMeta:
-      '@huggingface/transformers':
-        optional: true
-      '@techstark/opencv-js':
-        optional: true
-      onnxruntime-web:
-        optional: true
 
   geojson-equality-ts@1.0.2:
     resolution: {integrity: sha512-h3Ryq+0mCSN/7yLs0eDgrZhvc9af23o/QuC4aTiuuzP/MRCtd6mf5rLsLRY44jX0RPUfM8c4GqERQmlUxPGPoQ==}
@@ -6630,13 +6623,12 @@ snapshots:
 
   geobase-ai@file:../../build(@huggingface/transformers@3.5.1)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0):
     dependencies:
+      '@huggingface/transformers': 3.5.1
+      '@techstark/opencv-js': 4.10.0-release.1
       '@turf/bbox': 7.2.0
       '@turf/bbox-polygon': 7.2.0
       global-mercator: https://codeload.github.com/decision-labs/global-mercator/tar.gz/905ce5c6f8dd66d180abcbb62594f6094cac7878
       node-fetch: 3.3.2
-    optionalDependencies:
-      '@huggingface/transformers': 3.5.1
-      '@techstark/opencv-js': 4.10.0-release.1
       onnxruntime-web: 1.22.0
 
   geojson-equality-ts@1.0.2:
