@@ -60,7 +60,7 @@ export default defineConfig(({ command }) => ({
     rollupOptions: {
       external: [
         // @ts-ignore
-        // "@huggingface/transformers",
+        "@huggingface/transformers",
         "onnxruntime-web",
         // @ts-ignore
         // "@techstark/opencv-js",
@@ -70,7 +70,7 @@ export default defineConfig(({ command }) => ({
       output: {
         globals: {
           // @ts-ignore
-          // "@huggingface/transformers": "transformers",
+          "@huggingface/transformers": "transformers",
           "onnxruntime-web": "ort",
           // @ts-ignore
           // "@techstark/opencv-js": "cv",
