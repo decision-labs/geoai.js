@@ -64,8 +64,6 @@ export default defineConfig(({ command }) => ({
         "onnxruntime-web",
         // @ts-ignore
         // "@techstark/opencv-js",
-        // @ts-ignore
-        // "@turf/turf",
       ],
       output: {
         globals: {
@@ -74,8 +72,6 @@ export default defineConfig(({ command }) => ({
           "onnxruntime-web": "ort",
           // @ts-ignore
           // "@techstark/opencv-js": "cv",
-          // @ts-ignore
-          // "@turf/turf": "turf",
         },
       },
     },
