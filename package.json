@@ -8,7 +8,7 @@
     ".": {
       "import": "./dist/geobase-ai.js"
     },
-    "./dist/": {
+    "./dist": {
       "import": "./dist/geobase-ai.js"
     }
   },
