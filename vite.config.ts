@@ -22,8 +22,9 @@ const getPackageNameCamelCase = () => {
 };
 
 const fileName = {
-  es: `${getPackageName()}.js`,
+  es: `${getPackageName()}.mjs`,
   iife: `${getPackageName()}.iife.js`,
+  cjs: `${getPackageName()}.js`,
 };
 
 const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
@@ -59,19 +60,15 @@ export default defineConfig(({ command }) => ({
     },
     rollupOptions: {
       external: [
-        // @ts-ignore
         "@huggingface/transformers",
         "onnxruntime-web",
-        // @ts-ignore
-        // "@techstark/opencv-js",
+        "@techstark/opencv-js",
       ],
       output: {
         globals: {
-          // @ts-ignore
           "@huggingface/transformers": "transformers",
           "onnxruntime-web": "ort",
-          // @ts-ignore
-          // "@techstark/opencv-js": "cv",
+          "@techstark/opencv-js": "cv",
         },
       },
     },

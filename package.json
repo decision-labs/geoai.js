@@ -16,7 +16,6 @@
   "peerDependencies": {
     "@huggingface/transformers": "^3.3.3",
     "@techstark/opencv-js": "^4.10.0-release.1",
-    "@turf/turf": "^7.2.0",
     "onnxruntime-web": "^1.21.0"
   },
   "peerDependenciesMeta": {
@@ -24,9 +23,6 @@
       "optional": true
     },
     "@techstark/opencv-js": {
-      "optional": true
-    },
-    "@turf/turf": {
       "optional": true
     },
     "onnxruntime-web": {
