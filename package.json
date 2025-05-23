@@ -39,6 +39,7 @@
     "build:examples": "pnpm build && cp -r ./build ./examples/codepen-geobase",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
+    "test:build": "pnpm run build && vitest run test/build.test.ts",
     "lint:scripts": "eslint . --ext .ts",
     "lint:styles": "stylelint ./**/*.{css,scss}",
     "format:scripts": "prettier . --write",

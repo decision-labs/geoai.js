@@ -50,26 +50,32 @@ export default defineConfig(({ command }) => ({
       formats,
       fileName: format => fileName[format],
     },
-    minify: "terser",
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    // minify: "terser",
+    // terserOptions: {
+    //   compress: {
+    //     drop_console: true,
+    //     drop_debugger: true,
+    //   },
+    // },
     rollupOptions: {
       external: [
-        "@huggingface/transformers",
+        // @ts-ignore
+        // "@huggingface/transformers",
         "onnxruntime-web",
-        "@techstark/opencv-js",
-        "@turf/turf",
+        // @ts-ignore
+        // "@techstark/opencv-js",
+        // @ts-ignore
+        // "@turf/turf",
       ],
       output: {
         globals: {
-          "@huggingface/transformers": "transformers",
+          // @ts-ignore
+          // "@huggingface/transformers": "transformers",
           "onnxruntime-web": "ort",
-          "@techstark/opencv-js": "cv",
-          "@turf/turf": "turf",
+          // @ts-ignore
+          // "@techstark/opencv-js": "cv",
+          // @ts-ignore
+          // "@turf/turf": "turf",
         },
       },
     },
