@@ -118,17 +118,62 @@ export const postProcessYoloOutput = (
 export const parametersChanged = (
   instance: any,
   model_id: string,
-  // provider: string,
   providerParams: any,
   modelParams?: PretrainedOptions
 ): boolean => {
-  return (
-    instance.model_id !== model_id ||
-    // instance.provider !== provider ||
-    JSON.stringify(instance.providerParams) !==
-      JSON.stringify(providerParams) ||
-    JSON.stringify(instance.modelParams) !== JSON.stringify(modelParams)
-  );
+  // Compare model_id
+  if (instance.model_id !== model_id) {
+    return true;
+  }
+
+  // Compare providerParams
+  const instanceProvider = instance.providerParams?.provider;
+  const newProvider = providerParams?.provider;
+  if (instanceProvider !== newProvider) {
+    return true;
+  }
+
+  // Compare specific provider parameters
+  switch (newProvider) {
+    case "mapbox":
+      if (
+        instance.providerParams?.apiKey !== providerParams?.apiKey ||
+        instance.providerParams?.style !== providerParams?.style
+      ) {
+        return true;
+      }
+      break;
+    case "geobase":
+      if (
+        instance.providerParams?.projectRef !== providerParams?.projectRef ||
+        instance.providerParams?.cogImagery !== providerParams?.cogImagery ||
+        instance.providerParams?.apikey !== providerParams?.apikey
+      ) {
+        return true;
+      }
+      break;
+    case "sentinel":
+      if (instance.providerParams?.apiKey !== providerParams?.apiKey) {
+        return true;
+      }
+      break;
+  }
+
+  // Compare modelParams if they exist
+  if (modelParams) {
+    const instanceModelParams = instance.modelParams || {};
+    const newModelParams = modelParams || {};
+
+    // Compare only the keys that exist in both objects
+    const keys = Object.keys(newModelParams) as Array<keyof PretrainedOptions>;
+    for (const key of keys) {
+      if (instanceModelParams[key] !== newModelParams[key]) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 };
 
 export const detectionsToGeoJSON = (
