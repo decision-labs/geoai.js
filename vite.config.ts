@@ -50,13 +50,13 @@ export default defineConfig(({ command }) => ({
       formats,
       fileName: format => fileName[format],
     },
-    // minify: "terser",
-    // terserOptions: {
-    //   compress: {
-    //     drop_console: true,
-    //     drop_debugger: true,
-    //   },
-    // },
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
     rollupOptions: {
       external: [
         // @ts-ignore

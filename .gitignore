@@ -27,3 +27,4 @@ coverage
 *.sw?
 cache/*
 test_images/*
+stats.html
