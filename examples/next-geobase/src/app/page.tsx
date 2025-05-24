@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import Sidebar from "./components/Sidebar";
 
-
 const GEOBASE_CONFIG = {
   projectRef: "wmrosdnjsecywfkvxtrw",
   apikey:
@@ -80,8 +79,6 @@ export default function Home() {
     };
   }, []);
 
-  
-
   // return (
   //   <main className="w-full h-screen flex">
   //     {/* Sidebar */}
@@ -94,60 +91,220 @@ export default function Home() {
   // );
 
   return (
-    <main className="w-full h-screen flex flex-col items-center justify-center bg-gray-50 overflow-auto">
-      <h1 className="text-3xl font-bold mb-8">Example Grid</h1>
-      <div className="w-full max-w-6xl px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <a href="/tasks/object-detection" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/object-detection.jpg" alt="Object Detection" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Object Detection</h2>
-          <p className="text-gray-600">Detects and highlights objects in the imagery using AI models.</p>
-        </a>
-        <a href="/tasks/mask-generation" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/mask-generation.jpg" alt="Mask Generation" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Mask Generation</h2>
-          <p className="text-gray-600">Generates segmentation masks for features of interest in the image.</p>
-        </a>
-        <a href="/tasks/land-cover" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/land-cover.jpg" alt="Land Cover Classification" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Land Cover Classification</h2>
-          <p className="text-gray-600">Classifies terrain and land cover types such as water, forest, or urban areas.</p>
-        </a>
-        <a href="/tasks/zero-shot" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/zero-shot.jpg" alt="Zero Shot Object Detection" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Zero Shot Object Detection</h2>
-          <p className="text-gray-600">Detects objects without prior training on specific classes using advanced AI.</p>
-        </a>
-        <a href="/tasks/building-detection" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/building-detection.jpg" alt="Building Detection" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Building Detection</h2>
-          <p className="text-gray-600">Identifies and outlines buildings present in the imagery.</p>
-        </a>
-        <a href="/tasks/car-detection" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/car-detection.jpg" alt="Car Detection" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Car Detection</h2>
-          <p className="text-gray-600">Detects and marks cars and vehicles in the image.</p>
-        </a>
-        <a href="/tasks/wetland" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/wetland.jpg" alt="Wet Land Detection" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Wet Land Detection</h2>
-          <p className="text-gray-600">Identifies wetland areas such as marshes and swamps in the imagery.</p>
-        </a>
-        <a href="/tasks/solar-panel" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/solar-panel.jpg" alt="Solar Panel Detection" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Solar Panel Detection</h2>
-          <p className="text-gray-600">Detects solar panels and solar farms in the image.</p>
-        </a>
-        <a href="/tasks/ship-detection" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/ship-detection.jpg" alt="Ship Detection" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Ship Detection</h2>
-          <p className="text-gray-600">Detects ships and large vessels in water bodies.</p>
-        </a>
-        <a href="/tasks/oriented-object" className="bg-white p-6 rounded shadow text-center hover:ring-2 ring-blue-400 transition">
-          <img src="/samples/oriented-object.jpg" alt="Oriented Object Detection" className="w-full h-32 object-cover rounded mb-4" />
-          <h2 className="font-semibold mb-2">Oriented Object Detection</h2>
-          <p className="text-gray-600">Detects objects and provides their orientation in the imagery.</p>
-        </a>
-      </div>
-    </main>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900">GeoBase AI</h1>
+            </div>
+            <nav className="flex space-x-8">
+              <a
+                href="#"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Home
+              </a>
+              <a
+                href="#"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Documentation
+              </a>
+              <a
+                href="#"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                About
+              </a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+            AI-Powered Geospatial Analysis
+          </h2>
+          <p className="mt-5 max-w-xl mx-auto text-xl text-gray-500">
+            Explore our suite of advanced AI models for geospatial data analysis
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          <a
+            href="/tasks/object-detection"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            >
+              <source src="/video/object-detection.mp4" type="video/mp4" />
+            </video>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Object Detection
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Detects and highlights objects in the imagery using AI models.
+            </p>
+          </a>
+          <a
+            href="/tasks/mask-generation"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/mask-generation.jpg"
+              alt="Mask Generation"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Mask Generation
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Generates segmentation masks for features of interest in the
+              image.
+            </p>
+          </a>
+          <a
+            href="/tasks/land-cover"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/land-cover.jpg"
+              alt="Land Cover Classification"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Land Cover Classification
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Classifies terrain and land cover types such as water, forest, or
+              urban areas.
+            </p>
+          </a>
+          <a
+            href="/tasks/zero-shot"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/zero-shot.jpg"
+              alt="Zero Shot Object Detection"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Zero Shot Object Detection
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Detects objects without prior training on specific classes using
+              advanced AI.
+            </p>
+          </a>
+          <a
+            href="/tasks/building-detection"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/building-detection.jpg"
+              alt="Building Detection"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Building Detection
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Identifies and outlines buildings present in the imagery.
+            </p>
+          </a>
+          <a
+            href="/tasks/car-detection"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/car-detection.jpg"
+              alt="Car Detection"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Car Detection
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Detects and marks cars and vehicles in the image.
+            </p>
+          </a>
+          <a
+            href="/tasks/wetland"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/wetland.jpg"
+              alt="Wet Land Detection"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Wet Land Detection
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Identifies wetland areas such as marshes and swamps in the
+              imagery.
+            </p>
+          </a>
+          <a
+            href="/tasks/solar-panel"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/solar-panel.jpg"
+              alt="Solar Panel Detection"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Solar Panel Detection
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Detects solar panels and solar farms in the image.
+            </p>
+          </a>
+          <a
+            href="/tasks/ship-detection"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/ship-detection.jpg"
+              alt="Ship Detection"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Ship Detection
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Detects ships and large vessels in water bodies.
+            </p>
+          </a>
+          <a
+            href="/tasks/oriented-object"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/oriented-object.jpg"
+              alt="Oriented Object Detection"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Oriented Object Detection
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Detects objects and provides their orientation in the imagery.
+            </p>
+          </a>
+        </div>
+      </main>
+    </div>
   );
 }
