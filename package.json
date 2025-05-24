@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/geobase-ai.js"
+      "import": "./dist/geobase-ai.js",
+      "types": "./dist/index.d.ts"
     },
     "./dist": {
       "import": "./dist/geobase-ai.js"
