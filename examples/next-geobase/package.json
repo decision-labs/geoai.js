@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "build:geobase-ai": "cd ../../ && pnpm run build && cp -r build ./examples/next-geobase/node_modules/geobase-ai"
+    "build:geobase-ai": "cd ../../ && pnpm run build && cd examples/next-geobase && pnpm install"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.5.1",
