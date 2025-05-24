@@ -7,9 +7,12 @@ type WorkerMessage = {
 };
 
 type InitPayload = {
-  projectRef: string;
-  apikey: string;
-  cogImagery: string;
+  provider: "geobase" | "mapbox";
+  projectRef?: string;
+  apikey?: string;
+  cogImagery?: string;
+  apiKey?: string;
+  style?: string;
   modelId: string;
 };
 
@@ -27,18 +30,14 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   try {
     switch (type) {
       case "init": {
-        const { projectRef, apikey, cogImagery, modelId } = payload as InitPayload;
+        const { provider, modelId, ...config } = payload as InitPayload;
         
-        const geobaseParams = {
-          provider: "geobase",
-          projectRef,
-          apikey,
-          cogImagery,
-        };
-
         const response = await geobaseAi.pipeline(
           "object-detection",
-          geobaseParams,
+          {
+            provider,
+            ...config,
+          },
           modelId
         );
         
