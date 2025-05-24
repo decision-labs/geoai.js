@@ -26,6 +26,27 @@ export default function ObjectDetection() {
   const [zoomLevel, setZoomLevel] = useState<number>(22);
   const [confidenceScore, setConfidenceScore] = useState<number>(0.9);
 
+  const handleReset = () => {
+    // Clear all drawn features
+    if (draw.current) {
+      draw.current.deleteAll();
+    }
+
+    // Remove detection layer if it exists
+    if (map.current) {
+      if (map.current.getSource("detections")) {
+        map.current.removeLayer("detections-layer");
+        map.current.removeSource("detections");
+      }
+    }
+
+    // Reset states
+    setPolygon(null);
+    setDetections(undefined);
+    setDetectionResult(null);
+    setDetecting(false);
+  };
+
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -228,6 +249,12 @@ export default function ObjectDetection() {
           onClick={handleDetect}
         >
           {detecting ? "Detecting..." : "Run Detection"}
+        </button>
+        <button
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          onClick={handleReset}
+        >
+          Reset
         </button>
         <div className="mt-4 space-y-4">
           <div>
