@@ -335,7 +335,7 @@ export default function ObjectDetection() {
 
             <div className="flex flex-col gap-3">
               <button
-                className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2"
+                className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2 cursor-pointer"
                 onClick={handleStartDrawing}
               >
                 <svg
@@ -353,7 +353,7 @@ export default function ObjectDetection() {
                 Draw Area of Interest
               </button>
               <button
-                className="bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={!polygon || detecting || initializing}
                 onClick={handleDetect}
               >
@@ -400,7 +400,7 @@ export default function ObjectDetection() {
                 )}
               </button>
               <button
-                className="bg-red-600 text-white px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2"
+                className="bg-red-600 text-white px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2 cursor-pointer"
                 onClick={handleReset}
               >
                 <svg
