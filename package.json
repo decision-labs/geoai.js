@@ -19,17 +19,6 @@
     "@techstark/opencv-js": "^4.10.0-release.1",
     "onnxruntime-web": "^1.21.0"
   },
-  "peerDependenciesMeta": {
-    "@huggingface/transformers": {
-      "optional": true
-    },
-    "@techstark/opencv-js": {
-      "optional": true
-    },
-    "onnxruntime-web": {
-      "optional": true
-    }
-  },
   "scripts": {
     "dev": "vite --host",
     "build": "rimraf build/**/* && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts && copyfiles ./package.json build",
