@@ -159,11 +159,15 @@ export default function Home() {
             href="/tasks/mask-generation"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/mask-generation.jpg"
-              alt="Mask Generation"
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-48 object-cover rounded-lg mb-6"
-            />
+            >
+              <source src="/video/mask-generation.mp4" type="video/mp4" />
+            </video>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Mask Generation
             </h2>
