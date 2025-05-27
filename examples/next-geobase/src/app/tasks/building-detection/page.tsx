@@ -10,7 +10,7 @@ const GEOBASE_CONFIG = {
   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
   apikey: process.env.NEXT_PUBLIC_GEOBASE_API_KEY,
   cogImagery:
-    "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif",
+    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip_train.tif",
 };
 
 const MAPBOX_CONFIG = {
@@ -28,34 +28,24 @@ if (!GEOBASE_CONFIG.projectRef || !GEOBASE_CONFIG.apikey) {
 
 type MapProvider = "geobase" | "mapbox";
 
-export default function MaskGeneration() {
+export default function ObjectDetection() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const draw = useRef<MaplibreDraw | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const [polygon, setPolygon] = useState<GeoJSON.Feature | null>(null);
-  const [input, setInput] = useState<{
-    type: "points" | "boxes";
-    coordinates: number[];
-  } | null>(null);
   const [detecting, setDetecting] = useState(false);
   const [initializing, setInitializing] = useState(false);
   const [detectionResult, setDetectionResult] = useState<string | null>(null);
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(22);
-  const [maxMasks, setMaxMasks] = useState<number>(1);
-  const [drawing, setDrawing] = useState<"points" | "boxes" | "polygon">("polygon");
-  const drawingRef = useRef(drawing);
-    useEffect(() => {
-      drawingRef.current = drawing;
-    }, [drawing]);
-  const [inputType, setInputType] = useState<"points" | "boxes">("points");
+  const [confidenceScore, setConfidenceScore] = useState<number>(0.9);
   const [selectedModel, setSelectedModel] = useState<string>(
-    "Xenova/slimsam-77-uniform"
+    "geobase/WALDO30_yolov8m_640x640"
   );
   const [customModelId, setCustomModelId] = useState<string>("");
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
-  const models = ["Xenova/slimsam-77-uniform"];
+  const models = ["geobase/WALDO30_yolov8m_640x640"];
 
   const handleReset = () => {
     // Clear all drawn features
@@ -126,7 +116,7 @@ export default function MaskGeneration() {
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: mapStyle,
-      center: [114.84857638295142, -3.449805712621256],
+      center: [-117.59239617156095, 47.653614113446906],
       zoom: 18,
     });
 
@@ -146,53 +136,10 @@ export default function MaskGeneration() {
     map.current.on("draw.delete", () => setPolygon(null));
 
     function updatePolygon() {
-      console.log('updatePolygon called, drawing mode:', drawingRef.current);
       const features = draw.current?.getAll();
-      console.log('Features from draw:', features);
       if (features && features.features.length > 0) {
-        console.log('Number of features:', features.features.length);
-        console.log('First feature:', features.features[0]);
-        
-        if(drawingRef.current === "polygon"){
-          console.log('Setting polygon from feature:', features.features[0]);
-          setPolygon(features.features[0]);
-        }
-        else if (drawingRef.current === "points") {
-          // Handle points logic
-          const pointFeature = features.features[1];
-          if (pointFeature.geometry.type === "Point") {
-            setInput({
-              type: "points",
-              coordinates: pointFeature.geometry.coordinates as number[],
-            });
-          } else {
-            console.error("Expected a Point geometry for points input");
-            setInput(null);
-          }
-        } else if (drawingRef.current === "boxes") {
-          // Handle boxes logic
-          const boxFeature = features.features[1];
-          if (boxFeature.geometry.type === "Polygon") {
-            const coordinates = boxFeature.geometry.coordinates[0];
-            if (coordinates.length === 4) {
-              // Convert to bounding box format [x1, y1, x2, y2]
-              const [x1, y1] = coordinates[0];
-              const [x2, y2] = coordinates[2];
-              setInput({
-                type: "boxes",
-                coordinates: [x1, y1, x2, y2],
-              });
-            } else {
-              console.error("Expected a bounding box with 4 corners");
-              setInput(null);
-            }
-          } else {
-            console.error("Expected a Polygon geometry for boxes input");
-            setInput(null);
-          }
-        }
+        setPolygon(features.features[0]);
       } else {
-        console.log('No features found, clearing polygon');
         setPolygon(null);
       }
     }
@@ -207,7 +154,7 @@ export default function MaskGeneration() {
   // Initialize worker
   useEffect(() => {
     workerRef.current = new Worker(
-      new URL("./maskGeneration.worker.ts", import.meta.url)
+      new URL("../common.worker.ts", import.meta.url)
     );
 
     workerRef.current.onmessage = e => {
@@ -218,8 +165,8 @@ export default function MaskGeneration() {
           setInitializing(false);
           break;
         case "inference_complete":
-          if (payload.masks) {
-            setDetections(payload.masks);
+          if (payload.detections) {
+            setDetections(payload.detections);
             // Add the detections as a new layer on the map
             if (map.current) {
               // Remove existing detection layer if it exists
@@ -231,7 +178,7 @@ export default function MaskGeneration() {
               // Add the new detections as a source
               map.current.addSource("detections", {
                 type: "geojson",
-                data: payload.masks,
+                data: payload.detections,
               });
 
               // Add a layer to display the detections
@@ -280,7 +227,7 @@ export default function MaskGeneration() {
             }
           }
           setDetecting(false);
-          setDetectionResult("Mask Generation complete!");
+          setDetectionResult("Object detection complete!");
           break;
         case "error":
           setDetecting(false);
@@ -295,7 +242,7 @@ export default function MaskGeneration() {
     };
   }, []);
 
-  const handleMaskGeneration = async () => {
+  const handleDetect = async () => {
     if (!polygon || !workerRef.current) return;
     setDetecting(true);
     setInitializing(true);
@@ -306,6 +253,7 @@ export default function MaskGeneration() {
       workerRef.current.postMessage({
         type: "init",
         payload: {
+            task: "building-detection",
           ...(mapProvider === "geobase" ? GEOBASE_CONFIG : MAPBOX_CONFIG),
           modelId: customModelId || selectedModel,
         },
@@ -331,8 +279,7 @@ export default function MaskGeneration() {
         type: "inference",
         payload: {
           polygon,
-          input,
-          maxMasks,
+          confidenceScore,
           zoomLevel,
         },
       });
@@ -345,22 +292,8 @@ export default function MaskGeneration() {
   };
 
   const handleStartDrawing = () => {
-    setDrawing("polygon");
-    drawingRef.current = "polygon";
     if (draw.current) {
       draw.current.changeMode("draw_polygon");
-    }
-  };
-  
-  const handleStartDrawingInput = () => {
-    setDrawing(inputType);
-    drawingRef.current = inputType;
-    if (draw.current) {
-      if (inputType === "points") {
-        draw.current.changeMode("draw_point");
-      } else if (inputType === "boxes") {
-        draw.current.changeMode("draw_rectangle");
-      }
     }
   };
 
@@ -370,9 +303,9 @@ export default function MaskGeneration() {
       <aside className="w-96 bg-white border-r border-gray-200 h-full flex flex-col overflow-hidden">
         <div className="p-6 flex flex-col gap-6 text-black shadow-lg overflow-y-auto">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-800">Mask Generation</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Object Detection</h2>
             <p className="text-sm text-gray-600">
-              Draw a polygon and point or box on the map and run mask generation within the
+              Draw a polygon on the map and run object detection within the
               selected area.
             </p>
           </div>
@@ -420,31 +353,10 @@ export default function MaskGeneration() {
                 </svg>
                 Draw Area of Interest
               </button>
-
-              <button
-                className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2 cursor-pointer"
-                onClick={handleStartDrawingInput}
-                disabled={!polygon || detecting || initializing}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              {inputType === 'points' ? 'Draw Point' : 'Draw bbox'}
-              </button>
-              
               <button
                 className="bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={!polygon || detecting || initializing}
-                onClick={handleMaskGeneration}
+                onClick={handleDetect}
               >
                 {detecting || initializing ? (
                   <>
@@ -484,7 +396,7 @@ export default function MaskGeneration() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    Generate Mask
+                    Run Detection
                   </>
                 )}
               </button>
@@ -584,42 +496,23 @@ export default function MaskGeneration() {
                   />
                 </div>
 
-                
                 <div>
                   <label
-                    htmlFor="inputType"
+                    htmlFor="confidenceScore"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Input Type
-                  </label>
-                  <select
-                    id="inputType"
-                    value={inputType}
-                    onChange={(e) => setInputType(e.target.value as "points" | "boxes")}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
-                  >
-                    <option value="points">Points</option>
-                    <option value="boxes">Boxes</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="maxMasks"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Max Masks (1-3)
+                    Confidence Score (0-1)
                   </label>
                   <input
                     type="number"
-                    id="maxMasks"
-                    min="1"
-                    max="3"
-                    step="1"
-                    value={maxMasks}
+                    id="confidenceScore"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={confidenceScore}
                     onChange={e =>
-                      setMaxMasks(
-                        Math.min(3, Math.max(1, Number(e.target.value)))
+                      setConfidenceScore(
+                        Math.min(1, Math.max(0, Number(e.target.value)))
                       )
                     }
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"

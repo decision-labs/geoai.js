@@ -28,53 +28,43 @@ if (!GEOBASE_CONFIG.projectRef || !GEOBASE_CONFIG.apikey) {
 
 type MapProvider = "geobase" | "mapbox";
 
-export default function MaskGeneration() {
+export default function LandCoverClassification() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const draw = useRef<MaplibreDraw | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const [polygon, setPolygon] = useState<GeoJSON.Feature | null>(null);
-  const [input, setInput] = useState<{
-    type: "points" | "boxes";
-    coordinates: number[];
-  } | null>(null);
-  const [detecting, setDetecting] = useState(false);
+  const [classifying, setClassifying] = useState(false);
   const [initializing, setInitializing] = useState(false);
-  const [detectionResult, setDetectionResult] = useState<string | null>(null);
-  const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
+  const [classificationResult, setClassificationResult] = useState<string | null>(null);
+  const [classifications, setClassifications] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(22);
-  const [maxMasks, setMaxMasks] = useState<number>(1);
-  const [drawing, setDrawing] = useState<"points" | "boxes" | "polygon">("polygon");
-  const drawingRef = useRef(drawing);
-    useEffect(() => {
-      drawingRef.current = drawing;
-    }, [drawing]);
-  const [inputType, setInputType] = useState<"points" | "boxes">("points");
+  const [confidenceScore, setConfidenceScore] = useState<number>(0.9);
   const [selectedModel, setSelectedModel] = useState<string>(
-    "Xenova/slimsam-77-uniform"
+    "geobase/land-cover-classification"
   );
   const [customModelId, setCustomModelId] = useState<string>("");
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
-  const models = ["Xenova/slimsam-77-uniform"];
+  const [detecting, setDetecting] = useState(false);
+  const [detectionResult, setDetectionResult] = useState<string | null>(null);
+  const models = ["geobase/land-cover-classification"];
 
   const handleReset = () => {
-    // Clear all drawn features
     if (draw.current) {
       draw.current.deleteAll();
     }
 
-    // Remove detection layer if it exists
     if (map.current) {
-      if (map.current.getSource("detections")) {
-        map.current.removeLayer("detections-layer");
-        map.current.removeSource("detections");
+      if (map.current.getSource("classifications")) {
+        map.current.removeLayer("classifications-layer");
+        map.current.removeSource("classifications");
       }
     }
 
-    // Reset states
     setPolygon(null);
-    setDetections(undefined);
-    setDetectionResult(null);
+    setClassifications(undefined);
+    setClassificationResult(null);
+    setClassifying(false);
     setDetecting(false);
   };
 
@@ -130,69 +120,24 @@ export default function MaskGeneration() {
       zoom: 18,
     });
 
-    // Add draw control
     draw.current = new MaplibreDraw({
       displayControlsDefault: false,
       controls: {
         polygon: true,
         trash: true,
       },
-    });
+    }) as unknown as MaplibreDraw;
     map.current.addControl(draw.current, "top-left");
 
-    // Listen for polygon creation
     map.current.on("draw.create", updatePolygon);
     map.current.on("draw.update", updatePolygon);
     map.current.on("draw.delete", () => setPolygon(null));
 
     function updatePolygon() {
-      console.log('updatePolygon called, drawing mode:', drawingRef.current);
       const features = draw.current?.getAll();
-      console.log('Features from draw:', features);
       if (features && features.features.length > 0) {
-        console.log('Number of features:', features.features.length);
-        console.log('First feature:', features.features[0]);
-        
-        if(drawingRef.current === "polygon"){
-          console.log('Setting polygon from feature:', features.features[0]);
-          setPolygon(features.features[0]);
-        }
-        else if (drawingRef.current === "points") {
-          // Handle points logic
-          const pointFeature = features.features[1];
-          if (pointFeature.geometry.type === "Point") {
-            setInput({
-              type: "points",
-              coordinates: pointFeature.geometry.coordinates as number[],
-            });
-          } else {
-            console.error("Expected a Point geometry for points input");
-            setInput(null);
-          }
-        } else if (drawingRef.current === "boxes") {
-          // Handle boxes logic
-          const boxFeature = features.features[1];
-          if (boxFeature.geometry.type === "Polygon") {
-            const coordinates = boxFeature.geometry.coordinates[0];
-            if (coordinates.length === 4) {
-              // Convert to bounding box format [x1, y1, x2, y2]
-              const [x1, y1] = coordinates[0];
-              const [x2, y2] = coordinates[2];
-              setInput({
-                type: "boxes",
-                coordinates: [x1, y1, x2, y2],
-              });
-            } else {
-              console.error("Expected a bounding box with 4 corners");
-              setInput(null);
-            }
-          } else {
-            console.error("Expected a Polygon geometry for boxes input");
-            setInput(null);
-          }
-        }
+        setPolygon(features.features[0]);
       } else {
-        console.log('No features found, clearing polygon');
         setPolygon(null);
       }
     }
@@ -204,22 +149,164 @@ export default function MaskGeneration() {
     };
   }, [mapProvider]);
 
-  // Initialize worker
   useEffect(() => {
     workerRef.current = new Worker(
-      new URL("./maskGeneration.worker.ts", import.meta.url)
+      new URL("../common.worker.ts", import.meta.url)
     );
 
     workerRef.current.onmessage = e => {
       const { type, payload } = e.data;
+      console.log("Worker message received:", type, payload);
 
       switch (type) {
         case "init_complete":
           setInitializing(false);
           break;
         case "inference_complete":
-          if (payload.masks) {
-            setDetections(payload.masks);
+          if (payload.detections) {
+            console.log("Received detections:", payload.detections);
+            
+            // Validate that we have an array of FeatureCollections
+            if (!Array.isArray(payload.detections)) {
+              console.error("Expected array of FeatureCollections:", payload.detections);
+              setClassificationResult("Error: Invalid detection results format");
+              setClassifying(false);
+              setDetecting(false);
+              break;
+            }
+
+            // Merge all FeatureCollections into a single one
+            const mergedFeatures = payload.detections.reduce((acc: GeoJSON.Feature[], collection: GeoJSON.FeatureCollection) => {
+              if (collection.type === "FeatureCollection" && Array.isArray(collection.features)) {
+                return [...acc, ...collection.features];
+              }
+              return acc;
+            }, []);
+
+            const geojsonData: GeoJSON.FeatureCollection = {
+              type: "FeatureCollection",
+              features: mergedFeatures
+            };
+
+            console.log("Merged GeoJSON data:", geojsonData);
+
+            setClassifications(geojsonData);
+            if (map.current) {
+              try {
+                if (map.current.getSource("classifications")) {
+                  map.current.removeLayer("classifications-layer");
+                  map.current.removeSource("classifications");
+                }
+
+                map.current.addSource("classifications", {
+                  type: "geojson",
+                  data: geojsonData
+                });
+
+                map.current.addLayer({
+                  id: "classifications-layer",
+                  type: "fill",
+                  source: "classifications",
+                  paint: {
+                    "fill-color": [
+                      "match",
+                      ["get", "class"],
+                      "forest", "#228B22",
+                      "water", "#4169E1",
+                      "urban", "#808080",
+                      "agriculture", "#FFD700",
+                      "#FF0000"
+                    ],
+                    "fill-opacity": 0.6,
+                    "fill-outline-color": "#000000",
+                  },
+                });
+
+                const popup = new maplibregl.Popup({
+                  closeButton: false,
+                  closeOnClick: false,
+                });
+
+                map.current.on("mouseenter", "classifications-layer", () => {
+                  map.current!.getCanvas().style.cursor = "pointer";
+                });
+
+                map.current.on("mouseleave", "classifications-layer", () => {
+                  map.current!.getCanvas().style.cursor = "";
+                  popup.remove();
+                });
+
+                map.current.on("mousemove", "classifications-layer", e => {
+                  if (e.features && e.features.length > 0) {
+                    const feature = e.features[0];
+                    const properties = feature.properties;
+                    const content = Object.entries(properties)
+                      .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+                      .join("<br/>");
+
+                    popup
+                      .setLngLat(e.lngLat)
+                      .setHTML(content)
+                      .addTo(map.current!);
+                  }
+                });
+              } catch (error) {
+                console.error("Error adding layer to map:", error);
+                setClassificationResult(`Error displaying results: ${error instanceof Error ? error.message : 'Unknown error'}`);
+              }
+            }
+            setClassifying(false);
+            setDetecting(false);
+            setClassificationResult("Land cover classification complete!");
+          }
+          break;
+        case "error":
+          console.error("Worker error:", payload);
+          setClassifying(false);
+          setInitializing(false);
+          setDetecting(false);
+          setClassificationResult(`Error: ${payload}`);
+          break;
+      }
+    };
+
+    return () => {
+      workerRef.current?.terminate();
+    };
+  }, []);
+
+  const handleClassify = async () => {
+    if (!polygon || !workerRef.current) return;
+    
+    setClassifying(true);
+    setInitializing(true);
+    setClassificationResult(null);
+    setDetecting(true);
+
+    try {
+      workerRef.current.postMessage({
+        type: "init",
+        payload: {
+          task: "land-cover-classification",
+          ...(mapProvider === "geobase" ? GEOBASE_CONFIG : MAPBOX_CONFIG),
+          modelId: customModelId || selectedModel,
+        },
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        const messageHandler = (e: MessageEvent) => {
+          const { type, payload } = e.data;
+          if (type === "init_complete") {
+            workerRef.current?.removeEventListener("message", messageHandler);
+            resolve();
+          } else if (type === "error") {
+            workerRef.current?.removeEventListener("message", messageHandler);
+            reject(new Error(payload));
+          } else if (type === "inference_complete"){
+            workerRef.current?.removeEventListener("message", messageHandler);
+            const detections = payload.detections;
+          if (detections) {
+            setClassifications(detections);
             // Add the detections as a new layer on the map
             if (map.current) {
               // Remove existing detection layer if it exists
@@ -231,7 +318,7 @@ export default function MaskGeneration() {
               // Add the new detections as a source
               map.current.addSource("detections", {
                 type: "geojson",
-                data: payload.masks,
+                data: detections,
               });
 
               // Add a layer to display the detections
@@ -279,48 +366,6 @@ export default function MaskGeneration() {
               });
             }
           }
-          setDetecting(false);
-          setDetectionResult("Mask Generation complete!");
-          break;
-        case "error":
-          setDetecting(false);
-          setInitializing(false);
-          setDetectionResult(`Error: ${payload}`);
-          break;
-      }
-    };
-
-    return () => {
-      workerRef.current?.terminate();
-    };
-  }, []);
-
-  const handleMaskGeneration = async () => {
-    if (!polygon || !workerRef.current) return;
-    setDetecting(true);
-    setInitializing(true);
-    setDetectionResult(null);
-
-    try {
-      // Initialize model if needed
-      workerRef.current.postMessage({
-        type: "init",
-        payload: {
-          ...(mapProvider === "geobase" ? GEOBASE_CONFIG : MAPBOX_CONFIG),
-          modelId: customModelId || selectedModel,
-        },
-      });
-
-      // Wait for initialization to complete before running inference
-      await new Promise<void>((resolve, reject) => {
-        const messageHandler = (e: MessageEvent) => {
-          const { type, payload } = e.data;
-          if (type === "init_complete") {
-            workerRef.current?.removeEventListener("message", messageHandler);
-            resolve();
-          } else if (type === "error") {
-            workerRef.current?.removeEventListener("message", messageHandler);
-            reject(new Error(payload));
           }
         };
         workerRef.current?.addEventListener("message", messageHandler);
@@ -331,36 +376,21 @@ export default function MaskGeneration() {
         type: "inference",
         payload: {
           polygon,
-          input,
-          maxMasks,
+          confidenceScore,
           zoomLevel,
         },
       });
     } catch (error) {
-      console.error("Detection error:", error);
+      console.error("Classification error:", error);
       setDetecting(false);
       setInitializing(false);
-      setDetectionResult(error instanceof Error ? error.message : "Error during detection. Please try again.");
+      setClassificationResult(error instanceof Error ? error.message : "Error during classification. Please try again.");
     }
   };
 
   const handleStartDrawing = () => {
-    setDrawing("polygon");
-    drawingRef.current = "polygon";
     if (draw.current) {
       draw.current.changeMode("draw_polygon");
-    }
-  };
-  
-  const handleStartDrawingInput = () => {
-    setDrawing(inputType);
-    drawingRef.current = inputType;
-    if (draw.current) {
-      if (inputType === "points") {
-        draw.current.changeMode("draw_point");
-      } else if (inputType === "boxes") {
-        draw.current.changeMode("draw_rectangle");
-      }
     }
   };
 
@@ -370,9 +400,9 @@ export default function MaskGeneration() {
       <aside className="w-96 bg-white border-r border-gray-200 h-full flex flex-col overflow-hidden">
         <div className="p-6 flex flex-col gap-6 text-black shadow-lg overflow-y-auto">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-800">Mask Generation</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Object Detection</h2>
             <p className="text-sm text-gray-600">
-              Draw a polygon and point or box on the map and run mask generation within the
+              Draw a polygon on the map and run object detection within the
               selected area.
             </p>
           </div>
@@ -420,33 +450,12 @@ export default function MaskGeneration() {
                 </svg>
                 Draw Area of Interest
               </button>
-
-              <button
-                className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2 cursor-pointer"
-                onClick={handleStartDrawingInput}
-                disabled={!polygon || detecting || initializing}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              {inputType === 'points' ? 'Draw Point' : 'Draw bbox'}
-              </button>
-              
               <button
                 className="bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                disabled={!polygon || detecting || initializing}
-                onClick={handleMaskGeneration}
+                disabled={!polygon || classifying || initializing}
+                onClick={handleClassify}
               >
-                {detecting || initializing ? (
+                {classifying || initializing ? (
                   <>
                     <svg
                       className="animate-spin h-5 w-5 text-white"
@@ -484,7 +493,7 @@ export default function MaskGeneration() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    Generate Mask
+                    Run Detection
                   </>
                 )}
               </button>
@@ -584,42 +593,23 @@ export default function MaskGeneration() {
                   />
                 </div>
 
-                
                 <div>
                   <label
-                    htmlFor="inputType"
+                    htmlFor="confidenceScore"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Input Type
-                  </label>
-                  <select
-                    id="inputType"
-                    value={inputType}
-                    onChange={(e) => setInputType(e.target.value as "points" | "boxes")}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
-                  >
-                    <option value="points">Points</option>
-                    <option value="boxes">Boxes</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="maxMasks"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Max Masks (1-3)
+                    Confidence Score (0-1)
                   </label>
                   <input
                     type="number"
-                    id="maxMasks"
-                    min="1"
-                    max="3"
-                    step="1"
-                    value={maxMasks}
+                    id="confidenceScore"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={confidenceScore}
                     onChange={e =>
-                      setMaxMasks(
-                        Math.min(3, Math.max(1, Number(e.target.value)))
+                      setConfidenceScore(
+                        Math.min(1, Math.max(0, Number(e.target.value)))
                       )
                     }
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
@@ -629,9 +619,9 @@ export default function MaskGeneration() {
             </div>
           </div>
 
-          {detectionResult && (
+          {classificationResult && (
             <div className="mt-4 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg">
-              {detectionResult}
+              {classificationResult}
             </div>
           )}
           
