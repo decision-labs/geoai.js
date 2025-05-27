@@ -28,7 +28,7 @@ if (!GEOBASE_CONFIG.projectRef || !GEOBASE_CONFIG.apikey) {
 
 type MapProvider = "geobase" | "mapbox";
 
-export default function ObjectDetection() {
+export default function BuildingDetection() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const draw = useRef<MaplibreDraw | null>(null);
@@ -38,14 +38,14 @@ export default function ObjectDetection() {
   const [initializing, setInitializing] = useState(false);
   const [detectionResult, setDetectionResult] = useState<string | null>(null);
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
-  const [zoomLevel, setZoomLevel] = useState<number>(22);
+  const [zoomLevel, setZoomLevel] = useState<number>(17);
   const [confidenceScore, setConfidenceScore] = useState<number>(0.9);
-  const [selectedModel, setSelectedModel] = useState<string>(
-    "geobase/WALDO30_yolov8m_640x640"
-  );
+//   const [selectedModel, setSelectedModel] = useState<string>(
+//     "geobase/WALDO30_yolov8m_640x640"
+//   );
   const [customModelId, setCustomModelId] = useState<string>("");
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
-  const models = ["geobase/WALDO30_yolov8m_640x640"];
+//   const models = ["geobase/WALDO30_yolov8m_640x640"];
 
   const handleReset = () => {
     // Clear all drawn features
@@ -227,7 +227,7 @@ export default function ObjectDetection() {
             }
           }
           setDetecting(false);
-          setDetectionResult("Object detection complete!");
+          setDetectionResult("Building detection complete!");
           break;
         case "error":
           setDetecting(false);
@@ -255,7 +255,7 @@ export default function ObjectDetection() {
         payload: {
             task: "building-detection",
           ...(mapProvider === "geobase" ? GEOBASE_CONFIG : MAPBOX_CONFIG),
-          modelId: customModelId || selectedModel,
+        //   modelId: customModelId || selectedModel,
         },
       });
 
@@ -303,9 +303,9 @@ export default function ObjectDetection() {
       <aside className="w-96 bg-white border-r border-gray-200 h-full flex flex-col overflow-hidden">
         <div className="p-6 flex flex-col gap-6 text-black shadow-lg overflow-y-auto">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-800">Object Detection</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Building Detection (GeoAI Model)</h2>
             <p className="text-sm text-gray-600">
-              Draw a polygon on the map and run object detection within the
+              Draw a polygon on the map and run Building detection within the
               selected area.
             </p>
           </div>
@@ -422,7 +422,7 @@ export default function ObjectDetection() {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+            {/* <div className="bg-gray-50 p-4 rounded-lg space-y-4">
               <h3 className="font-semibold text-gray-800">Model Settings</h3>
               <div className="space-y-4">
                 <div>
@@ -469,7 +469,7 @@ export default function ObjectDetection() {
                   />
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="bg-gray-50 p-4 rounded-lg space-y-4">
               <h3 className="font-semibold text-gray-800">Detection Settings</h3>

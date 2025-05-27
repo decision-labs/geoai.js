@@ -3,7 +3,7 @@ import { getPolygonFromMask, parametersChanged } from "@/utils/utils";
 import { ObjectDetectionResults } from "../models/zero_shot_object_detection";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
 import { loadOnnxModel } from "./model_utils";
@@ -27,7 +27,25 @@ abstract class BaseDetectionModel extends BaseModel {
   protected async preProcessor(
     image: GeoRawImage
   ): Promise<{ input: ort.Tensor }> {
-    const tensor = image.toTensor("CHW"); // Transpose to CHW format (equivalent to Python's transpose(2, 0, 1))
+    let rawImage = new RawImage(
+      image.data,
+      image.height,
+      image.width,
+      image.channels
+    );
+
+    // If image has 4 channels, remove the alpha channel
+    if (image.channels > 3) {
+      const newData = new Uint8Array(image.width * image.height * 3);
+      for (let i = 0, j = 0; i < image.data.length; i += 4, j += 3) {
+        newData[j] = image.data[i]; // R
+        newData[j + 1] = image.data[i + 1]; // G
+        newData[j + 2] = image.data[i + 2]; // B
+      }
+      rawImage = new RawImage(newData, image.height, image.width, 3);
+    }
+    const tensor = rawImage.toTensor("CHW"); // Transpose to CHW format (equivalent to Python's transpose(2, 0, 1))
+    // const tensor = image.toTensor("CHW"); // Transpose to CHW format (equivalent to Python's transpose(2, 0, 1))
 
     // Convert tensor data to Float32Array and normalize
     const floatData = new Float32Array(tensor.data.length);
