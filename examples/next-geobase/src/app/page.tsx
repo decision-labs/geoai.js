@@ -177,6 +177,27 @@ export default function Home() {
             </p>
           </a>
           <a
+            href="/tasks/building-footprint"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            >
+              <source src="/video/building-footprint.mp4" type="video/mp4" />
+            </video>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Building Footprint Segmentation
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Generates segmentation masks for building footprints
+              in satellite imagery.
+            </p>
+          </a>
+          <a
             href="/tasks/land-cover"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
