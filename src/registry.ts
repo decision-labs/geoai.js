@@ -22,6 +22,7 @@ import {
   WetLandSegmentation,
 } from "./models/geoai_models";
 import { OilStorageTankDetection } from "./models/oil_storage_tank_detection";
+import { BuildingFootPrintSegmentation } from "./models/building_footprint_segmentation";
 
 export const modelRegistry: ModelConfig[] = [
   {
@@ -202,6 +203,32 @@ export const modelRegistry: ModelConfig[] = [
       instance: OilStorageTankDetection;
     }> => {
       return OilStorageTankDetection.getInstance(modelId, params, modelParams);
+    },
+  },
+  {
+    task: "building-footprint-segmentation",
+    library: "geobase-ai",
+    description: "Building Footprint Segmentation Model.",
+    ioConfig: {} as {
+      inputs: {
+        polygon: GeoJSON.Feature;
+        confidenceThreshold?: number;
+        minArea?: number;
+      };
+      outputs: ObjectDetectionResults;
+    },
+    geobase_ai_pipeline: (
+      params: ProviderParams,
+      modelId: string = "https://huggingface.co/geobase/building_footprint_segmentation/resolve/main/model.onnx",
+      modelParams?: PretrainedOptions
+    ): Promise<{
+      instance: BuildingFootPrintSegmentation;
+    }> => {
+      return BuildingFootPrintSegmentation.getInstance(
+        modelId,
+        params,
+        modelParams
+      );
     },
   },
 ];

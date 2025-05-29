@@ -20,6 +20,7 @@ import {
 import { PretrainedOptions } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
+import { BuildingFootPrintSegmentation } from "@/models/building_footprint_segmentation";
 
 export type MapboxParams = {
   provider: "mapbox";
@@ -68,7 +69,8 @@ export type GeobaseAiModelTasks =
   | "car-detection"
   | "wetland-segmentation"
   | "building-detection"
-  | "oil-storage-tank-detection";
+  | "oil-storage-tank-detection"
+  | "building-footprint-segmentation";
 
 export type ModelsInstances =
   | GenericSegmentation
@@ -81,7 +83,8 @@ export type ModelsInstances =
   | CarDetection
   | WetLandSegmentation
   | BuildingDetection
-  | OilStorageTankDetection;
+  | OilStorageTankDetection
+  | BuildingFootPrintSegmentation;
 
 export type ModelConfig = {
   task: HuggingFaceModelTasks | GeobaseAiModelTasks;
