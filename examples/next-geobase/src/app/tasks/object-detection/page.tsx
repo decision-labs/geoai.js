@@ -11,6 +11,8 @@ const GEOBASE_CONFIG = {
   apikey: process.env.NEXT_PUBLIC_GEOBASE_API_KEY,
   cogImagery:
     "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif",
+  center: [114.84857638295142, -3.449805712621256],
+  zoom: 18,
 };
 
 const MAPBOX_CONFIG = {
@@ -187,9 +189,9 @@ export default function ObjectDetection() {
                 type: "fill",
                 source: "detections",
                 paint: {
-                  "fill-color": "#ff0000",
-                  "fill-opacity": 0.4,
-                  "fill-outline-color": "#990000",
+                  "fill-color": "#0000ff",
+                  "fill-opacity": 0.8,
+                  "fill-outline-color": "#000000",
                 },
               });
 

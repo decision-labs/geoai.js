@@ -189,9 +189,9 @@ export default function BuildingFootPrintSegmentation() {
                 type: "fill",
                 source: "detections",
                 paint: {
-                  "fill-color": "#ff0000",
-                  "fill-opacity": 0.4,
-                  "fill-outline-color": "#990000",
+                  "fill-color": "#FFD600",
+                  "fill-opacity": 0.8,
+                  "fill-outline-color": "#000000",
                 },
               });
 

@@ -240,9 +240,9 @@ export default function MaskGeneration() {
                 type: "fill",
                 source: "detections",
                 paint: {
-                  "fill-color": "#ff0000",
+                  "fill-color": "#0000ff",
                   "fill-opacity": 0.4,
-                  "fill-outline-color": "#990000",
+                  "fill-outline-color": "#0000ff",
                 },
               });
 

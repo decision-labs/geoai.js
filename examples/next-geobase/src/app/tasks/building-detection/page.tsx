@@ -5,13 +5,26 @@ import maplibregl from "maplibre-gl";
 import MaplibreDraw from "maplibre-gl-draw";
 import type { StyleSpecification } from "maplibre-gl";
 
+// const GEOBASE_CONFIG = {
+//   provider: "geobase",
+//   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
+//   apikey: process.env.NEXT_PUBLIC_GEOBASE_API_KEY,
+//   cogImagery:
+//     "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip_train.tif",
+//    center: [-117.59239617156095, 47.653614113446906],
+//    zoom: 18,
+// };
+
 const GEOBASE_CONFIG = {
   provider: "geobase",
   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
   apikey: process.env.NEXT_PUBLIC_GEOBASE_API_KEY,
   cogImagery:
-    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip_train.tif",
+    "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif",
+  center: [114.84857638295142, -3.449805712621256],
+  zoom: 18,
 };
+
 
 const MAPBOX_CONFIG = {
   provider: "mapbox",
@@ -116,8 +129,8 @@ export default function BuildingDetection() {
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: mapStyle,
-      center: [-117.59239617156095, 47.653614113446906],
-      zoom: 18,
+      center: GEOBASE_CONFIG.center,
+      zoom: GEOBASE_CONFIG.zoom,
     });
 
     // Add draw control
@@ -187,9 +200,9 @@ export default function BuildingDetection() {
                 type: "fill",
                 source: "detections",
                 paint: {
-                  "fill-color": "#ff0000",
+                  "fill-color": "#0000ff",
                   "fill-opacity": 0.4,
-                  "fill-outline-color": "#990000",
+                  "fill-outline-color": "#0000ff",
                 },
               });
 
