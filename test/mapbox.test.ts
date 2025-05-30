@@ -1,6 +1,8 @@
 import { describe, expect, it, beforeAll, beforeEach } from "vitest";
 import { Mapbox } from "../src/data_providers/mapbox";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
+import { polygonReturningSquareImageVertical } from "./constants";
+import { GeobaseError } from "../src/errors";
 
 describe("Mapbox", () => {
   let mapbox: Mapbox;
@@ -83,6 +85,47 @@ describe("Mapbox", () => {
       } as GeoJSON.Feature;
 
       await expect(mapbox.getImage(invalidPolygon)).rejects.toThrow();
+    });
+
+    it("should throw error if tile count exceeds maximum", async () => {
+      try {
+        await mapbox.getImage(
+          polygonReturningSquareImageVertical,
+          undefined,
+          undefined,
+          21,
+          true
+        );
+      } catch (error) {
+        expect(error).toBeInstanceOf(GeobaseError);
+        expect(error.message).toBe(
+          "Requested 6724 tiles, which exceeds the maximum allowed (100)."
+        );
+      }
+    });
+
+    it("should not get image with square aspect ratio when not passing square", async () => {
+      const image = await mapbox.getImage(
+        polygonReturningSquareImageVertical,
+        undefined,
+        undefined,
+        undefined,
+        // 21,
+        false
+      );
+      expect(image).toBeInstanceOf(GeoRawImage);
+      expect(image.width).not.toBe(image.height);
+    });
+    it("should get image with square aspect ratio when required square is true", async () => {
+      const image = await mapbox.getImage(
+        polygonReturningSquareImageVertical,
+        undefined,
+        undefined,
+        17,
+        true
+      );
+      expect(image).toBeInstanceOf(GeoRawImage);
+      expect(image.width).toBe(image.height);
     });
   });
 });

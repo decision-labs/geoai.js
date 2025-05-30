@@ -29,10 +29,11 @@ export abstract class MapSource {
     polygon: any,
     bands?: number[],
     expression?: string,
-    zoomLevel?: number
+    zoomLevel?: number,
+    requiresSquare: boolean = false // default is false
   ): Promise<GeoRawImage> {
     const bbox = turfBbox(polygon);
-    let zoom = 20;
+    const initialSearchZoom = 22;
 
     if (zoomLevel) {
       const tilesGrid = calculateTilesForBbox(
@@ -41,10 +42,13 @@ export abstract class MapSource {
         zoomLevel,
         this,
         bands,
-        expression
+        expression,
+        requiresSquare
       );
       return await getImageFromTiles(tilesGrid);
     }
+
+    let zoom = initialSearchZoom;
 
     let tilesGrid = calculateTilesForBbox(
       bbox,
@@ -52,17 +56,19 @@ export abstract class MapSource {
       zoom,
       this,
       bands,
-      expression
+      expression,
+      requiresSquare
     );
 
     let xTileNum = tilesGrid[0].length;
     let yTileNum = tilesGrid.length;
 
     while (
-      (xTileNum > 2 && yTileNum > 2) ||
-      (xTileNum === 1 && yTileNum === 1 && zoom > 22) ||
-      (xTileNum > 2 && yTileNum > 1) ||
-      (xTileNum > 1 && yTileNum > 2)
+      xTileNum > 2 &&
+      yTileNum > 2
+      // (xTileNum === 1 && yTileNum === 1 && zoom > 22) ||
+      // (xTileNum > 2 && yTileNum > 1) ||
+      // (xTileNum > 1 && yTileNum > 2)
     ) {
       zoom--;
       tilesGrid = calculateTilesForBbox(
@@ -71,7 +77,8 @@ export abstract class MapSource {
         zoom,
         this,
         bands,
-        expression
+        expression,
+        requiresSquare
       );
       xTileNum = tilesGrid[0].length;
       yTileNum = tilesGrid.length;

@@ -2,6 +2,7 @@ import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { load_image, RawImage } from "@huggingface/transformers";
 import { bboxPolygon as turfBboxPolygon } from "@turf/bbox-polygon";
 import { tileToBBox } from "global-mercator/index";
+import { GeobaseError, ErrorType } from "../errors";
 const cv = require("@techstark/opencv-js");
 
 const latLngToTileXY = (
@@ -192,6 +193,14 @@ const stitchImageGrid = async (imageGrid: RawImage[][]) => {
 export const getImageFromTiles = async (
   tilesGrid: any
 ): Promise<GeoRawImage> => {
+  // Throw error if tile count exceeds maximum
+  const MAX_TILE_COUNT = 100; // Set your desired maximum here
+  if (tilesGrid.length * tilesGrid[0].length > MAX_TILE_COUNT) {
+    throw new GeobaseError(
+      ErrorType.MaximumTileCountExceeded,
+      `Requested ${tilesGrid.length * tilesGrid[0].length} tiles, which exceeds the maximum allowed (${MAX_TILE_COUNT}).`
+    );
+  }
   const tileUrlsGrid = tilesGrid.map((row: any) =>
     row.map((tile: any) => tile.tileUrl)
   );
