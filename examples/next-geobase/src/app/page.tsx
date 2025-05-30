@@ -97,7 +97,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">GeoBase AI</h1>
+              <h1 className="text-2xl font-bold text-gray-900">GeobaseAI.js</h1>
             </div>
             <nav className="flex space-x-8">
               <a
@@ -126,11 +126,11 @@ export default function Home() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
-            AI-Powered Geospatial Analysis
+          <h2 className="text-4xl font-extrabold text-gray-800 sm:text-5xl sm:tracking-tight lg:text-5xl">
+            Geospatial AI Models for the Web
           </h2>
-          <p className="mt-5 max-w-xl mx-auto text-xl text-gray-500">
-            Explore our suite of advanced AI models for geospatial data analysis
+          <p className="mt-5 max-w-xl mx-auto text-xl text-gray-600">
+            Explore our suite of advanced AI models for geospatial data analysis. More models coming soon!
           </p>
         </div>
 
