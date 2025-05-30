@@ -69,6 +69,7 @@ export abstract class BaseModel {
    * @param zoomLevel - (Optional) The zoom level to use when retrieving the image.
    * @param bands - (Optional) An array of band indices to select specific bands from the imagery.
    * @param expression - (Optional) A string expression to apply to the image bands (e.g., for band math).
+   * @param requiresSquare - (default false) Whether to return a square image.
    * @returns A Promise that resolves to a GeoRawImage corresponding to the input polygon.
    * @throws {Error} If the data provider is not initialized.
    */
@@ -76,12 +77,19 @@ export abstract class BaseModel {
     polygon: GeoJSON.Feature,
     zoomLevel?: number,
     bands?: number[],
-    expression?: string
+    expression?: string,
+    requiresSquare: boolean = false
   ): Promise<GeoRawImage> {
     if (!this.dataProvider) {
       throw new Error("Data provider not initialized");
     }
-    return this.dataProvider.getImage(polygon, bands, expression, zoomLevel);
+    return this.dataProvider.getImage(
+      polygon,
+      bands,
+      expression,
+      zoomLevel,
+      requiresSquare
+    );
   }
 
   // Abstract method that must be implemented by child classes

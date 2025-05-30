@@ -145,7 +145,8 @@ abstract class BaseDetectionModel extends BaseModel {
       polygon,
       mapSourceOptions.zoomLevel,
       mapSourceOptions.bands,
-      mapSourceOptions.expression
+      mapSourceOptions.expression,
+      true // models require square image
     );
 
     const inputs = await this.preProcessor(geoRawImage);
