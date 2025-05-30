@@ -90,39 +90,6 @@ export const calculateTilesForBbox = (
   }
 
   return tiles;
-
-  //need to test below logic if it works then replace it with above code
-
-  //   const [minLng, minLat, maxLng, maxLat] = bbox;
-
-  //   const topLeft = latLngToTileXY(maxLat, minLng, zoom);
-  //   const bottomRight = latLngToTileXY(minLat, maxLng, zoom);
-
-  //   // Calculate the maximum dimension
-  //   const xTiles = bottomRight.x - topLeft.x + 1;
-  //   const yTiles = bottomRight.y - topLeft.y + 1;
-  //   const maxTiles = Math.max(xTiles, yTiles);
-
-  //   // Adjust x and y ranges to be equal
-  //   const xStart = topLeft.x;
-  //   const yStart = topLeft.y;
-  //   const xEnd = xStart + maxTiles - 1;
-  //   const yEnd = yStart + maxTiles - 1;
-
-  //   const tiles = [];
-  //   for (let y = yStart; y <= yEnd; y++) {
-  //     const row = [];
-  //     for (let x = xStart; x <= xEnd; x++) {
-  //       row.push({
-  //         tile: [x, y, zoom],
-  //         tileUrl: mercatorTileURLGetter([x, y, zoom], instance),
-  //         tileGeoJson: turfBboxPolygon(tileToBBox([x, y, zoom])),
-  //       });
-  //     }
-  //     tiles.push(row);
-  //   }
-
-  //   return tiles;
 };
 
 const rawImageToMat = async (rawImage: RawImage): Promise<any> => {
