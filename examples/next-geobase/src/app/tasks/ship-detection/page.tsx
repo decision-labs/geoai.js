@@ -20,9 +20,9 @@ const GEOBASE_CONFIG = {
   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
   apikey: process.env.NEXT_PUBLIC_GEOBASE_API_KEY,
   cogImagery:
-    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/solar_panels_davis_ca.tif",
-  center: [-121.7743491, 38.5533061],
-  zoom: 18,
+    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/ships_dubai.tif",
+  center: [55.135912, 25.115014],
+  zoom: 17,
 };
 
 
@@ -41,7 +41,7 @@ if (!GEOBASE_CONFIG.projectRef || !GEOBASE_CONFIG.apikey) {
 
 type MapProvider = "geobase" | "mapbox";
 
-export default function SolarPanelDetection() {
+export default function ShipDetection() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const draw = useRef<MaplibreDraw | null>(null);
@@ -129,7 +129,7 @@ export default function SolarPanelDetection() {
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: mapStyle,
-      center: GEOBASE_CONFIG.center,
+      center: GEOBASE_CONFIG.center as [number, number],
       zoom: GEOBASE_CONFIG.zoom,
     });
 
@@ -240,7 +240,7 @@ export default function SolarPanelDetection() {
             }
           }
           setDetecting(false);
-          setDetectionResult("Solar panel detection complete!");
+          setDetectionResult("Ship detection complete!");
           break;
         case "error":
           setDetecting(false);
@@ -266,7 +266,7 @@ export default function SolarPanelDetection() {
       workerRef.current.postMessage({
         type: "init",
         payload: {
-            task: "solar-panel-detection",
+          task: "ship-detection",
           ...(mapProvider === "geobase" ? GEOBASE_CONFIG : MAPBOX_CONFIG),
         //   modelId: customModelId || selectedModel,
         },
@@ -316,9 +316,9 @@ export default function SolarPanelDetection() {
       <aside className="w-96 bg-white border-r border-gray-200 h-full flex flex-col overflow-hidden">
         <div className="p-6 flex flex-col gap-6 text-black shadow-lg overflow-y-auto">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-800">Solar Panel Detection (GeoAI Model)</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Ship Detection (GeoAI Model)</h2>
             <p className="text-sm text-gray-600">
-              Draw a polygon on the map and run Solar panel detection within the
+              Draw a polygon on the map and run Ship detection within the
               selected area.
             </p>
           </div>

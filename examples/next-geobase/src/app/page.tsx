@@ -255,8 +255,15 @@ export default function Home() {
             href="/tasks/car-detection"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/car-detection.jpg"
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            >
+              <source src="/video/cars-detection-model.mp4" type="video/mp4" />
+            </video>
               alt="Car Detection"
               className="w-full h-48 object-cover rounded-lg mb-6"
             />
@@ -288,11 +295,15 @@ export default function Home() {
             href="/tasks/solar-panel"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/solar-panel.jpg"
-              alt="Solar Panel Detection"
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-48 object-cover rounded-lg mb-6"
-            />
+            >
+              <source src="/video/solar-detection-model.mp4" type="video/mp4" />
+            </video>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Solar Panel Detection
             </h2>
@@ -304,11 +315,15 @@ export default function Home() {
             href="/tasks/ship-detection"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/ship-detection.jpg"
-              alt="Ship Detection"
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-48 object-cover rounded-lg mb-6"
-            />
+            >
+              <source src="/video/ship-detection-model.mp4" type="video/mp4" />
+            </video>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Ship Detection
             </h2>

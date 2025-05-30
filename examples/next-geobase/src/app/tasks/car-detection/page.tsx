@@ -240,7 +240,7 @@ export default function CarDetection() {
             }
           }
           setDetecting(false);
-          setDetectionResult("Building detection complete!");
+          setDetectionResult("Car detection complete!");
           break;
         case "error":
           setDetecting(false);
@@ -316,9 +316,9 @@ export default function CarDetection() {
       <aside className="w-96 bg-white border-r border-gray-200 h-full flex flex-col overflow-hidden">
         <div className="p-6 flex flex-col gap-6 text-black shadow-lg overflow-y-auto">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-800">Building Detection (GeoAI Model)</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Car Detection (GeoAI Model)</h2>
             <p className="text-sm text-gray-600">
-              Draw a polygon on the map and run Building detection within the
+              Draw a polygon on the map and run Car detection within the
               selected area.
             </p>
           </div>
