@@ -5,6 +5,8 @@ import {
   geobaseParams,
   geobaseParamsWetLand,
   polygonWetLand,
+  polygonReturningNonSquareImage,
+  polygonReturningSquareImageVertical,
 } from "./constants";
 import { GeobaseParams } from "../src/core/types";
 
@@ -152,6 +154,60 @@ describe("Geobase", () => {
       );
       expect(image).toBeInstanceOf(GeoRawImage);
       expect(image.channels).toBe(1);
+    });
+
+    it("should get image with square aspect ratio", async () => {
+      const image = await geobase.getImage(
+        polygonReturningNonSquareImage,
+        undefined, // bands
+        undefined, // expression
+        16, // zoom level
+        true // square
+      );
+      // await image.save("square_image.png"); // for debugging
+      expect(image).toBeInstanceOf(GeoRawImage);
+      expect(image.width).toBe(image.height);
+    });
+
+    // test with a square polygon and no zoom level argument
+    it("should get image with square aspect ratio when no zoom level is provided", async () => {
+      const image = await geobase.getImage(
+        polygonReturningNonSquareImage,
+        undefined, // bands
+        undefined, // expression
+        undefined, // zoom level
+        true // square
+      );
+      await image.save("square_image.png"); // for debugging
+      expect(image).toBeInstanceOf(GeoRawImage);
+      expect(image.width).toBe(image.height);
+    });
+
+    it("should get image with square aspect ratio using vertical polygon", async () => {
+      const image = await geobase.getImage(
+        polygonReturningSquareImageVertical,
+        undefined, // bands
+        undefined, // expression
+        undefined, // zoom level
+        true // square
+      );
+      await image.save("square_image_vertical.png"); // for debugging
+      expect(image).toBeInstanceOf(GeoRawImage);
+      expect(image.width).toBe(image.height);
+    });
+
+    // write a negative test without passing square
+    it("should not get image with square aspect ratio when not passing square", async () => {
+      const image = await geobase.getImage(
+        polygonReturningSquareImageVertical,
+        undefined, // bands
+        undefined, // expression
+        undefined, // zoom level
+        false // square
+      );
+      await image.save("not_square_image_vertical.png"); // for debugging
+      expect(image).toBeInstanceOf(GeoRawImage);
+      expect(image.width).not.toBe(image.height);
     });
   });
 });

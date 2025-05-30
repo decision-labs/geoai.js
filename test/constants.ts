@@ -251,3 +251,40 @@ export const quadrants_points = {
   "south-east": [18.587564882328365, -33.98004626342711],
   "south-west": [-69.2315934241316, -51.60952167421363],
 };
+
+export const polygonReturningNonSquareImage = {
+  type: "Feature",
+  properties: {
+    cogUri:
+      "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip/m_4609932_nw_14_1_20100629.tif",
+  },
+  geometry: {
+    coordinates: [
+      [
+        [-99.09284471759247, 46.60368240218915],
+        [-99.09284471759247, 46.602249848964505],
+        [-99.08158049838012, 46.602249848964505],
+        [-99.08158049838012, 46.60368240218915],
+        [-99.09284471759247, 46.60368240218915],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
+
+export const polygonReturningSquareImageVertical = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [-99.0893892469291, 46.606426499962225],
+        [-99.0893892469291, 46.59686070995582],
+        [-99.08877533471995, 46.59686070995582],
+        [-99.08877533471995, 46.606426499962225],
+        [-99.0893892469291, 46.606426499962225],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;

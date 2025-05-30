@@ -28,3 +28,4 @@ coverage
 cache/*
 test_images/*
 stats.html
+.env

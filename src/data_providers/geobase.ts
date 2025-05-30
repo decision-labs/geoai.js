@@ -58,7 +58,8 @@ export class Geobase extends MapSource {
     polygon: any,
     bands?: number[],
     expression?: string,
-    zoomLevel?: number
+    zoomLevel?: number,
+    requiresSquare: boolean = false // default is false
   ): Promise<GeoRawImage> {
     const bbox = turfBbox(polygon);
 
@@ -71,7 +72,8 @@ export class Geobase extends MapSource {
         zoomLevel,
         this,
         bands,
-        expression
+        expression,
+        requiresSquare
       );
       return await getImageFromTiles(tilesGrid);
     }
@@ -82,7 +84,8 @@ export class Geobase extends MapSource {
       zoom,
       this,
       bands,
-      expression
+      expression,
+      requiresSquare
     );
 
     let xTileNum = tilesGrid[0].length;
@@ -102,7 +105,8 @@ export class Geobase extends MapSource {
         zoom,
         this,
         bands,
-        expression
+        expression,
+        requiresSquare
       );
       xTileNum = tilesGrid[0].length;
       yTileNum = tilesGrid.length;

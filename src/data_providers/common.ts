@@ -37,12 +37,38 @@ export const calculateTilesForBbox = (
   zoom: number,
   instance?: any,
   bands?: number[],
-  expression?: string
+  expression?: string,
+  square: boolean = false // default is false
 ): any => {
   const [minLng, minLat, maxLng, maxLat] = bbox;
 
   const topLeft = latLngToTileXY(maxLat, minLng, zoom);
   const bottomRight = latLngToTileXY(minLat, maxLng, zoom);
+
+  const xTilesCount = bottomRight.x - topLeft.x + 1;
+  const yTilesCount = bottomRight.y - topLeft.y + 1;
+
+  if (square && xTilesCount !== yTilesCount) {
+    if (xTilesCount > yTilesCount) {
+      const yChange = xTilesCount - yTilesCount;
+
+      topLeft.y = topLeft.y - Math.floor(yChange / 2);
+      bottomRight.y = bottomRight.y + Math.floor(yChange / 2);
+
+      if (yChange % 2 !== 0) {
+        bottomRight.y = bottomRight.y + 1;
+      }
+    } else if (yTilesCount > xTilesCount) {
+      const xChange = yTilesCount - xTilesCount;
+
+      topLeft.x = topLeft.x - Math.floor(xChange / 2);
+      bottomRight.x = bottomRight.x + Math.floor(xChange / 2);
+
+      if (xChange % 2 !== 0) {
+        bottomRight.x = bottomRight.x + 1;
+      }
+    }
+  }
 
   const tiles = [];
   for (let y = topLeft.y; y <= bottomRight.y; y++) {
