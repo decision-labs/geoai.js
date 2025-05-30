@@ -51,7 +51,7 @@ export default function SolarPanelDetection() {
   const [initializing, setInitializing] = useState(false);
   const [detectionResult, setDetectionResult] = useState<string | null>(null);
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
-  const [zoomLevel, setZoomLevel] = useState<number>(17);
+  const [zoomLevel, setZoomLevel] = useState<number>(20);
   const [confidenceScore, setConfidenceScore] = useState<number>(0.9);
 //   const [selectedModel, setSelectedModel] = useState<string>(
 //     "geobase/WALDO30_yolov8m_640x640"
