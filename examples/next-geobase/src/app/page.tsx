@@ -232,6 +232,23 @@ export default function Home() {
             </p>
           </a>
           <a
+            href="/tasks/zero-shot-segmentation"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/zero-shot-segmentation.jpg"
+              alt="Zero Shot Segmentation"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Zero Shot Segmentation
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Segment objects without prior training on specific classes using
+              advanced AI.
+            </p>
+          </a>          
+          <a
             href="/tasks/building-detection"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >

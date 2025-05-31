@@ -4,7 +4,7 @@ import { geobaseAi } from "geobase-ai";
 
 // Worker message types
 type WorkerMessage = {
-  type: "init" | "inference";
+  type: "init" | "inference" | "chain";
   payload: any;
 };
 
@@ -36,21 +36,27 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     switch (type) {
       case "init": {
         console.log("[Worker] Received init message");
-        const { task, provider, modelId, ...config } = payload as InitPayload;
+        const { task, provider, modelId, chain_config, ...config } = payload as InitPayload;
 
         console.log("[Worker] Init payload:", { task, provider, modelId, config });
 
         console.log("[Worker] Starting pipeline initialization");
-        const response = await geobaseAi.pipeline(
-          task,
-          {
-            provider,
-            ...config,
-          },
-          //   modelId
-        );
+        let response;
+        if (chain_config) { 
+          response = await geobaseAi.chain(
+            chain_config,
+            { provider, ...config },
+          );
+          modelInstance = response;
+        }
+        else {
+          response = await geobaseAi.pipeline(
+            task, { provider, ...config },
+            //   modelId
+          );
+          modelInstance = response.instance;
+        }
 
-        modelInstance = response.instance;
         console.log("[Worker] Pipeline initialized successfully");
         self.postMessage({ type: "init_complete" });
         break;
@@ -84,6 +90,26 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         console.log("[Worker] Inference completed successfully");
         console.log({ result });
 
+        self.postMessage({
+          type: "inference_complete",
+          payload: result
+        });
+        break;
+      }
+
+      case "chain": {
+        console.log("[Worker] Received chain message");
+        if (!modelInstance) {
+          console.error("[Worker] Model instance not initialized");
+          throw new Error("Object detector not initialized");
+        }
+        const chain = modelInstance as any;
+        const result = await chain.run({
+          polygon: payload.polygon,
+          text: payload.text,
+        });
+        console.log("[Worker] Chain completed successfully");
+        console.log({ result });
         self.postMessage({
           type: "inference_complete",
           payload: result
