@@ -159,7 +159,8 @@ export class OrientedObjectDetection extends BaseModel {
       polygon,
       mapSourceOptions.zoomLevel,
       mapSourceOptions.bands,
-      mapSourceOptions.expression
+      mapSourceOptions.expression,
+      true
     );
 
     const inputs = await this.preProcessor(geoRawImage);
@@ -173,6 +174,7 @@ export class OrientedObjectDetection extends BaseModel {
       console.debug("error", error);
       throw error;
     }
+    console.log({ outputs });
 
     outputs = await this.postProcessor(outputs, geoRawImage, options);
 
