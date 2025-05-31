@@ -86,7 +86,6 @@ export class ZeroShotObjectDetection extends BaseModel {
       mapSourceOptions.bands,
       mapSourceOptions.expression
     );
-    geoRawImage.save("buildings_test.png");
 
     let outputs;
     try {

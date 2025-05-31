@@ -347,6 +347,22 @@ export default function Home() {
               Detects objects and provides their orientation in the imagery.
             </p>
           </a>
+          <a
+            href="/tasks/oil-storage-tank"
+            className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <img
+              src="/samples/oil-storage-tank.jpg"
+              alt="Oil Storage Tank Detection"
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Oil Storage Tank Detection
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Detects oil storage tanks in the imagery.
+            </p>
+          </a>          
         </div>
       </main>
     </div>

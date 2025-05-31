@@ -178,7 +178,6 @@ describe("Geobase", () => {
         undefined, // zoom level
         true // square
       );
-      await image.save("square_image.png"); // for debugging
       expect(image).toBeInstanceOf(GeoRawImage);
       expect(image.width).toBe(image.height);
     });
@@ -191,7 +190,6 @@ describe("Geobase", () => {
         undefined, // zoom level
         true // square
       );
-      await image.save("square_image_vertical.png"); // for debugging
       expect(image).toBeInstanceOf(GeoRawImage);
       expect(image.width).toBe(image.height);
     });
@@ -205,7 +203,6 @@ describe("Geobase", () => {
         undefined, // zoom level
         false // square
       );
-      await image.save("not_square_image_vertical.png"); // for debugging
       expect(image).toBeInstanceOf(GeoRawImage);
       expect(image.width).not.toBe(image.height);
     });
