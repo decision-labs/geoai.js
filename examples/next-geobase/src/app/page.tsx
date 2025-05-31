@@ -264,9 +264,6 @@ export default function Home() {
             >
               <source src="/video/cars-detection-model.mp4" type="video/mp4" />
             </video>
-              alt="Car Detection"
-              className="w-full h-48 object-cover rounded-lg mb-6"
-            />
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Car Detection
             </h2>
