@@ -51,8 +51,8 @@ export default function CarDetection() {
   const [initializing, setInitializing] = useState(false);
   const [detectionResult, setDetectionResult] = useState<string | null>(null);
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
-  const [zoomLevel, setZoomLevel] = useState<number>(20);
-  const [confidenceScore, setConfidenceScore] = useState<number>(0.3);
+  const [zoomLevel, setZoomLevel] = useState<number>(21);
+  const [confidenceScore, setConfidenceScore] = useState<number>(0.4);
 //   const [selectedModel, setSelectedModel] = useState<string>(
 //     "geobase/WALDO30_yolov8m_640x640"
 //   );
@@ -60,7 +60,39 @@ export default function CarDetection() {
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
   // Add state for class label
   const [classLabel, setClassLabel] = useState<string>("trees.");
+  const [classLabelIndex, setClassLabelIndex] = useState<number>(0);
+  const classLabels = [
+    "trees.",
+    "cars.",
+    "buildings.",
+    "trucks.",
+    "cooling towers.",
+    "Custom..."
+  ];
+  const isCustomClass = classLabelIndex === classLabels.length - 1;
 //   const models = ["geobase/WALDO30_yolov8m_640x640"];
+  // Add state for post-detection threshold
+  const [postMinThreshold, setPostMinThreshold] = useState<number>(0.0);
+  const [postMaxThreshold, setPostMaxThreshold] = useState<number>(1.0);
+
+  // Filtered detections based on postThreshold
+  const filteredDetections = detections && {
+    ...detections,
+    features: detections.features.filter(f => {
+      const score = typeof f.properties?.score === 'number' ? f.properties.score : null;
+      if (score === null) return true;
+      return score >= postMinThreshold && score <= postMaxThreshold;
+    }),
+  };
+
+  // Effect to update the map layer when postThreshold or detections change
+  useEffect(() => {
+    if (!map.current) return;
+    if (!detections) return;
+    const src = map.current.getSource("detections");
+    if (!src || typeof (src as any).setData !== "function") return;
+    (src as maplibregl.GeoJSONSource).setData(filteredDetections || detections);
+  }, [postMinThreshold, postMaxThreshold, detections]);
 
   const handleReset = () => {
     // Clear all drawn features
@@ -190,10 +222,16 @@ export default function CarDetection() {
                 map.current.removeSource("detections");
               }
 
-              // Add the new detections as a source
+              // Add the new detections as a source, but use filteredDetections
+              const filtered = {
+                ...payload.detections,
+                features: payload.detections.features.filter((f: GeoJSON.Feature) =>
+                  typeof f.properties?.score === 'number' ? f.properties.score >= postMaxThreshold : true
+                ),
+              };
               map.current.addSource("detections", {
                 type: "geojson",
-                data: payload.detections,
+                data: filtered,
               });
 
               // Add a layer to display the detections
@@ -242,7 +280,7 @@ export default function CarDetection() {
             }
           }
           setDetecting(false);
-          setDetectionResult("Car detection complete!");
+          setDetectionResult(`Zero Shot Object Detection complete!`);
           break;
         case "error":
           setDetecting(false);
@@ -315,6 +353,11 @@ export default function CarDetection() {
     }
   };
 
+  // Helper to ensure label ends with a dot
+  function ensureDot(label: string) {
+    return label.endsWith(".") ? label : label + ".";
+  }
+
   return (
     <main className="w-full h-screen flex overflow-hidden">
       {/* Sidebar */}
@@ -373,15 +416,36 @@ export default function CarDetection() {
               </button>
               {/* Class Label Input */}
               <div className="flex flex-col gap-1 bg-blue-50 border border-blue-200 rounded-lg p-3 mt-1">
-                <label htmlFor="classLabel" className="text-sm font-medium text-blue-900 mb-1">Class Label</label>
-                <input
-                  id="classLabel"
-                  type="text"
-                  value={classLabel}
-                  onChange={e => setClassLabel(e.target.value)}
-                  placeholder="e.g. car."
-                  className="block w-full rounded-md border-blue-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none sm:text-sm text-gray-900 px-3 py-2 transition-all border"
-                />
+                <label htmlFor="classLabel" className="text-sm font-medium text-blue-900 mb-1">Class Label (e.g. car.)</label>
+                <select
+                  id="classLabelSelect"
+                  value={classLabelIndex}
+                  onChange={e => {
+                    const idx = Number(e.target.value);
+                    setClassLabelIndex(idx);
+                    if (idx !== classLabels.length - 1) {
+                      setClassLabel(classLabels[idx]);
+                    } else {
+                      setClassLabel("");
+                    }
+                  }}
+                  className="block w-full rounded-md border-blue-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none sm:text-sm text-gray-900 px-3 py-2 transition-all border mb-2"
+                >
+                  {classLabels.map((label, idx) => (
+                    <option key={label} value={idx}>{label}</option>
+                  ))}
+                </select>
+                {isCustomClass && (
+                  <input
+                    id="classLabel"
+                    type="text"
+                    value={classLabel}
+                    onChange={e => setClassLabel(e.target.value)}
+                    onBlur={e => setClassLabel(ensureDot(e.target.value.trim()))}
+                    placeholder="e.g. car."
+                    className="block w-full rounded-md border-blue-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none sm:text-sm text-gray-900 px-3 py-2 transition-all border"
+                  />
+                )}
               </div>
               <button
                 className="bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -549,6 +613,46 @@ export default function CarDetection() {
                   />
                 </div>
               </div>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg space-y-4">
+              <h3 className="font-semibold text-blue-900">Filter by Confidence</h3>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <label htmlFor="min-threshold" className="text-xs text-blue-900">Min</label>
+                  <input
+                    id="min-threshold"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.001"
+                    value={postMinThreshold}
+                    onChange={e => {
+                      const val = Math.min(Number(e.target.value), postMaxThreshold);
+                      setPostMinThreshold(val);
+                    }}
+                    className="w-full accent-blue-600"
+                  />
+                  <span className="text-blue-900 font-mono w-14 text-right">{postMinThreshold.toFixed(3)}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label htmlFor="max-threshold" className="text-xs text-blue-900">Max</label>
+                  <input
+                    id="max-threshold"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.001"
+                    value={postMaxThreshold}
+                    onChange={e => {
+                      const val = Math.max(Number(e.target.value), postMinThreshold);
+                      setPostMaxThreshold(val);
+                    }}
+                    className="w-full accent-blue-600"
+                  />
+                  <span className="text-blue-900 font-mono w-14 text-right">{postMaxThreshold.toFixed(3)}</span>
+                </div>
+              </div>
+              <div className="text-xs text-blue-800">Only detections with confidence between min and max are shown.</div>
             </div>
           </div>
 
