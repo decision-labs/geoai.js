@@ -212,8 +212,8 @@ export default function ZeroShotSegmentation() {
           setInitializing(false);
           break;
         case "inference_complete":
-          if (payload.detections) {
-            setDetections(payload.detections);
+          if (payload.masks) {
+            setDetections(payload.masks);
             // Add the detections as a new layer on the map
             if (map.current) {
               // Remove existing detection layer if it exists
@@ -224,8 +224,8 @@ export default function ZeroShotSegmentation() {
 
               // Add the new detections as a source, but use filteredDetections
               const filtered = {
-                ...payload.detections,
-                features: payload.detections.features.filter((f: GeoJSON.Feature) =>
+                ...payload.masks,
+                features: payload.masks.features.filter((f: GeoJSON.Feature) =>
                   typeof f.properties?.score === 'number' ? f.properties.score >= postMaxThreshold : true
                 ),
               };
@@ -280,7 +280,7 @@ export default function ZeroShotSegmentation() {
             }
           }
           setDetecting(false);
-          setDetectionResult(`Zero Shot Object Detection complete!`);
+          setDetectionResult(`Zero Shot Object Segmentation complete!`);
           break;
         case "error":
           setDetecting(false);
@@ -369,16 +369,16 @@ export default function ZeroShotSegmentation() {
       <aside className="w-96 bg-white border-r border-gray-200 h-full flex flex-col overflow-hidden">
         <div className="p-6 flex flex-col gap-6 text-black shadow-lg overflow-y-auto">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-800">Zero Shot Object Detection</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Zero Shot Object Segmentation</h2>
             <p className="text-sm text-gray-600">
-              Draw a polygon on the map and run zero shot object detection within the
+              Draw a polygon on the map and run zero shot object Segmentation within the
               selected area.
             </p>
           </div>
 
           {!polygon && (
             <div className="mt-2 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-sm">
-              Draw a polygon on the map to enable detection.
+              Draw a polygon on the map to enable Segmentation.
             </div>
           )}
 
@@ -495,7 +495,7 @@ export default function ZeroShotSegmentation() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    Run Detection
+                    Run Segmentation
                   </>
                 )}
               </button>
