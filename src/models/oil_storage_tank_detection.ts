@@ -52,9 +52,27 @@ export class OilStorageTankDetection extends BaseModel {
   }
 
   protected async preProcessor(
-    rawImage: GeoRawImage
+    image: GeoRawImage
   ): Promise<{ input: ort.Tensor }> {
-    let mat = cv.matFromArray(
+    let rawImage = new RawImage(
+      image.data,
+      image.height,
+      image.width,
+      image.channels
+    );
+
+    // If image has 4 channels, remove the alpha channel
+    if (rawImage.channels > 3) {
+      const newData = new Uint8Array(rawImage.width * rawImage.height * 3);
+      for (let i = 0, j = 0; i < rawImage.data.length; i += 4, j += 3) {
+        newData[j] = rawImage.data[i]; // R
+        newData[j + 1] = rawImage.data[i + 1]; // G
+        newData[j + 2] = rawImage.data[i + 2]; // B
+      }
+      rawImage = new RawImage(newData, rawImage.height, rawImage.width, 3);
+    }
+
+    const mat = cv.matFromArray(
       rawImage.height,
       rawImage.width,
       rawImage.channels === 4 ? cv.CV_8UC4 : cv.CV_8UC3,
@@ -62,8 +80,8 @@ export class OilStorageTankDetection extends BaseModel {
     );
 
     // Resize the image to 1024x1024
-    let resizedMat = new cv.Mat();
-    let newSize = new cv.Size(1024, 1024);
+    const resizedMat = new cv.Mat();
+    const newSize = new cv.Size(1024, 1024);
     cv.resize(mat, resizedMat, newSize, 0, 0, cv.INTER_LINEAR);
 
     // Convert the resized Mat back to a Uint8Array

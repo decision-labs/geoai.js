@@ -25,6 +25,7 @@ type InferencePayload = {
   confidenceScore: number;
   zoomLevel: number;
   topk: number;
+  nmsThreshold?: number;
 };
 
 let modelInstance: any = null;
@@ -69,7 +70,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
           throw new Error("Object detector not initialized");
         }
 
-        const { polygon, zoomLevel, topk, confidenceScore, classLabel } = payload as InferencePayload;
+        const { polygon, zoomLevel, topk, confidenceScore, nmsThreshold, classLabel } = payload as InferencePayload;
         console.log("[Worker] Running inference with:", { zoomLevel, polygon, topk, confidenceScore, classLabel });
 
         console.log("[Worker] Starting inference");
@@ -80,6 +81,10 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             threshold: confidenceScore,
             topk,
           }, {
+            zoomLevel,
+          });
+        } else if (payload.task === "oil-storage-tank-detection") {
+          result = await modelInstance.inference(polygon,confidenceScore, nmsThreshold , {
             zoomLevel,
           });
         } else {
