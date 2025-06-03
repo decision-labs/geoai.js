@@ -94,8 +94,8 @@ export class LandCoverClassification extends BaseModel {
     );
 
     // Resize the image to 1024x1024
-    let resizedMat = new cv.Mat();
-    let newSize = new cv.Size(1024, 1024);
+    const resizedMat = new cv.Mat();
+    const newSize = new cv.Size(1024, 1024);
     cv.resize(mat, resizedMat, newSize, 0, 0, cv.INTER_LINEAR);
 
     // Convert the resized Mat back to a Uint8Array
@@ -108,7 +108,7 @@ export class LandCoverClassification extends BaseModel {
     mat.delete();
     resizedMat.delete();
 
-    let tensor = resizedRawImage.toTensor("CHW");
+    const tensor = resizedRawImage.toTensor("CHW");
     const data = tensor.data as Uint8Array;
 
     // Create a Float32Array to store normalized pixel values
@@ -181,7 +181,8 @@ export class LandCoverClassification extends BaseModel {
       polygon,
       mapSourceOptions.zoomLevel,
       mapSourceOptions.bands,
-      mapSourceOptions.expression
+      mapSourceOptions.expression,
+      true
     );
 
     const inputs = await this.preProcessor(geoRawImage);

@@ -39,7 +39,7 @@ export default function LandCoverClassification() {
   const [classificationResult, setClassificationResult] = useState<string | null>(null);
   const [classifications, setClassifications] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(22);
-  const [confidenceScore, setConfidenceScore] = useState<number>(0.9);
+  const [minArea, setMinArea] = useState<number>(20);
   const [selectedModel, setSelectedModel] = useState<string>(
     "geobase/land-cover-classification"
   );
@@ -175,71 +175,80 @@ export default function LandCoverClassification() {
               break;
             }
 
-            // Merge all FeatureCollections into a single one
-            const mergedFeatures = payload.detections.reduce((acc: GeoJSON.Feature[], collection: GeoJSON.FeatureCollection) => {
-              if (collection.type === "FeatureCollection" && Array.isArray(collection.features)) {
-                return [...acc, ...collection.features];
-              }
-              return acc;
-            }, []);
-
-            const geojsonData: GeoJSON.FeatureCollection = {
-              type: "FeatureCollection",
-              features: mergedFeatures
-            };
-
-            console.log("Merged GeoJSON data:", geojsonData);
-
-            setClassifications(geojsonData);
+            setClassifications(payload.detections);
+            // Add the detections as a new layer on the map
             if (map.current) {
-              try {
-                if (map.current.getSource("classifications")) {
-                  map.current.removeLayer("classifications-layer");
-                  map.current.removeSource("classifications");
+              // Remove existing detection layers if they exist
+              payload.detections.forEach((_: GeoJSON.FeatureCollection, index: number) => {
+                const layerId = `detections-layer-${index}`;
+                const sourceId = `detections-source-${index}`;
+                if (map.current?.getLayer(layerId)) {
+                  map.current.removeLayer(layerId);
                 }
+                if (map.current?.getSource(sourceId)) {
+                  map.current.removeSource(sourceId);
+                }
+              });
 
-                map.current.addSource("classifications", {
+              // Generate a color for each feature collection
+              const colors = [
+                '#FF0000', // Red
+                '#00FF00', // Green
+                '#0000FF', // Blue
+                '#FFFF00', // Yellow
+                '#FF00FF', // Magenta
+                '#00FFFF', // Cyan
+                '#FFA500', // Orange
+                '#800080', // Purple
+                '#008000', // Dark Green
+                '#000080', // Navy
+              ];
+
+              // Add each feature collection as a separate layer
+              payload.detections.forEach((featureCollection: GeoJSON.FeatureCollection, index: number) => {
+                const layerId = `detections-layer-${index}`;
+                const sourceId = `detections-source-${index}`;
+                const color = colors[index % colors.length];
+
+                // Add the new detections as a source
+                map.current?.addSource(sourceId, {
                   type: "geojson",
-                  data: geojsonData
+                  data: featureCollection,
                 });
 
-                map.current.addLayer({
-                  id: "classifications-layer",
+                // Add a layer to display the detections
+                map.current?.addLayer({
+                  id: layerId,
                   type: "fill",
-                  source: "classifications",
+                  source: sourceId,
                   paint: {
-                    "fill-color": [
-                      "match",
-                      ["get", "class"],
-                      "forest", "#228B22",
-                      "water", "#4169E1",
-                      "urban", "#808080",
-                      "agriculture", "#FFD700",
-                      "#FF0000"
-                    ],
-                    "fill-opacity": 0.6,
-                    "fill-outline-color": "#000000",
+                    "fill-color": color,
+                    "fill-opacity": 0.9,
+                    "fill-outline-color": color,
                   },
                 });
 
+                // Add hover functionality for each layer
                 const popup = new maplibregl.Popup({
                   closeButton: false,
                   closeOnClick: false,
                 });
 
-                map.current.on("mouseenter", "classifications-layer", () => {
+                map.current?.on("mouseenter", layerId, () => {
                   map.current!.getCanvas().style.cursor = "pointer";
                 });
 
-                map.current.on("mouseleave", "classifications-layer", () => {
+                map.current?.on("mouseleave", layerId, () => {
                   map.current!.getCanvas().style.cursor = "";
                   popup.remove();
                 });
 
-                map.current.on("mousemove", "classifications-layer", e => {
+                map.current?.on("mousemove", layerId, e => {
                   if (e.features && e.features.length > 0) {
                     const feature = e.features[0];
                     const properties = feature.properties;
+
+                    // Create HTML content for popup
                     const content = Object.entries(properties)
                       .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
                       .join("<br/>");
@@ -250,14 +259,10 @@ export default function LandCoverClassification() {
                       .addTo(map.current!);
                   }
                 });
-              } catch (error) {
-                console.error("Error adding layer to map:", error);
-                setClassificationResult(`Error displaying results: ${error instanceof Error ? error.message : 'Unknown error'}`);
-              }
+              });
             }
             setClassifying(false);
             setDetecting(false);
-            setClassificationResult("Land cover classification complete!");
           }
           break;
         case "error":
@@ -302,70 +307,6 @@ export default function LandCoverClassification() {
           } else if (type === "error") {
             workerRef.current?.removeEventListener("message", messageHandler);
             reject(new Error(payload));
-          } else if (type === "inference_complete"){
-            workerRef.current?.removeEventListener("message", messageHandler);
-            const detections = payload.detections;
-          if (detections) {
-            setClassifications(detections);
-            // Add the detections as a new layer on the map
-            if (map.current) {
-              // Remove existing detection layer if it exists
-              if (map.current.getSource("detections")) {
-                map.current.removeLayer("detections-layer");
-                map.current.removeSource("detections");
-              }
-
-              // Add the new detections as a source
-              map.current.addSource("detections", {
-                type: "geojson",
-                data: detections,
-              });
-
-              // Add a layer to display the detections
-              map.current.addLayer({
-                id: "detections-layer",
-                type: "fill",
-                source: "detections",
-                paint: {
-                  "fill-color": "#0000ff",
-                  "fill-opacity": 0.4,
-                  "fill-outline-color": "#0000ff",
-                },
-              });
-
-              // Add hover functionality
-              const popup = new maplibregl.Popup({
-                closeButton: false,
-                closeOnClick: false,
-              });
-
-              map.current.on("mouseenter", "detections-layer", () => {
-                map.current!.getCanvas().style.cursor = "pointer";
-              });
-
-              map.current.on("mouseleave", "detections-layer", () => {
-                map.current!.getCanvas().style.cursor = "";
-                popup.remove();
-              });
-
-              map.current.on("mousemove", "detections-layer", e => {
-                if (e.features && e.features.length > 0) {
-                  const feature = e.features[0];
-                  const properties = feature.properties;
-
-                  // Create HTML content for popup
-                  const content = Object.entries(properties)
-                    .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
-                    .join("<br/>");
-
-                  popup
-                    .setLngLat(e.lngLat)
-                    .setHTML(content)
-                    .addTo(map.current!);
-                }
-              });
-            }
-          }
           }
         };
         workerRef.current?.addEventListener("message", messageHandler);
@@ -375,8 +316,9 @@ export default function LandCoverClassification() {
       workerRef.current.postMessage({
         type: "inference",
         payload: {
+          task: "land-cover-classification",
           polygon,
-          confidenceScore,
+          minArea,
           zoomLevel,
         },
       });
@@ -400,9 +342,9 @@ export default function LandCoverClassification() {
       <aside className="w-96 bg-white border-r border-gray-200 h-full flex flex-col overflow-hidden">
         <div className="p-6 flex flex-col gap-6 text-black shadow-lg overflow-y-auto">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-800">Object Detection</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Land Cover Classification</h2>
             <p className="text-sm text-gray-600">
-              Draw a polygon on the map and run object detection within the
+              Draw a polygon on the map and run Land Cover Classification within the
               selected area.
             </p>
           </div>
@@ -595,21 +537,21 @@ export default function LandCoverClassification() {
 
                 <div>
                   <label
-                    htmlFor="confidenceScore"
+                    htmlFor="minArea"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Confidence Score (0-1)
+                    Min Area
                   </label>
                   <input
                     type="number"
-                    id="confidenceScore"
+                    id="minArea"
                     min="0"
                     max="1"
-                    step="0.1"
-                    value={confidenceScore}
+                    step="1"
+                    value={minArea}
                     onChange={e =>
-                      setConfidenceScore(
-                        Math.min(1, Math.max(0, Number(e.target.value)))
+                      setMinArea(
+                        e.target.value ? Number(e.target.value) : 0
                       )
                     }
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"

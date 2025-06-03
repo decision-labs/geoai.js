@@ -26,6 +26,7 @@ type InferencePayload = {
   zoomLevel: number;
   topk: number;
   nmsThreshold?: number;
+  minArea?: number; 
 };
 
 let modelInstance: any = null;
@@ -70,7 +71,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
           throw new Error("Object detector not initialized");
         }
 
-        const { polygon, zoomLevel, topk, confidenceScore, nmsThreshold, classLabel } = payload as InferencePayload;
+        const { polygon, zoomLevel, topk, confidenceScore,minArea, nmsThreshold, classLabel } = payload as InferencePayload;
         console.log("[Worker] Running inference with:", { zoomLevel, polygon, topk, confidenceScore, classLabel });
 
         console.log("[Worker] Starting inference");
@@ -87,6 +88,12 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
           result = await modelInstance.inference(polygon,confidenceScore, nmsThreshold , {
             zoomLevel,
           });
+        } else if (payload.task === "land-cover-classification") {
+        
+            result = await modelInstance.inference(polygon,minArea , {
+              zoomLevel,
+            });
+          
         } else {
           result = await modelInstance.inference(polygon, {
             zoomLevel,
