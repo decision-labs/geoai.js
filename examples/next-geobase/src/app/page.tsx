@@ -289,7 +289,7 @@ export default function Home() {
             </p>
           </a>
           <a
-            href="/tasks/wetland"
+            href="/tasks/wetland-segmentation"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
             <img
@@ -346,7 +346,7 @@ export default function Home() {
             </p>
           </a>
           <a
-            href="/tasks/oriented-object"
+            href="/tasks/oriented-object-detection"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
             <img
