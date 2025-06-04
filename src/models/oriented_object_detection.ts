@@ -13,7 +13,6 @@ import { mapSourceConfig } from "@/core/types";
 
 interface ConvertPredParams {
   pred_bbox: number[][];
-  test_input_size: number;
   org_img_shape: [number, number];
   valid_scale: [number, number];
   conf_thresh: number;
@@ -101,9 +100,6 @@ export class OrientedObjectDetection extends BaseModel {
       }
       rawImage = new RawImage(newData, image.height, image.width, 3);
     }
-
-    rawImage.resize(512, 512);
-
     // Convert RawImage to a tensor in CHW format
     const tensor = rawImage.toTensor("CHW"); // Transpose to CHW format
 
@@ -186,19 +182,11 @@ export class OrientedObjectDetection extends BaseModel {
 
   protected convertPred({
     pred_bbox,
-    test_input_size,
     org_img_shape,
     valid_scale,
     conf_thresh,
   }: ConvertPredParams): number[][] {
-    const [org_h, org_w] = org_img_shape;
-
-    const resize_ratio = Math.min(
-      test_input_size / org_w,
-      test_input_size / org_h
-    );
-    const dw = (test_input_size - resize_ratio * org_w) / 2;
-    const dh = (test_input_size - resize_ratio * org_h) / 2;
+    const [org_w, org_h] = org_img_shape;
 
     // Extract and convert xywh to xyxy
     const xywh = pred_bbox.map(bbox => bbox.slice(0, 4));
@@ -213,16 +201,6 @@ export class OrientedObjectDetection extends BaseModel {
     const pred_conf = pred_bbox.map(bbox => bbox[13]);
     const pred_prob = pred_bbox.map(bbox => bbox.slice(14));
 
-    // Adjust coordinates
-    const adjusted_xyxy = xyxy.map(box => {
-      return [
-        (box[0] - dw) / resize_ratio,
-        (box[1] - dh) / resize_ratio,
-        (box[2] - dw) / resize_ratio,
-        (box[3] - dh) / resize_ratio,
-      ];
-    });
-
     // Handle rotation
     const zero = pred_s.map(() => [0, 0, 0, 0]);
     const pred_s_adjusted = pred_s.map((s, i) => {
@@ -230,7 +208,7 @@ export class OrientedObjectDetection extends BaseModel {
     });
 
     // Clip coordinates
-    const clipped_xyxy = adjusted_xyxy.map(box => {
+    const clipped_xyxy = xyxy.map(box => {
       return [
         Math.max(0, box[0]),
         Math.max(0, box[1]),
@@ -495,7 +473,6 @@ export class OrientedObjectDetection extends BaseModel {
     const valid_scale: [number, number] = [0, Infinity];
     let predbboxes = this.convertPred({
       pred_bbox,
-      test_input_size: 512,
       org_img_shape: [geoRawImage.width, geoRawImage.height],
       valid_scale,
       conf_thresh: options.conf_thres || 0.5,
