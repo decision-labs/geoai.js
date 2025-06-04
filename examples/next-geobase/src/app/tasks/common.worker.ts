@@ -27,6 +27,8 @@ type InferencePayload = {
   topk: number;
   nmsThreshold?: number;
   minArea?: number; 
+  inputPoint?: any;
+  maxMasks?: number;
 };
 
 let modelInstance: any = null;
@@ -71,8 +73,8 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
           throw new Error("Object detector not initialized");
         }
 
-        const { polygon, zoomLevel, topk, confidenceScore,minArea, nmsThreshold, classLabel } = payload as InferencePayload;
-        console.log("[Worker] Running inference with:", { zoomLevel, polygon, topk, confidenceScore, classLabel });
+        const { polygon, zoomLevel, topk, confidenceScore,minArea, nmsThreshold, classLabel, inputPoint, maxMasks } = payload as InferencePayload;
+        console.log("[Worker] Running inference with:", { zoomLevel, polygon, topk, confidenceScore, classLabel ,  inputPoint, maxMasks});
 
         console.log("[Worker] Starting inference");
 
@@ -110,6 +112,10 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       }); 
     } else if (payload.task === "building-footprint-segmentation") {
       result = await modelInstance.inference(polygon, confidenceScore,minArea, {
+        zoomLevel,
+      }); 
+    } else if (payload.task === "mask-generation") {
+      result = await modelInstance.inference(polygon,inputPoint, confidenceScore,maxMasks, {
         zoomLevel,
       }); 
     } else {

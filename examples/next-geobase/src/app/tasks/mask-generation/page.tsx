@@ -207,7 +207,7 @@ export default function MaskGeneration() {
   // Initialize worker
   useEffect(() => {
     workerRef.current = new Worker(
-      new URL("./maskGeneration.worker.ts", import.meta.url)
+      new URL("../common.worker.ts", import.meta.url)
     );
 
     workerRef.current.onmessage = e => {
@@ -306,6 +306,7 @@ export default function MaskGeneration() {
       workerRef.current.postMessage({
         type: "init",
         payload: {
+          task : "mask-generation",
           ...(mapProvider === "geobase" ? GEOBASE_CONFIG : MAPBOX_CONFIG),
           modelId: customModelId || selectedModel,
         },
@@ -330,8 +331,9 @@ export default function MaskGeneration() {
       workerRef.current.postMessage({
         type: "inference",
         payload: {
+          task : "mask-generation",
           polygon,
-          input,
+          inputPoint: input,
           maxMasks,
           zoomLevel,
         },
