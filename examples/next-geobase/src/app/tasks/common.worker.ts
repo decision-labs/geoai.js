@@ -95,19 +95,20 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             });
           
         } else if (payload.task === "oriented-object-detection") {
-        
           result = await modelInstance.inference(polygon,undefined , {
             zoomLevel,
           });
-        
       } else if (payload.task === "wetland-detection") {
         
         result = await modelInstance.inference(polygon, {
           zoomLevel,
         });
       
-    } 
-    else {
+    } else if (payload.task === "object-detection") {
+      result = await modelInstance.inference(polygon, confidenceScore, {
+        zoomLevel,
+      }); 
+  } else {
           result = await modelInstance.inference(polygon, {
             zoomLevel,
           });

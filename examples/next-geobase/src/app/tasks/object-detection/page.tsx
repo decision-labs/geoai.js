@@ -156,7 +156,7 @@ export default function ObjectDetection() {
   // Initialize worker
   useEffect(() => {
     workerRef.current = new Worker(
-      new URL("./objectDetection.worker.ts", import.meta.url)
+      new URL("../common.worker.ts", import.meta.url)
     );
 
     workerRef.current.onmessage = e => {
@@ -255,6 +255,7 @@ export default function ObjectDetection() {
       workerRef.current.postMessage({
         type: "init",
         payload: {
+          task : "object-detection",
           ...(mapProvider === "geobase" ? GEOBASE_CONFIG : MAPBOX_CONFIG),
           modelId: customModelId || selectedModel,
         },
@@ -279,6 +280,7 @@ export default function ObjectDetection() {
       workerRef.current.postMessage({
         type: "inference",
         payload: {
+          task : "object-detection",
           polygon,
           confidenceScore,
           zoomLevel,
