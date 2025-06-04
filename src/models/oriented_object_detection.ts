@@ -170,7 +170,6 @@ export class OrientedObjectDetection extends BaseModel {
       console.debug("error", error);
       throw error;
     }
-    console.log({ outputs });
 
     outputs = await this.postProcessor(outputs, geoRawImage, options);
 

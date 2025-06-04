@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import Sidebar from "./components/Sidebar";
 
 const GEOBASE_CONFIG = {
   projectRef: "wmrosdnjsecywfkvxtrw",
