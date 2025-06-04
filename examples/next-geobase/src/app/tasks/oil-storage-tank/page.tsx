@@ -5,16 +5,6 @@ import maplibregl from "maplibre-gl";
 import MaplibreDraw from "maplibre-gl-draw";
 import type { StyleSpecification } from "maplibre-gl";
 
-// const GEOBASE_CONFIG = {
-//   provider: "geobase",
-//   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
-//   apikey: process.env.NEXT_PUBLIC_GEOBASE_API_KEY,
-//   cogImagery:
-//     "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip_train.tif",
-//    center: [-117.59239617156095, 47.653614113446906],
-//    zoom: 18,
-// };
-
 const GEOBASE_CONFIG = {
   provider: "geobase",
   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,

@@ -4,9 +4,8 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 
 const GEOBASE_CONFIG = {
-  projectRef: "wmrosdnjsecywfkvxtrw",
-  apikey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTY1NDU4MjUsImlhdCI6MTczODc2MTQyNSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.M8jeru5dbHe4tGh52xe2E2HlUiGCAPbZ8-JrfbxiRk0",
+  projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
+  apikey: process.env.NEXT_PUBLIC_GEOBASE_API_KEY,
   cogImagery:
     "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif",
   provider: "geobase",
