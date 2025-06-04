@@ -108,7 +108,11 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       result = await modelInstance.inference(polygon, confidenceScore, {
         zoomLevel,
       }); 
-  } else {
+    } else if (payload.task === "building-footprint-segmentation") {
+      result = await modelInstance.inference(polygon, confidenceScore,minArea, {
+        zoomLevel,
+      }); 
+    } else {
           result = await modelInstance.inference(polygon, {
             zoomLevel,
           });

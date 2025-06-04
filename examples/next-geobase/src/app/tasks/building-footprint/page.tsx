@@ -156,7 +156,7 @@ export default function BuildingFootPrintSegmentation() {
   // Initialize worker
   useEffect(() => {
     workerRef.current = new Worker(
-      new URL("./buildingFootprint.worker.ts", import.meta.url)
+      new URL("../common.worker.ts", import.meta.url)
     );
 
     workerRef.current.onmessage = e => {
@@ -280,6 +280,7 @@ export default function BuildingFootPrintSegmentation() {
       workerRef.current.postMessage({
         type: "inference",
         payload: {
+          task : "building-footprint-segmentation",
           polygon,
           confidenceScore,
           minArea,
