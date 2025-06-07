@@ -223,7 +223,6 @@ export default function Home() {
             href="/tasks/zero-shot"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            {/* zero-shot-object-detection.mp4 */}
             <video
               autoPlay
               loop
@@ -306,7 +305,6 @@ export default function Home() {
             href="/tasks/wetland-segmentation"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            {/* wetland-segmentation.mp4 */}
             <video
               autoPlay
               loop
@@ -368,11 +366,15 @@ export default function Home() {
             href="/tasks/oriented-object-detection"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/oriented-object.jpg"
-              alt="Oriented Object Detection"
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-48 object-cover rounded-lg mb-6"
-            />
+            >
+              <source src="/video/oriented-object-detection.mp4" type="video/mp4" />
+            </video>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Oriented Object Detection
             </h2>
@@ -384,11 +386,15 @@ export default function Home() {
             href="/tasks/oil-storage-tank"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/oil-storage-tank.jpg"
-              alt="Oil Storage Tank Detection"
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-48 object-cover rounded-lg mb-6"
-            />
+            >
+              <source src="/video/oil-storage-tank.mp4" type="video/mp4" />
+            </video>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Oil Storage Tank Detection
             </h2>
