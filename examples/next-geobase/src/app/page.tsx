@@ -245,11 +245,15 @@ export default function Home() {
             href="/tasks/zero-shot-segmentation"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/zero-shot-segmentation.jpg"
-              alt="Zero Shot Segmentation"
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-48 object-cover rounded-lg mb-6"
-            />
+            >
+              <source src="/video/zero-shot-segmentation.mp4" type="video/mp4" />
+            </video>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Zero Shot Segmentation
             </h2>
