@@ -2188,6 +2188,9 @@ packages:
   hat@0.0.3:
     resolution: {integrity: sha512-zpImx2GoKXy42fVDSEad2BPKuSQdLcqsCYa48K3zHSzM/ugWuYjLDr8IXxpVuL7uCLHw56eaiLxCRthhOzf5ug==}
 
+  idb-keyval@6.2.2:
+    resolution: {integrity: sha512-yjD9nARJ/jb1g+CvD0tlhUHOrJ9Sy0P8T9MF3YaLlHnSRpwPfpTX0XIvpmw3gAJUmEu3FiICLBDPXVwyEvrleg==}
+
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
@@ -6628,6 +6631,7 @@ snapshots:
       '@turf/bbox': 7.2.0
       '@turf/bbox-polygon': 7.2.0
       global-mercator: https://codeload.github.com/decision-labs/global-mercator/tar.gz/905ce5c6f8dd66d180abcbb62594f6094cac7878
+      idb-keyval: 6.2.2
       node-fetch: 3.3.2
       onnxruntime-web: 1.22.0
 
@@ -6762,6 +6766,8 @@ snapshots:
       function-bind: 1.1.2
 
   hat@0.0.3: {}
+
+  idb-keyval@6.2.2: {}
 
   ieee754@1.2.1: {}
 

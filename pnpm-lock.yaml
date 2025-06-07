@@ -23,6 +23,9 @@ importers:
       global-mercator:
         specifier: github:decision-labs/global-mercator
         version: https://codeload.github.com/decision-labs/global-mercator/tar.gz/905ce5c6f8dd66d180abcbb62594f6094cac7878
+      idb-keyval:
+        specifier: ^6.2.2
+        version: 6.2.2
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
@@ -1316,6 +1319,9 @@ packages:
     resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
     engines: {node: '>=18'}
     hasBin: true
+
+  idb-keyval@6.2.2:
+    resolution: {integrity: sha512-yjD9nARJ/jb1g+CvD0tlhUHOrJ9Sy0P8T9MF3YaLlHnSRpwPfpTX0XIvpmw3gAJUmEu3FiICLBDPXVwyEvrleg==}
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -3387,6 +3393,8 @@ snapshots:
   human-signals@5.0.0: {}
 
   husky@9.1.7: {}
+
+  idb-keyval@6.2.2: {}
 
   ieee754@1.2.1: {}
 

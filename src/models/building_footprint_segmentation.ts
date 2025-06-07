@@ -52,9 +52,14 @@ export class BuildingFootPrintSegmentation extends BaseModel {
     this.model = await loadOnnxModel(this.model_id);
   }
 
-  protected async preProcessor(
-    rawImage: GeoRawImage
-  ): Promise<{ originalImage: any; paddedImage: any; patchSize: number }> {
+  protected async preProcessor(rawImage: GeoRawImage): Promise<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- opencv-js does not provide types for cv.Mat
+    originalImage: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- opencv-js does not provide types for cv.Mat
+    paddedImage: any;
+    patchSize: number;
+  }> {
+    const start = performance.now();
     // Convert raw image to OpenCV Mat
     const mat = cv.matFromArray(
       rawImage.height,
@@ -107,6 +112,10 @@ export class BuildingFootPrintSegmentation extends BaseModel {
     mat.delete();
     rgbMat.delete();
 
+    const end = performance.now();
+    console.log(
+      `[BuildingFootPrintSegmentation] preProcessor took ${(end - start).toFixed(2)} ms`
+    );
     return {
       originalImage: floatMat,
       paddedImage: paddedMat,
@@ -120,6 +129,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
     minArea: number = 20,
     mapSourceOptions: mapSourceConfig = {}
   ): Promise<ObjectDetectionResults> {
+    const start = performance.now();
     // Ensure initialization is complete
     await this.initialize();
 
@@ -251,6 +261,10 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       originalImage.delete();
       paddedImage.delete();
       croppedPrediction.delete();
+      const end = performance.now();
+      console.log(
+        `[BuildingFootPrintSegmentation] inference took ${(end - start).toFixed(2)} ms`
+      );
       return await this.postProcessor(
         finalMat,
         geoRawImage,
@@ -271,6 +285,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
     CONFIDENCE_THRESHOLD: number = 0.5,
     minArea: number = 20
   ): Promise<ObjectDetectionResults> {
+    const start = performance.now();
     // Convert to binary image using threshold
     const binaryMat = new cv.Mat();
     try {
@@ -365,6 +380,10 @@ export class BuildingFootPrintSegmentation extends BaseModel {
         type: "FeatureCollection",
         features,
       };
+      const end = performance.now();
+      console.log(
+        `[BuildingFootPrintSegmentation] postProcessor took ${(end - start).toFixed(2)} ms`
+      );
       return {
         detections: geojson,
         geoRawImage,
