@@ -306,11 +306,16 @@ export default function Home() {
             href="/tasks/wetland-segmentation"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/wetland.jpg"
-              alt="Wet Land Detection"
+            {/* wetland-segmentation.mp4 */}
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-48 object-cover rounded-lg mb-6"
-            />
+            >
+              <source src="/video/wetland-segmentation.mp4" type="video/mp4" />
+            </video>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Wet Land Detection
             </h2>
