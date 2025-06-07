@@ -223,11 +223,16 @@ export default function Home() {
             href="/tasks/zero-shot"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/zero-shot.jpg"
-              alt="Zero Shot Object Detection"
+            {/* zero-shot-object-detection.mp4 */}
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-48 object-cover rounded-lg mb-6"
-            />
+            >
+              <source src="/video/zero-shot-object-detection.mp4" type="video/mp4" />
+            </video>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Zero Shot Object Detection
             </h2>
