@@ -199,8 +199,15 @@ export default function Home() {
             href="/tasks/land-cover"
             className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <img
-              src="/samples/land-cover.jpg"
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-48 object-cover rounded-lg mb-6"
+            >
+              <source src="/video/land-cover-classification.mp4" type="video/mp4" />
+            </video>
               alt="Land Cover Classification"
               className="w-full h-48 object-cover rounded-lg mb-6"
             />
