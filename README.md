@@ -4,6 +4,12 @@
 
 Provide user with a seamless experience of using Geo AI models in their frontend applications.
 
+## Installation
+
+```bash
+npm install @geobase/geoai
+```
+
 ## Features
 
 Inputs:
