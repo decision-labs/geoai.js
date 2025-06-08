@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
-import { geobaseAi } from "@geobase/geoai";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark, oneLight, dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const GEOBASE_CONFIG = {
   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
@@ -171,21 +170,22 @@ export default function Home() {
 
         <section className="max-w-3xl mx-auto mb-12">
           <div className="mb-4">
-            <SyntaxHighlighter language="shell" style={oneDark} customStyle={{ borderRadius: 8, fontSize: 16, marginBottom: 16 }}>
+            <SyntaxHighlighter language="shell" style={dracula} customStyle={{ borderRadius: 8, fontSize: 16, marginBottom: 16 }}>
               pnpm add @geobase/geoai
             </SyntaxHighlighter>
           </div>
-          <SyntaxHighlighter language="javascript" style={oneDark} customStyle={{ borderRadius: 8, fontSize: 16 }}>
+          <SyntaxHighlighter language="javascript" style={dracula} customStyle={{ borderRadius: 8, fontSize: 16 }}>
             {`import { geoai } from "@geobase/geoai";
 
-// mapProviderConfig can also accept Mapbox or other image tile endpoints
-const mapProviderConfig = {
+// Map tile provider config can also accept:
+// Mapbox or other image tile endpoints.
+// with ESRI and Google Maps coming soon.
+// See https://docs.geobase.app/docs/geoaijs/providers.
+const config = {
   provider: "geobase", projectRef, apikey, cogImagery
 };
 
-const { instance } = await geoai.pipeline(
-  "object-detection", mapProviderConfig
-);
+const { instance } = await geoai.pipeline("object-detection", config);
 
 const result = await instance.inference(polygon);`}
           </SyntaxHighlighter>
