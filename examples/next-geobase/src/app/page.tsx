@@ -130,12 +130,15 @@ export default function Home() {
           <p className="mt-5 max-w-xl mx-auto text-xl text-gray-600">
             Explore our suite of advanced AI models for geospatial data analysis.
           </p>
+          {/* Google Fonts for Permanent Marker */}
+          <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet" />
           <div
-            className="mx-auto mt-4 w-fit bg-yellow-200 text-yellow-900 rounded-lg shadow p-3 text-base font-medium"
-            style={{ fontFamily: 'Comic Sans MS, Comic Sans, cursive, sans-serif' }}
+            className="mx-auto mt-4 w-fit bg-yellow-400 text-black rounded-sm shadow p-3 text-2xl font-bold"
+            style={{ fontFamily: 'Permanent Marker, cursive', transform: 'rotate(-3deg)' }}
           >
-            We're adding more models every few weeks – come back soon or{' '}
-            <a href="/newsletter" className="underline hover:text-yellow-700 font-semibold">sign up for our newsletter</a>.
+            We’re working on more models—stay tuned or{' '}
+            {/* add link color */}
+            <a href="/newsletter" className="underline hover:text-yellow-700 font-bold text-blue-900">join our newsletter</a>!
           </div>
         </div>
 
