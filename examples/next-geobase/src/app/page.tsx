@@ -128,8 +128,15 @@ export default function Home() {
             Geospatial AI Models for the Web
           </h2>
           <p className="mt-5 max-w-xl mx-auto text-xl text-gray-600">
-            Explore our suite of advanced AI models for geospatial data analysis. More models coming soon!
+            Explore our suite of advanced AI models for geospatial data analysis.
           </p>
+          <div
+            className="mx-auto mt-4 w-fit bg-yellow-200 text-yellow-900 rounded-lg shadow p-3 text-base font-medium"
+            style={{ fontFamily: 'Comic Sans MS, Comic Sans, cursive, sans-serif' }}
+          >
+            We're adding more models every few weeks – come back soon or{' '}
+            <a href="/newsletter" className="underline hover:text-yellow-700 font-semibold">sign up for our newsletter</a>.
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
