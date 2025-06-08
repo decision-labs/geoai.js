@@ -2,6 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
+import { geobaseAi } from "geobase-ai";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const GEOBASE_CONFIG = {
   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
@@ -89,13 +92,13 @@ export default function Home() {
   // );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">GeobaseAI.js</h1>
+              <h1 className="text-2xl font-bold text-gray-900">GeoAI.js</h1>
             </div>
             <nav className="flex space-x-8">
               <a
@@ -123,24 +126,52 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-extrabold text-gray-800 sm:text-5xl sm:tracking-tight lg:text-5xl">
-            Geospatial AI Models for the Web
+        <div className="text-center py-16 mb-12">
+          <h2 className="text-6xl sm:text-6xl font-semibold text-gray-900 leading-tight mb-4">
+            GeoAI for the modern
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/9/99/Unofficial_JavaScript_logo_2.svg"
+              alt="JavaScript logo"
+              className="inline h-16 align-middle mx-2"
+              style={{ top: 'bottom', marginBottom: '20px' }}
+            />
+            developer
           </h2>
-          <p className="mt-5 max-w-xl mx-auto text-xl text-gray-600">
-            Explore our suite of advanced AI models for geospatial data analysis.
+          <p className="mt-4 mb-10 max-w-2xl mx-auto text-2xl sm:text-2xl font-light text-gray-700 leading-relaxed">
+          Open-source GeoAI. No backend required. Run models right in your JavaScript apps or edge devices!
           </p>
           {/* Google Fonts for Permanent Marker */}
           <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet" />
           <div
-            className="mx-auto mt-4 w-fit bg-yellow-400 text-black rounded-sm shadow p-3 text-2xl font-bold"
+            className="mx-auto mt-6 w-fit bg-yellow-400 text-black rounded-sm shadow p-3 text-2xl font-bold text-center"
             style={{ fontFamily: 'Permanent Marker, cursive', transform: 'rotate(-3deg)' }}
           >
-            We’re working on more models—stay tuned or{' '}
-            {/* add link color */}
+            We're working on more models—stay tuned or{' '}
             <a href="/newsletter" className="underline hover:text-yellow-700 font-bold text-blue-900">join our newsletter</a>!
           </div>
         </div>
+
+        <section className="max-w-3xl mx-auto mb-12">
+          <div className="mb-4">
+            <SyntaxHighlighter language="shell" style={oneDark} customStyle={{ borderRadius: 8, fontSize: 16, marginBottom: 16 }}>
+              pnpm add @geobase/geoai
+            </SyntaxHighlighter>
+          </div>
+          <SyntaxHighlighter language="javascript" style={oneDark} customStyle={{ borderRadius: 8, fontSize: 16 }}>
+            {`import { geoai } from "@geobase/geoai";
+
+// mapProviderConfig can also accept Mapbox or other image tile endpoints
+const mapProviderConfig = {
+  provider: "geobase", projectRef, apikey, cogImagery
+};
+
+const { instance } = await geoai.pipeline(
+  "object-detection", mapProviderConfig
+);
+
+const result = await instance.inference(polygon);`}
+          </SyntaxHighlighter>
+        </section>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           <a
