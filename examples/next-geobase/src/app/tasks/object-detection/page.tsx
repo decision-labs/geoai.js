@@ -186,12 +186,12 @@ export default function ObjectDetection() {
               // Add a layer to display the detections
               map.current.addLayer({
                 id: "detections-layer",
-                type: "fill",
+                type: "line",
                 source: "detections",
                 paint: {
-                  "fill-color": "#0000ff",
-                  "fill-opacity": 0.8,
-                  "fill-outline-color": "#000000",
+                  "line-color": "#FFD600", // bright yellow
+                  "line-width": 3,
+                  "line-dasharray": [2, 2], // dotted/dashed effect
                 },
               });
 
