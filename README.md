@@ -126,3 +126,7 @@ pnpm run test -t "thresholds parameters"
 If you found it useful somehow, I would be grateful if you could leave a star in the project's GitHub repository.
 
 Thank you.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
