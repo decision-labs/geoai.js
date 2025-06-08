@@ -177,16 +177,23 @@ export default function Home() {
           <SyntaxHighlighter language="javascript" style={dracula} customStyle={{ borderRadius: 8, fontSize: 16 }}>
             {`import { geoai } from "@geobase/geoai";
 
-// Map tile provider config can also accept:
-// Mapbox or other image tile endpoints.
-// with ESRI and Google Maps coming soon.
-// See https://docs.geobase.app/docs/geoaijs/providers.
-const config = {
+const projectRef, apiKey, cogImagery = JSON.parse(process.env.GEOBASE_CONFIG);
+
+// example of geobase config
+const geobaseConfig = {
   provider: "geobase", projectRef, apikey, cogImagery
 };
 
-const { instance } = await geoai.pipeline("object-detection", config);
+// example of mapbox config
+const mapboxConfig = {
+  provider: "mapbox",
+  accessToken: process.env.MAPBOX_ACCESS_TOKEN,
+};
 
+// instantiate the pipeline
+const { instance } = await geoai.pipeline("object-detection", geobaseConfig);
+
+// run inference for an area of interest
 const result = await instance.inference(polygon);`}
           </SyntaxHighlighter>
         </section>
