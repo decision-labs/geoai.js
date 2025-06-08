@@ -1,4 +1,4 @@
-import { geobaseAi } from "geobase-ai/geobase-ai";
+import { geobaseAi } from "@geobase/geoai";
 // const { geobaseAi } = require("geobase-ai");
 console.log("inside worker");
 

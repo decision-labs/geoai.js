@@ -1,4 +1,4 @@
-import { geobaseAi } from "geobase-ai";
+import { geobaseAi } from "@geobase/geoai";
 
 // This worker was originally created for GeoAI models - but will refactor it to be more generic
 

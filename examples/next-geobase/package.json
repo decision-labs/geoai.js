@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "build:geobase-ai": "cd ../../ && pnpm run build && cd examples/next-geobase && pnpm install"
+    "build:@geobase/geoai": "cd ../../ && pnpm run build && cd examples/next-geobase && pnpm install"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.5.1",
@@ -15,7 +15,7 @@
     "@techstark/opencv-js": "^4.10.0-release.1",
     "@turf/turf": "^7.2.0",
     "@types/maplibre-gl": "^1.14.0",
-    "geobase-ai": "file:../../build",
+    "@geobase/geoai": "file:../../build",
     "maplibre-gl": "^5.5.0",
     "maplibre-gl-draw": "^1.6.9",
     "next": "15.3.2",

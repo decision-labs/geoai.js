@@ -2,7 +2,7 @@
 // It tests the actual built version of the library
 import { describe, expect, it } from "vitest";
 
-import { geobaseAi } from "../build/dist/geobase-ai.js";
+import { geobaseAi } from "@geobase/geoai";
 
 describe("Build Tests", () => {
   // Test basic initialization

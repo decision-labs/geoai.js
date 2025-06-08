@@ -1,4 +1,4 @@
-import { geobaseAi } from "../../build/dist/geobase-ai.js";
+import { geobaseAi } from "@geobase/geoai";
 
 const instances = new Map();
 

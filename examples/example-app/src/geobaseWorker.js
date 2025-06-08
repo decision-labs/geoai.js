@@ -1,4 +1,4 @@
-import { geobaseAi } from "geobase-ai";
+import { geobaseAi } from "@geobase/geoai";
 
 this.onmessage = async event => {
   const { type, params } = event.data;
