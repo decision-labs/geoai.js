@@ -7,13 +7,13 @@
   "exports": {
     ".": {
       "import": "./dist/@geobase/geoai.js",
-      "types": "./dist/@geobase/geoai.d.ts"
+      "types": "./dist/index.d.ts"
     },
     "./dist": {
       "import": "./dist/@geobase/geoai.js"
     }
   },
-  "types": "./dist/@geobase/geoai.d.ts",
+  "types": "./dist/index.d.ts",
   "peerDependencies": {
     "@huggingface/transformers": "^3.3.3",
     "@techstark/opencv-js": "^4.10.0-release.1",
