@@ -67,7 +67,10 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
   it("should process a polygon for oriented object detection in each quadrant", async () => {
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
       const results: ObjectDetectionResults =
-        await orientedObjectInstance.inference(polygon, options);
+        await orientedObjectInstance.inference({
+          inputs: { polygon },
+          post_processing_parameters: { ...options },
+        });
 
       // Validate GeoJSON structure
       expect(results.detections).toBeDefined();
@@ -98,7 +101,10 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
 
     const results: ObjectDetectionResults = await (
       instance as OrientedObjectDetection
-    ).inference(polygon, options);
+    ).inference({
+      inputs: { polygon },
+      post_processing_parameters: { ...options },
+    });
 
     // Validate GeoJSON structure
     expect(results.detections).toBeDefined();

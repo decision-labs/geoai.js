@@ -54,7 +54,11 @@ describe("test model building detection", () => {
   });
 
   it("should process a polygon for building detection", async () => {
-    const results = await buildingInstance.inference(polygonBuilding);
+    const results = await buildingInstance.inference({
+      inputs: {
+        polygon: polygonBuilding,
+      },
+    });
 
     // Validate GeoJSON structure
     expect(results.detections).toBeDefined();

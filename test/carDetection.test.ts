@@ -38,7 +38,11 @@ describe("test model geobase/car-detection", () => {
   });
 
   it("should process a polygon for car detection", async () => {
-    const results = await carInstance.inference(polygonCar);
+    const results = await carInstance.inference({
+      inputs: {
+        polygon: polygonCar,
+      },
+    });
 
     // Validate GeoJSON structure
     expect(results.detections).toBeDefined();

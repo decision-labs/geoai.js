@@ -110,7 +110,9 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     const text = ["tree."];
 
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const results = await groundingDinoInstance.inference(polygon, text);
+      const results = await groundingDinoInstance.inference({
+        inputs: { polygon, classLabel: text },
+      });
       const result = Array.isArray(results) ? results[0] : results;
 
       // Validate GeoJSON structure
@@ -138,7 +140,9 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     const text = ["tree", "car", "vehicle", "building", "road", "person"];
 
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const results = await owlvitInstance.inference(polygon, text);
+      const results = await owlvitInstance.inference({
+        inputs: { polygon, classLabel: text },
+      });
       const result = Array.isArray(results) ? results[0] : results;
 
       // Validate GeoJSON structure
@@ -164,7 +168,9 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
 
   it("should process geobase source polygons with OWL-ViT", async () => {
     const text = ["tree", "car", "vehicle", "building", "road", "person"];
-    const results = await owlvitInstance.inference(polygon, text);
+    const results = await owlvitInstance.inference({
+      inputs: { polygon, classLabel: text },
+    });
     const result = Array.isArray(results) ? results[0] : results;
 
     // Validate GeoJSON structure

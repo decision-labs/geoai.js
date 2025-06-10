@@ -59,7 +59,11 @@ describe("test model solar pannel detection", () => {
   });
 
   it("should process a polygon for solar panel detection", async () => {
-    const results = await solarPanelInstance.inference(polygonSolarPannel);
+    const results = await solarPanelInstance.inference({
+      inputs: {
+        polygon: polygonSolarPannel,
+      },
+    });
 
     // Validate GeoJSON structure
     expect(results.detections).toBeDefined();

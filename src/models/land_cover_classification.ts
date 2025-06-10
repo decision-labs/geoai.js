@@ -6,7 +6,7 @@ const cv = require("@techstark/opencv-js");
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { mapSourceConfig, onnxModel } from "@/core/types";
+import { InferenceParameters, onnxModel } from "@/core/types";
 import { loadOnnxModel } from "./model_utils";
 import * as ort from "onnxruntime-web";
 
@@ -164,11 +164,20 @@ export class LandCoverClassification extends BaseModel {
     this.model = await loadOnnxModel(this.model_id);
   }
 
-  public async inference(
-    polygon: GeoJSON.Feature,
-    minArea: number = 20,
-    mapSourceOptions: mapSourceConfig = {}
-  ): Promise<any> {
+  async inference(params: InferenceParameters): Promise<any> {
+    const {
+      inputs: { polygon },
+      post_processing_parameters: { minArea = 20 } = {},
+      map_source_parameters,
+    } = params;
+
+    if (!polygon) {
+      throw new Error("Polygon input is required for segmentation");
+    }
+
+    if (!polygon.geometry || polygon.geometry.type !== "Polygon") {
+      throw new Error("Input must be a valid GeoJSON Polygon feature");
+    }
     // Ensure initialization is complete
     await this.initialize();
 
@@ -179,9 +188,9 @@ export class LandCoverClassification extends BaseModel {
 
     const geoRawImage = await this.polygon_to_image(
       polygon,
-      mapSourceOptions.zoomLevel,
-      mapSourceOptions.bands,
-      mapSourceOptions.expression,
+      map_source_parameters?.zoomLevel,
+      map_source_parameters?.bands,
+      map_source_parameters?.expression,
       true
     );
 
@@ -248,7 +257,7 @@ export class LandCoverClassification extends BaseModel {
       binaryMasks,
       geoRawImage,
       this.classes,
-      minArea
+      minArea as number
     );
     // Assign color to each pixel based on class index
     for (let i = 0; i < height * width; i++) {

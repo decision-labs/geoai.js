@@ -40,7 +40,11 @@ describe("test model geobase/ship-detection", () => {
   });
 
   it("should process a polygon for ship detection", async () => {
-    const results = await shipInstance.inference(polygonShip);
+    const results = await shipInstance.inference({
+      inputs: {
+        polygon: polygonShip,
+      },
+    });
 
     // Validate GeoJSON structure
     expect(results.detections).toBeDefined();

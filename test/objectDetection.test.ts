@@ -78,7 +78,11 @@ describe("geobaseAi.objectDetection", () => {
   it("should process a polygon for object detection in each quadrant", async () => {
     for (const [quadrant, polygon] of Object.entries(quadrants)) {
       const results: ObjectDetectionResults =
-        await objectDetectionInstance.inference(polygon);
+        await objectDetectionInstance.inference({
+          inputs: {
+            polygon,
+          },
+        });
 
       // Validate GeoJSON structure
       expect(results.detections).toBeDefined();
@@ -103,7 +107,11 @@ describe("geobaseAi.objectDetection", () => {
 
   it("should process a polygon for object detection for source geobase", async () => {
     const results: ObjectDetectionResults =
-      await objectDetectionInstance.inference(polygon);
+      await objectDetectionInstance.inference({
+        inputs: {
+          polygon,
+        },
+      });
 
     // Validate GeoJSON structure
     expect(results.detections).toBeDefined();

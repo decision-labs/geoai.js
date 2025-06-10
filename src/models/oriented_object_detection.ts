@@ -9,7 +9,7 @@ import * as ort from "onnxruntime-web";
 import { iouPoly } from "@/utils/gghl/polyiou";
 import { BaseModel } from "./base_model"; // <-- import BaseModel
 import { loadOnnxModel } from "./model_utils";
-import { mapSourceConfig } from "@/core/types";
+import { InferenceParameters } from "@/core/types";
 
 interface ConvertPredParams {
   pred_bbox: number[][];
@@ -137,10 +137,21 @@ export class OrientedObjectDetection extends BaseModel {
    * @throws {Error} If the data provider or model is not properly initialized
    */
   async inference(
-    polygon: GeoJSON.Feature,
-    options: NMSOptions = {},
-    mapSourceOptions: mapSourceConfig = {}
+    params: InferenceParameters
   ): Promise<ObjectDetectionResults> {
+    const {
+      inputs: { polygon },
+      post_processing_parameters,
+      map_source_parameters,
+    } = params;
+
+    if (!polygon) {
+      throw new Error("Polygon input is required for segmentation");
+    }
+
+    if (!polygon.geometry || polygon.geometry.type !== "Polygon") {
+      throw new Error("Input must be a valid GeoJSON Polygon feature");
+    }
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
@@ -153,9 +164,9 @@ export class OrientedObjectDetection extends BaseModel {
 
     const geoRawImage = await this.polygon_to_image(
       polygon,
-      mapSourceOptions.zoomLevel,
-      mapSourceOptions.bands,
-      mapSourceOptions.expression,
+      map_source_parameters?.zoomLevel,
+      map_source_parameters?.bands,
+      map_source_parameters?.expression,
       true
     );
 
@@ -171,7 +182,11 @@ export class OrientedObjectDetection extends BaseModel {
       throw error;
     }
 
-    outputs = await this.postProcessor(outputs, geoRawImage, options);
+    outputs = await this.postProcessor(
+      outputs,
+      geoRawImage,
+      post_processing_parameters as NMSOptions
+    );
 
     return {
       detections: outputs,

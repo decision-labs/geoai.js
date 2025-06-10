@@ -43,11 +43,15 @@ describe("test model geobase/oil-storage-tank-detection", () => {
   });
 
   it("should process a polygon for oil-storage-tank detection", async () => {
-    const results = await oilStorageInstance.inference(
-      polygonOilStorage,
-      0.5,
-      0.3
-    );
+    const results = await oilStorageInstance.inference({
+      inputs: {
+        polygon: polygonOilStorage,
+      },
+      post_processing_parameters: {
+        confidenceThreshold: 0.5,
+        nmsThreshold: 0.3,
+      },
+    });
 
     // Validate GeoJSON structure
     expect(results.detections).toBeDefined();

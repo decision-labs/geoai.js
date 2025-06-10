@@ -130,7 +130,12 @@ describe("geobaseAi.genericSegmentation", () => {
           type: "points",
           coordinates: input_points,
         };
-        const result = await mapboxInstance.inference(polygon, pointInput);
+        const result = await mapboxInstance.inference({
+          inputs: {
+            polygon,
+            input: pointInput,
+          },
+        });
 
         // Check basic properties
         expect(result).toHaveProperty("geoRawImage");
@@ -166,7 +171,12 @@ describe("geobaseAi.genericSegmentation", () => {
       type: "points",
       coordinates: input_point,
     };
-    const result = await geobaseInstance.inference(polygon, pointInput);
+    const result = await geobaseInstance.inference({
+      inputs: {
+        polygon,
+        input: pointInput,
+      },
+    });
 
     // Check basic properties
     expect(result).toHaveProperty("geoRawImage");
@@ -197,10 +207,12 @@ describe("geobaseAi.genericSegmentation", () => {
       type: "boxes",
       coordinates: input_bbox,
     };
-    const result = await geobaseBuildingInstance.inference(
-      polygonBuilding,
-      boxInput
-    );
+    const result = await geobaseBuildingInstance.inference({
+      inputs: {
+        polygon: polygonBuilding,
+        input: boxInput,
+      },
+    });
 
     // Check basic properties
     expect(result).toHaveProperty("geoRawImage");
@@ -260,21 +272,29 @@ describe("boxes pipeline with thresholds parameter", () => {
       };
 
       // Test with 2 masks
-      const result2 = await boxesInstance.inference(
-        polygonBuilding,
-        boxInput,
-        2
-      );
+      const result2 = await boxesInstance.inference({
+        inputs: {
+          polygon: polygonBuilding,
+          input: boxInput,
+        },
+        post_processing_parameters: {
+          maxMasks: 2,
+        },
+      });
       expect(result2.masks.features.length).toEqual(2);
       expect(result2.masks.features).toBeInstanceOf(Array);
       expect(result2.masks.type).toBe("FeatureCollection");
 
       // Test with 1 mask
-      const result1 = await boxesInstance.inference(
-        polygonBuilding,
-        boxInput,
-        1
-      );
+      const result1 = await boxesInstance.inference({
+        inputs: {
+          polygon: polygonBuilding,
+          input: boxInput,
+        },
+        post_processing_parameters: {
+          maxMasks: 1,
+        },
+      });
       expect(result1.masks.features.length).toEqual(1);
       expect(result1.masks.features).toBeInstanceOf(Array);
       expect(result1.masks.type).toBe("FeatureCollection");

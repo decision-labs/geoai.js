@@ -11,7 +11,7 @@ import { postProcessYoloOutput } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { BaseModel } from "./base_model";
-import { mapSourceConfig } from "@/core/types";
+import { InferenceParameters } from "@/core/types";
 
 export class ObjectDetection extends BaseModel {
   protected static instance: ObjectDetection | null = null;
@@ -68,10 +68,21 @@ export class ObjectDetection extends BaseModel {
    * @throws {Error} If data provider, model or processor are not properly initialized
    */
   async inference(
-    polygon: GeoJSON.Feature,
-    confidence: number = 0.9,
-    mapSourceOptions: mapSourceConfig = {}
+    params: InferenceParameters
   ): Promise<ObjectDetectionResults> {
+    const {
+      inputs: { polygon },
+      post_processing_parameters: { confidence = 0.9 } = {},
+      map_source_parameters,
+    } = params;
+
+    if (!polygon) {
+      throw new Error("Polygon input is required for segmentation");
+    }
+
+    if (!polygon.geometry || polygon.geometry.type !== "Polygon") {
+      throw new Error("Input must be a valid GeoJSON Polygon feature");
+    }
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
@@ -79,9 +90,9 @@ export class ObjectDetection extends BaseModel {
 
     const geoRawImage = await this.polygon_to_image(
       polygon,
-      mapSourceOptions.zoomLevel,
-      mapSourceOptions.bands,
-      mapSourceOptions.expression
+      map_source_parameters?.zoomLevel,
+      map_source_parameters?.bands,
+      map_source_parameters?.expression
     );
 
     let outputs;

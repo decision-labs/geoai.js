@@ -45,7 +45,11 @@ describe("test model geobase/land-cover-classification", () => {
   });
 
   it("should process a polygon for land cover classification", async () => {
-    const results = await landCoverInstance.inference(polygon);
+    const results = await landCoverInstance.inference({
+      inputs: {
+        polygon,
+      },
+    });
 
     // Validate basic properties
     expect(results).toHaveProperty("detections");

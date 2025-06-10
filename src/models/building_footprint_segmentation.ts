@@ -6,7 +6,7 @@ import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import * as ort from "onnxruntime-web";
 import { loadOnnxModel } from "./model_utils";
-import { mapSourceConfig } from "@/core/types";
+import { InferenceParameters } from "@/core/types";
 const cv = require("@techstark/opencv-js");
 
 export class BuildingFootPrintSegmentation extends BaseModel {
@@ -115,11 +115,27 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   }
 
   public async inference(
-    polygon: GeoJSON.Feature,
-    confidenceThreshold: number = 0.5,
-    minArea: number = 20,
-    mapSourceOptions: mapSourceConfig = {}
+    params: InferenceParameters
   ): Promise<ObjectDetectionResults> {
+    const {
+      inputs: { polygon },
+      post_processing_parameters: {
+        confidenceThreshold = 0.5,
+        minArea = 20,
+      } = {},
+      map_source_parameters,
+    } = params;
+
+    if (!polygon) {
+      throw new Error(
+        "Polygon input is required for building footprint segmentation"
+      );
+    }
+
+    if (!polygon.geometry || polygon.geometry.type !== "Polygon") {
+      throw new Error("Input must be a valid GeoJSON Polygon feature");
+    }
+
     // Ensure initialization is complete
     await this.initialize();
 
@@ -131,9 +147,9 @@ export class BuildingFootPrintSegmentation extends BaseModel {
     const patchSize = 256;
     const geoRawImage = await this.polygon_to_image(
       polygon,
-      mapSourceOptions.zoomLevel,
-      mapSourceOptions.bands,
-      mapSourceOptions.expression
+      map_source_parameters?.zoomLevel,
+      map_source_parameters?.bands,
+      map_source_parameters?.expression
     );
     const { originalImage, paddedImage } = await this.preProcessor(geoRawImage);
 
@@ -254,8 +270,8 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       return await this.postProcessor(
         finalMat,
         geoRawImage,
-        confidenceThreshold,
-        minArea
+        confidenceThreshold as number,
+        minArea as number
       );
     } catch (error) {
       // Clean up resources in case of error

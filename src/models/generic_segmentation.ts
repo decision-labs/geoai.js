@@ -10,7 +10,7 @@ import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import { BaseModel } from "./base_model";
-import { mapSourceConfig } from "@/core/types";
+import { InferenceParameters } from "@/core/types";
 
 export interface SegmentationInput {
   type: "points" | "boxes";
@@ -104,12 +104,10 @@ export class GenericSegmentation extends BaseModel {
   /**
    * Performs segmentation on a geographic area based on the provided input parameters.
    *
-   * @param polygon - A GeoJSON Feature representing the area to be segmented
-   * @param input - Segmentation input parameters containing either points or boxes coordinates or the output of an object detection model.
-   *                - For points: Single coordinate pair [x, y]
-   *                - For boxes: Two coordinate pairs defining opposite corners [x1, y1, x2, y2]
-   *                - For object detection results: An ObjectDetectionResults object containing detections and geoRawImage
-   * @param maxMasks - Maximum number of segmentation masks to return (defaults to 1)
+   * @param params - Inference parameters containing:
+   *                - inputs: Object containing polygon and segmentation input
+   *                - post_processing_parameters: Optional parameters for post-processing
+   *                - map_source_parameters: Optional parameters for map source configuration
    *
    * @returns Promise<SegmentationResult> containing:
    *          - masks: GeoJSON representation of the segmentation masks
@@ -120,12 +118,21 @@ export class GenericSegmentation extends BaseModel {
    * @throws {Error} If segmentation process fails
    * @throws {Error} If input type is not supported
    */
-  async inference(
-    polygon: GeoJSON.Feature,
-    input: SegmentationInput | ObjectDetectionResults,
-    maxMasks: number = 1,
-    mapSourceOptions: mapSourceConfig = {}
-  ): Promise<SegmentationResult> {
+  async inference(params: InferenceParameters): Promise<SegmentationResult> {
+    const {
+      inputs: { polygon, input },
+      post_processing_parameters: { maxMasks = 1 } = {},
+      map_source_parameters,
+    } = params;
+
+    if (!polygon) {
+      throw new Error("Polygon input is required for segmentation");
+    }
+
+    if (!polygon.geometry || polygon.geometry.type !== "Polygon") {
+      throw new Error("Input must be a valid GeoJSON Polygon feature");
+    }
+
     const isChained =
       (input as ObjectDetectionResults).detections !== undefined;
     // Ensure initialization is complete
@@ -141,9 +148,9 @@ export class GenericSegmentation extends BaseModel {
       ? (input as ObjectDetectionResults).geoRawImage
       : await this.polygon_to_image(
           polygon,
-          mapSourceOptions.zoomLevel,
-          mapSourceOptions.bands,
-          mapSourceOptions.expression
+          map_source_parameters?.zoomLevel,
+          map_source_parameters?.bands,
+          map_source_parameters?.expression
         );
 
     const batch_input = isChained
@@ -222,7 +229,7 @@ export class GenericSegmentation extends BaseModel {
           scores: outputsArray[index].iou_scores.data,
         },
         geoRawImage,
-        maxMasks
+        maxMasks as number
       );
       return maskGeo;
     });

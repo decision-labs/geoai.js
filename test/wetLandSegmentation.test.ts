@@ -59,7 +59,11 @@ describe("test model geobase/wetland-detection", () => {
   });
 
   it("should process a polygon for wetland detection", async () => {
-    const results = await wetlandInstance.inference(polygonWetLand);
+    const results = await wetlandInstance.inference({
+      inputs: {
+        polygon: polygonWetLand,
+      },
+    });
 
     // Validate GeoJSON structure
     expect(results.detections).toBeDefined();

@@ -182,26 +182,38 @@ class Pipeline {
             // Execute the task
             switch (task) {
               case "zero-shot-object-detection":
-                currentInput = await (instance as any).inference(
-                  currentInput.polygon,
-                  currentInput.text,
-                  currentInput.options || { topk: 4, threshold: 0.2 }
-                );
+                currentInput = await (instance as any).inference({
+                  inputs: {
+                    polygon: currentInput.polygon,
+                    classLabel: currentInput.text,
+                  },
+                  post_processing_parameters: {
+                    ...currentInput.options,
+                  },
+                });
                 break;
 
               case "mask-generation":
-                currentInput = await (instance as any).inference(
-                  currentInput.polygon,
-                  currentInput,
-                  currentInput.maxMasks || 1
-                );
+                currentInput = await (instance as any).inference({
+                  inputs: {
+                    polygon: currentInput.polygon,
+                    input: currentInput,
+                  },
+                  post_processing_parameters: {
+                    maxMasks: currentInput.maxMasks || 1,
+                  },
+                });
                 break;
 
               case "object-detection":
-                currentInput = await (instance as any).inference(
-                  currentInput.polygon,
-                  currentInput.confidence || 0.9
-                );
+                currentInput = await (instance as any).inference({
+                  inputs: {
+                    polygon: currentInput.polygon,
+                  },
+                  post_processing_parameters: {
+                    confidence: currentInput.confidence || 0.9,
+                  },
+                });
                 break;
 
               default:

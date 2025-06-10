@@ -7,7 +7,7 @@ import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
 import { loadOnnxModel } from "./model_utils";
-import { mapSourceConfig } from "@/core/types";
+import { InferenceParameters } from "@/core/types";
 
 /**
  * Base class for all geo-based detection models
@@ -128,9 +128,20 @@ abstract class BaseDetectionModel extends BaseModel {
   }
 
   async inference(
-    polygon: GeoJSON.Feature,
-    mapSourceOptions: mapSourceConfig = {}
+    params: InferenceParameters
   ): Promise<ObjectDetectionResults> {
+    const {
+      inputs: { polygon },
+      map_source_parameters,
+    } = params;
+
+    if (!polygon) {
+      throw new Error("Polygon input is required for segmentation");
+    }
+
+    if (!polygon.geometry || polygon.geometry.type !== "Polygon") {
+      throw new Error("Input must be a valid GeoJSON Polygon feature");
+    }
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
@@ -143,9 +154,9 @@ abstract class BaseDetectionModel extends BaseModel {
 
     const geoRawImage = await this.polygon_to_image(
       polygon,
-      mapSourceOptions.zoomLevel,
-      mapSourceOptions.bands,
-      mapSourceOptions.expression,
+      map_source_parameters?.zoomLevel,
+      map_source_parameters?.bands,
+      map_source_parameters?.expression,
       true // models require square image
     );
 
@@ -353,10 +364,21 @@ export class WetLandSegmentation extends BaseModel {
     };
   }
 
-  public async inference(
-    polygon: GeoJSON.Feature,
-    mapSourceOptions: mapSourceConfig = {}
+  async inference(
+    params: InferenceParameters
   ): Promise<ObjectDetectionResults> {
+    const {
+      inputs: { polygon },
+      map_source_parameters,
+    } = params;
+
+    if (!polygon) {
+      throw new Error("Polygon input is required for segmentation");
+    }
+
+    if (!polygon.geometry || polygon.geometry.type !== "Polygon") {
+      throw new Error("Input must be a valid GeoJSON Polygon feature");
+    }
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
@@ -369,9 +391,9 @@ export class WetLandSegmentation extends BaseModel {
 
     const geoRawImage = await this.polygon_to_image(
       polygon,
-      mapSourceOptions.zoomLevel,
-      mapSourceOptions.bands,
-      mapSourceOptions.expression
+      map_source_parameters?.zoomLevel,
+      map_source_parameters?.bands,
+      map_source_parameters?.expression
     );
 
     const inputs = await this.preProcessor(geoRawImage);

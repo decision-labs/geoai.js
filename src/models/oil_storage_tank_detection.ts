@@ -6,7 +6,7 @@ import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import * as ort from "onnxruntime-web";
 import { loadOnnxModel } from "./model_utils";
-import { mapSourceConfig } from "@/core/types";
+import { InferenceParameters } from "@/core/types";
 const cv = require("@techstark/opencv-js");
 
 export class OilStorageTankDetection extends BaseModel {
@@ -111,12 +111,25 @@ export class OilStorageTankDetection extends BaseModel {
     };
   }
 
-  public async inference(
-    polygon: GeoJSON.Feature,
-    confidenceThreshold: number = 0.5,
-    nmsThreshold: number = 0.3,
-    mapSourceOptions: mapSourceConfig = {}
+  async inference(
+    params: InferenceParameters
   ): Promise<ObjectDetectionResults> {
+    const {
+      inputs: { polygon },
+      post_processing_parameters: {
+        confidenceThreshold = 0.5,
+        nmsThreshold = 0.3,
+      } = {},
+      map_source_parameters,
+    } = params;
+
+    if (!polygon) {
+      throw new Error("Polygon input is required for segmentation");
+    }
+
+    if (!polygon.geometry || polygon.geometry.type !== "Polygon") {
+      throw new Error("Input must be a valid GeoJSON Polygon feature");
+    }
     // Ensure initialization is complete
     await this.initialize();
 
@@ -127,9 +140,9 @@ export class OilStorageTankDetection extends BaseModel {
 
     const geoRawImage = await this.polygon_to_image(
       polygon,
-      mapSourceOptions.zoomLevel,
-      mapSourceOptions.bands,
-      mapSourceOptions.expression
+      map_source_parameters?.zoomLevel,
+      map_source_parameters?.bands,
+      map_source_parameters?.expression
     );
 
     const inputs = await this.preProcessor(geoRawImage);
@@ -147,8 +160,8 @@ export class OilStorageTankDetection extends BaseModel {
     outputs = await this.postProcessor(
       outputs.output,
       geoRawImage,
-      confidenceThreshold,
-      nmsThreshold
+      confidenceThreshold as number,
+      nmsThreshold as number
     );
 
     return {

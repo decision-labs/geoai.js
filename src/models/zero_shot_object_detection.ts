@@ -4,7 +4,7 @@ import { BaseModel } from "./base_model";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { mapSourceConfig } from "@/core/types";
+import { InferenceParameters } from "@/core/types";
 
 export interface ObjectDetectionResults {
   detections: GeoJSON.FeatureCollection;
@@ -67,14 +67,21 @@ export class ZeroShotObjectDetection extends BaseModel {
    * @throws Error if data provider is not initialized
    */
   async inference(
-    polygon: GeoJSON.Feature,
-    text: string | string[],
-    options = {
-      topk: 4,
-      threshold: 0.2,
-    },
-    mapSourceOptions: mapSourceConfig = {}
+    params: InferenceParameters
   ): Promise<ObjectDetectionResults> {
+    const {
+      inputs: { polygon, classLabel: text },
+      post_processing_parameters: { threshold = 0.2, topk = 4 } = {},
+      map_source_parameters,
+    } = params;
+
+    if (!polygon) {
+      throw new Error("Polygon input is required for segmentation");
+    }
+
+    if (!polygon.geometry || polygon.geometry.type !== "Polygon") {
+      throw new Error("Input must be a valid GeoJSON Polygon feature");
+    }
     // Ensure initialization is complete
     if (!this.initialized) {
       await this.initialize();
@@ -82,17 +89,17 @@ export class ZeroShotObjectDetection extends BaseModel {
 
     const geoRawImage = await this.polygon_to_image(
       polygon,
-      mapSourceOptions.zoomLevel,
-      mapSourceOptions.bands,
-      mapSourceOptions.expression
+      map_source_parameters?.zoomLevel,
+      map_source_parameters?.bands,
+      map_source_parameters?.expression
     );
 
     let outputs;
     try {
       const candidate_labels = Array.isArray(text) ? text : [text];
       outputs = await this.detector(geoRawImage as RawImage, candidate_labels, {
-        topk: options.topk,
-        threshold: options.threshold,
+        topk: topk,
+        threshold: threshold,
       });
     } catch (error) {
       console.debug("error", error);

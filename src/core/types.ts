@@ -40,11 +40,32 @@ export type GeobaseParams = {
   projectRef: string;
 };
 
-export type mapSourceConfig = {
+export interface InferenceInputs {
+  polygon: GeoJSON.Feature;
+  classLabel?: string;
+  [key: string]: unknown;
+}
+
+export type PostProcessingParameters = {
+  [key: string]: unknown;
+};
+
+export interface MapSourceParameters {
   zoomLevel?: number;
   bands?: number[];
   expression?: string;
-};
+}
+
+export interface InferenceParameters {
+  inputs: InferenceInputs;
+  post_processing_parameters?: PostProcessingParameters;
+  map_source_parameters?: MapSourceParameters;
+}
+
+export interface mapSourceConfig {
+  zoomLevel?: number;
+  [key: string]: unknown;
+}
 
 export type onnxModel = ort.InferenceSession;
 
