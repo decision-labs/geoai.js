@@ -249,9 +249,6 @@ const result = await instance.inference(polygon);`}
             >
               <source src="/video/land-cover-classification.mp4" type="video/mp4" />
             </video>
-              alt="Land Cover Classification"
-              className="w-full h-48 object-cover rounded-lg mb-6"
-            />
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Land Cover Classification
             </h2>
