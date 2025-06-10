@@ -173,6 +173,37 @@ const result = await instance.inference(polygon);`}
           </SyntaxHighlighter>
         </section>
 
+        {/* Works with section */}
+        <div className="max-w-3xl mx-auto mb-12 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <hr className="flex-grow border-gray-200" />
+            <span className="mx-4 text-sm text-gray-400">Works with</span>
+            <hr className="flex-grow border-gray-200" />
+          </div>
+          <div className="flex flex-wrap justify-center items-center gap-8">
+            <div className="flex flex-col items-center">
+              <div className="h-12 w-28 flex items-center justify-center mb-2">
+                <img src="/provider-logos/geobase.svg" alt="Geobase" className="h-full object-contain filter grayscale" />
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="h-12 w-28 flex items-center justify-center mb-2">
+                <img src="/provider-logos/mapbox.svg" alt="Mapbox" className="h-full object-contain filter grayscale" />
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="h-12 w-28 flex items-center justify-center mb-2">
+                <img src="/provider-logos/esri.svg" alt="ESRI" className="h-full object-contain filter grayscale" style={{ transform: 'scale(0.7)' }} />
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="h-12 w-28 flex items-center justify-center mb-2">
+                <img src="/provider-logos/google-maps.svg" alt="Google Maps" className="h-full object-contain filter grayscale" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           <a
             href="/tasks/object-detection"
