@@ -1,3 +1,4 @@
+import { threshold } from "@techstark/opencv-js";
 import { geobaseAi } from "geobase-ai";
 
 // This worker was originally created for GeoAI models - but will refactor it to be more generic
@@ -80,58 +81,123 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
         let result: any;
         if (payload.task === "zero-shot-object-detection") {
-          result = await modelInstance.inference(polygon, classLabel, {
-            threshold: confidenceScore,
-            topk,
-          }, {
-            zoomLevel,
+          result = await modelInstance.inference({
+            inputs : {
+              polygon,
+              classLabel
+            },
+            post_processing_parameters : {
+              threshold: confidenceScore,
+              topk,
+            },
+            map_source_parameters : {
+              zoomLevel
+            }
           });
         } else if (payload.task === "oil-storage-tank-detection") {
-          result = await modelInstance.inference(polygon,confidenceScore, nmsThreshold , {
-            zoomLevel,
+          result = await modelInstance.inference({
+            inputs : {
+              polygon
+            },
+            post_processing_parameters : {
+              confidenceThreshold: confidenceScore,
+              nmsThreshold,
+            },
+            map_source_parameters : {
+              zoomLevel
+            }
           });
         } else if (payload.task === "land-cover-classification") {
         
-            result = await modelInstance.inference(polygon,minArea , {
-              zoomLevel,
+            result = await modelInstance.inference({
+              inputs : {
+                polygon
+              },
+              post_processing_parameters : {
+                minArea,
+              },
+              map_source_parameters : {
+                zoomLevel
+              }
             });
           
         } else if (payload.task === "oriented-object-detection") {
-          result = await modelInstance.inference(polygon,undefined , {
-            zoomLevel,
+          result = await modelInstance.inference({
+              inputs : {
+                polygon
+              },
+              map_source_parameters : {
+                zoomLevel
+              }
+            });
+        } else if (payload.task === "wetland-detection") {
+          
+          result = await modelInstance.inference({
+            inputs : {
+              polygon
+            },
+            map_source_parameters : {
+              zoomLevel
+            }
           });
-      } else if (payload.task === "wetland-detection") {
-        
-        result = await modelInstance.inference(polygon, {
-          zoomLevel,
-        });
       
-    } else if (payload.task === "object-detection") {
-      result = await modelInstance.inference(polygon, confidenceScore, {
-        zoomLevel,
-      }); 
-    } else if (payload.task === "building-footprint-segmentation") {
-      result = await modelInstance.inference(polygon, confidenceScore,minArea, {
-        zoomLevel,
-      }); 
-    } else if (payload.task === "mask-generation") {
-      result = await modelInstance.inference(polygon,inputPoint, confidenceScore,maxMasks, {
-        zoomLevel,
-      }); 
-    } else {
-          result = await modelInstance.inference(polygon, {
-            zoomLevel,
-          });
-        }
-        console.log("[Worker] Inference completed successfully");
-        console.log({ result });
+        } else if (payload.task === "object-detection") {
+          result = await modelInstance.inference({
+            inputs : {
+              polygon
+            },
+            post_processing_parameters : {
+              confidence : confidenceScore
+            },
+            map_source_parameters : {
+              zoomLevel
+            }
+          }); 
+        } else if (payload.task === "building-footprint-segmentation") {
+          result = await modelInstance.inference({
+            inputs : {
+              polygon
+            },
+            post_processing_parameters : {
+              confidenceThreshold : confidenceScore,
+              minArea
+            },
+            map_source_parameters : {
+              zoomLevel
+            }
+          }); 
+        } else if (payload.task === "mask-generation") {
+          result = await modelInstance.inference({
+            inputs : {
+              polygon,
+              input : inputPoint
+            },
+            post_processing_parameters : {
+              maxMasks
+            },
+            map_source_parameters : {
+              zoomLevel
+            }
+          }); 
+        } else {
+            result = await modelInstance.inference({
+              inputs : {
+                polygon
+              },
+              map_source_parameters : {
+                zoomLevel
+              }
+            });
+          }
+          console.log("[Worker] Inference completed successfully");
+          console.log({ result });
 
-        self.postMessage({
-          type: "inference_complete",
-          payload: result
-        });
-        break;
-      }
+          self.postMessage({
+            type: "inference_complete",
+            payload: result
+          });
+          break;
+        }
 
       case "chain": {
         console.log("[Worker] Received chain message");
