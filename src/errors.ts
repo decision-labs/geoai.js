@@ -2,11 +2,15 @@
 
 export enum ErrorType {
   MaximumTileCountExceeded = "MaximumTileCountExceeded",
+  UnknownTask = "UnknownTask",
+  MissingInputField = "MissingInputField",
   // Add more error types here as needed
 }
 
 export const ErrorCodes: Record<ErrorType, number> = {
   [ErrorType.MaximumTileCountExceeded]: 1001,
+  [ErrorType.UnknownTask]: 1002,
+  [ErrorType.MissingInputField]: 1003,
   // Add more error codes here as needed
 };
 

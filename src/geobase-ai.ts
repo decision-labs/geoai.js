@@ -18,6 +18,7 @@ import {
 import { InferenceParameters } from "./core/types";
 import { GenericSegmentation } from "./models/generic_segmentation";
 import { ObjectDetection } from "./models/object_detection";
+import { ErrorType, GeobaseError } from "./errors";
 
 interface PipelineInstance {
   instance: ModelsInstances;
@@ -104,12 +105,13 @@ class Pipeline {
    * Validates input for a specific task
    */
   private static validateTaskInput(task: string, input: any): void {
-    const config = modelRegistry.find(model => model.task === task)?.ioConfig;
-    if (!config?.inputs) return;
+    const ioConfig = modelRegistry.find(model => model.task === task)?.ioConfig;
+    if (!ioConfig?.inputs) return;
 
-    for (const field of config.inputs) {
+    for (const field of ioConfig.inputs) {
       if (!(field in input)) {
-        throw new Error(
+        throw new GeobaseError(
+          ErrorType.MissingInputField,
           `Task ${task} requires input field '${field}' but it was not provided`
         );
       }
