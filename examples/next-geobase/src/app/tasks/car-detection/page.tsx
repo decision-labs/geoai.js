@@ -41,14 +41,8 @@ export default function CarDetection() {
   const [initializing, setInitializing] = useState(false);
   const [detectionResult, setDetectionResult] = useState<string | null>(null);
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
-  const [zoomLevel, setZoomLevel] = useState<number>(17);
-  const [confidenceScore, setConfidenceScore] = useState<number>(0.9);
-//   const [selectedModel, setSelectedModel] = useState<string>(
-//     "geobase/WALDO30_yolov8m_640x640"
-//   );
-  const [customModelId, setCustomModelId] = useState<string>("");
+  const [zoomLevel, setZoomLevel] = useState<number>(22);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
-//   const models = ["geobase/WALDO30_yolov8m_640x640"];
 
   const handleReset = () => {
     // Clear all drawn features
@@ -282,7 +276,6 @@ export default function CarDetection() {
         type: "inference",
         payload: {
           polygon,
-          confidenceScore,
           zoomLevel,
         },
       });
@@ -493,29 +486,6 @@ export default function CarDetection() {
                     onChange={e =>
                       setZoomLevel(
                         Math.min(22, Math.max(0, Number(e.target.value)))
-                      )
-                    }
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="confidenceScore"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Confidence Score (0-1)
-                  </label>
-                  <input
-                    type="number"
-                    id="confidenceScore"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={confidenceScore}
-                    onChange={e =>
-                      setConfidenceScore(
-                        Math.min(1, Math.max(0, Number(e.target.value)))
                       )
                     }
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
