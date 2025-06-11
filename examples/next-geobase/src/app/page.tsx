@@ -195,11 +195,13 @@ const result = await instance.inference(polygon);`}
               <div className="h-12 w-28 flex items-center justify-center mb-2">
                 <img src="/provider-logos/esri.svg" alt="ESRI" className="h-full object-contain filter grayscale" style={{ transform: 'scale(0.7)' }} />
               </div>
+              <span className="mt-1 px-2 py-0.5 border border-dashed border-gray-300 rounded text-xs text-gray-400">coming soon</span>
             </div>
             <div className="flex flex-col items-center">
               <div className="h-12 w-28 flex items-center justify-center mb-2">
                 <img src="/provider-logos/google-maps.svg" alt="Google Maps" className="h-full object-contain filter grayscale" />
               </div>
+              <span className="mt-1 px-2 py-0.5 border border-dashed border-gray-300 rounded text-xs text-gray-400">coming soon</span>
             </div>
           </div>
         </div>
