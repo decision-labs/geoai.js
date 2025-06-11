@@ -1,8 +1,6 @@
 import { geobaseAi, ProviderParams } from "geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 
-// This worker was originally created for GeoAI models - but will refactor it to be more generic
-
 // Worker message types
 type WorkerMessage = {
   type: "init" | "inference";
@@ -32,7 +30,7 @@ type InferencePayload = {
   zoomLevel: number;
   topk: number;
   nmsThreshold?: number;
-  minArea?: number; 
+  minArea?: number;
   inputPoint?: any;
   maxMasks?: number;
 };
@@ -52,7 +50,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
         console.log("[Worker] Starting pipeline initialization");
         let response;
-        if (chain_config) { 
+        if (chain_config) {
           response = await geobaseAi.pipeline(
             chain_config as { task: string; modelId?: string; modelParams?: PretrainedOptions }[],
             { provider, ...config } as ProviderParams
@@ -80,137 +78,137 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
           throw new Error("Object detector not initialized");
         }
 
-        const { polygon, zoomLevel, topk, confidenceScore,minArea, nmsThreshold, classLabel, inputPoint, maxMasks } = payload as InferencePayload;
-        console.log("[Worker] Running inference with:", { zoomLevel, polygon, topk, confidenceScore, classLabel ,  inputPoint, maxMasks});
+        const { polygon, zoomLevel, topk, confidenceScore, minArea, nmsThreshold, classLabel, inputPoint, maxMasks } = payload as InferencePayload;
+        console.log("[Worker] Running inference with:", { zoomLevel, polygon, topk, confidenceScore, classLabel, inputPoint, maxMasks });
 
         console.log("[Worker] Starting inference");
 
         let result: any;
         if (payload.task === "zero-shot-object-detection") {
           result = await modelInstance.inference({
-            inputs : {
+            inputs: {
               polygon,
               classLabel
             },
-            post_processing_parameters : {
+            post_processing_parameters: {
               threshold: confidenceScore,
               topk,
             },
-            map_source_parameters : {
+            map_source_parameters: {
               zoomLevel
             }
           });
         } else if (payload.task === "oil-storage-tank-detection") {
           result = await modelInstance.inference({
-            inputs : {
+            inputs: {
               polygon
             },
-            post_processing_parameters : {
+            post_processing_parameters: {
               confidenceThreshold: confidenceScore,
               nmsThreshold,
             },
-            map_source_parameters : {
+            map_source_parameters: {
               zoomLevel
             }
           });
         } else if (payload.task === "land-cover-classification") {
-        
-            result = await modelInstance.inference({
-              inputs : {
-                polygon
-              },
-              post_processing_parameters : {
-                minArea,
-              },
-              map_source_parameters : {
-                zoomLevel
-              }
-            });
-          
+
+          result = await modelInstance.inference({
+            inputs: {
+              polygon
+            },
+            post_processing_parameters: {
+              minArea,
+            },
+            map_source_parameters: {
+              zoomLevel
+            }
+          });
+
         } else if (payload.task === "oriented-object-detection") {
           result = await modelInstance.inference({
-              inputs : {
-                polygon
-              },
-              map_source_parameters : {
-                zoomLevel
-              }
-            });
-        } else if (payload.task === "wetland-detection") {
-          
-          result = await modelInstance.inference({
-            inputs : {
+            inputs: {
               polygon
             },
-            map_source_parameters : {
+            map_source_parameters: {
               zoomLevel
             }
           });
-      
+        } else if (payload.task === "wetland-detection") {
+
+          result = await modelInstance.inference({
+            inputs: {
+              polygon
+            },
+            map_source_parameters: {
+              zoomLevel
+            }
+          });
+
         } else if (payload.task === "object-detection") {
           result = await modelInstance.inference({
-            inputs : {
+            inputs: {
               polygon
             },
-            post_processing_parameters : {
-              confidence : confidenceScore
+            post_processing_parameters: {
+              confidence: confidenceScore
             },
-            map_source_parameters : {
+            map_source_parameters: {
               zoomLevel
             }
-          }); 
+          });
         } else if (payload.task === "building-footprint-segmentation") {
           result = await modelInstance.inference({
-            inputs : {
+            inputs: {
               polygon
             },
-            post_processing_parameters : {
-              confidenceThreshold : confidenceScore,
+            post_processing_parameters: {
+              confidenceThreshold: confidenceScore,
               minArea
             },
-            map_source_parameters : {
+            map_source_parameters: {
               zoomLevel
             }
-          }); 
+          });
         } else if (payload.task === "mask-generation") {
           result = await modelInstance.inference({
-            inputs : {
+            inputs: {
               polygon,
-              input : inputPoint
+              input: inputPoint
             },
-            post_processing_parameters : {
+            post_processing_parameters: {
               maxMasks
             },
-            map_source_parameters : {
+            map_source_parameters: {
               zoomLevel
             }
-          }); 
-        } else {
-            result = await modelInstance.inference({
-              inputs : {
-                polygon,
-                classLabel,
-                input : inputPoint
-              },
-              post_processing_parameters : {
-                confidence: confidenceScore,
-                topk,
-                minArea,
-              },
-              map_source_parameters : {
-                zoomLevel
-              }
-            });
-          }
-          console.log("[Worker] Inference completed successfully");
-          console.log({ result });
-
-          self.postMessage({
-            type: "inference_complete",
-            payload: result
           });
-          break;
+        } else {
+          result = await modelInstance.inference({
+            inputs: {
+              polygon,
+              classLabel,
+              input: inputPoint
+            },
+            post_processing_parameters: {
+              confidence: confidenceScore,
+              topk,
+              minArea,
+            },
+            map_source_parameters: {
+              zoomLevel
+            }
+          });
         }
+        console.log("[Worker] Inference completed successfully");
+        console.log({ result });
+
+        self.postMessage({
+          type: "inference_complete",
+          payload: result
+        });
+        break;
+      }
 
     }
   } catch (error) {
