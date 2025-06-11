@@ -328,10 +328,10 @@ export default function ZeroShotSegmentation() {
 
       // Now run inference
       workerRef.current.postMessage({
-        type: "chain",
+        type: "inference",
         payload: {
           polygon,
-          text: classLabel,
+          classLabel,
         },
       });
     } catch (error) {

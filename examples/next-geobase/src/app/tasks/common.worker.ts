@@ -1,5 +1,5 @@
-import { threshold } from "@techstark/opencv-js";
-import { geobaseAi } from "geobase-ai";
+import { geobaseAi, ProviderParams } from "geobase-ai";
+import { PretrainedOptions } from "@huggingface/transformers";
 
 // This worker was originally created for GeoAI models - but will refactor it to be more generic
 
@@ -16,8 +16,13 @@ type InitPayload = {
   cogImagery?: string;
   apiKey?: string;
   style?: string;
-  modelId: string;
-  task: "object-detection" | "land-cover-classification" | "zero-shot-object-detection";
+  modelId?: string;
+  task?: string;
+  chain_config?: {
+    task: string;
+    modelId?: string;
+    modelParams?: PretrainedOptions;
+  }[];
 };
 
 type InferencePayload = {
@@ -48,16 +53,17 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         console.log("[Worker] Starting pipeline initialization");
         let response;
         if (chain_config) { 
-          response = await geobaseAi.chain(
-            chain_config,
-            { provider, ...config },
+          response = await geobaseAi.pipeline(
+            chain_config as { task: string; modelId?: string; modelParams?: PretrainedOptions }[],
+            { provider, ...config } as ProviderParams
           );
           modelInstance = response;
         }
         else {
           response = await geobaseAi.pipeline(
-            task, { provider, ...config },
-            //   modelId
+            task!,
+            { provider, ...config } as ProviderParams,
+            modelId
           );
           modelInstance = response.instance;
         }
@@ -182,7 +188,14 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         } else {
             result = await modelInstance.inference({
               inputs : {
-                polygon
+                polygon,
+                classLabel,
+                input : inputPoint
+              },
+              post_processing_parameters : {
+                confidence: confidenceScore,
+                topk,
+                minArea,
               },
               map_source_parameters : {
                 zoomLevel

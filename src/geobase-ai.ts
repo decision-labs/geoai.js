@@ -3,8 +3,27 @@
 // https://huggingface.co/models?pipeline_tag=zero-shot-image-classification&library=transformers.js
 
 import { PretrainedOptions } from "@huggingface/transformers";
-import { ModelConfig, ModelsInstances, ProviderParams } from "./core/types";
+import {
+  ModelConfig,
+  ModelsInstances,
+  ProviderParams,
+  SegmentationResults,
+} from "./core/types";
 import { modelRegistry } from "./registry";
+import { ObjectDetectionResults } from "./models/zero_shot_object_detection";
+import { InferenceParameters } from "./core/types";
+
+interface PipelineInstance {
+  instance: ModelsInstances;
+}
+
+interface ChainInstance {
+  inference: (
+    inputs: InferenceParameters
+  ) => Promise<ObjectDetectionResults | SegmentationResults>;
+  pipelines: { instance: ModelsInstances; task: string }[];
+  getTaskOrder: () => string[];
+}
 
 class Pipeline {
   /**
@@ -92,51 +111,47 @@ class Pipeline {
   }
 
   /**
-   *
-   * @param task
-   * @param params
-   * @param modelId
-   * @param modelParams
-   * @returns
+   * Creates a pipeline for a single task or a chain of tasks
+   * @param taskOrTasks Single task or list of tasks to chain
+   * @param params Provider parameters
+   * @param modelId Optional model ID for single task
+   * @param modelParams Optional model parameters for single task
+   * @returns A function that takes inputs and returns the output of the last task in the chain
    */
   static async pipeline(
-    task: string,
+    taskOrTasks:
+      | string
+      | {
+          task: string;
+          modelId?: string;
+          modelParams?: PretrainedOptions;
+        }[],
     params: ProviderParams,
     modelId?: string,
     modelParams?: PretrainedOptions
-  ): Promise<{ instance: ModelsInstances }> {
-    const config = modelRegistry.find(model => model.task === task);
+  ): Promise<PipelineInstance | ChainInstance> {
+    // Handle single task case
+    if (typeof taskOrTasks === "string") {
+      const config = modelRegistry.find(model => model.task === taskOrTasks);
 
-    if (!config) {
-      throw new Error(`Model for task ${task} not found`);
+      if (!config) {
+        throw new Error(`Model for task ${taskOrTasks} not found`);
+      }
+
+      const instance = await config.geobase_ai_pipeline(
+        params,
+        modelId,
+        modelParams || config.modelParams
+      );
+      return instance as PipelineInstance;
     }
 
-    return config.geobase_ai_pipeline(
-      params,
-      modelId,
-      modelParams || config.modelParams
-    );
-  }
-
-  /**
-   * Creates a chain of tasks
-   * @param tasksList List of tasks to chain
-   * @param params Provider parameters
-   * @returns A function that takes inputs and returns the output of the last task in the chain
-   */
-  static async chain(
-    tasksList: {
-      task: string;
-      modelId?: string;
-      modelParams?: PretrainedOptions;
-    }[],
-    params: ProviderParams
-  ) {
-    if (tasksList.length === 0) {
+    // Handle task chain case
+    if (taskOrTasks.length === 0) {
       throw new Error("At least one task must be specified for chaining");
     }
 
-    const taskNames: string[] = tasksList.map(taskObj => taskObj.task);
+    const taskNames: string[] = taskOrTasks.map(taskObj => taskObj.task);
     // Validate that all tasks exist
     for (const task of taskNames) {
       const config = modelRegistry.find(model => model.task === task);
@@ -149,7 +164,7 @@ class Pipeline {
     const validChain = Pipeline.validateChainCompatibility(taskNames);
 
     const validTaskList = validChain.map(task =>
-      tasksList.find(taskObj => taskObj.task === task)
+      taskOrTasks.find(taskObj => taskObj.task === task)
     );
 
     const pipelines: { instance: ModelsInstances; task: string }[] = [];
@@ -164,17 +179,20 @@ class Pipeline {
         taskObj.modelId,
         taskObj.modelParams
       );
-      pipelines.push({ instance: pipeline.instance, task: taskObj.task });
+      pipelines.push({
+        instance: (pipeline as PipelineInstance).instance,
+        task: taskObj.task,
+      });
     }
 
     return {
-      async run(inputs: any) {
-        let currentInput = { ...inputs };
-
+      async inference(
+        inputs: InferenceParameters
+      ): Promise<ObjectDetectionResults | SegmentationResults> {
+        let currentInput: any = { ...inputs };
         for (let i = 0; i < pipelines.length; i++) {
           const { instance, task } = pipelines[i];
-          currentInput.polygon = inputs.polygon;
-
+          currentInput.inferenceInputs = { ...inputs };
           try {
             // Validate and transform input
             Pipeline.validateTaskInput(task, currentInput);
@@ -183,36 +201,46 @@ class Pipeline {
             switch (task) {
               case "zero-shot-object-detection":
                 currentInput = await (instance as any).inference({
-                  inputs: {
-                    polygon: currentInput.polygon,
-                    classLabel: currentInput.text,
-                  },
+                  inputs: currentInput.inferenceInputs.inputs,
                   post_processing_parameters: {
-                    ...currentInput.options,
+                    threshold:
+                      currentInput.inferenceInputs.post_processing_parameters
+                        .threshold || 0.5,
+                    topk:
+                      currentInput.inferenceInputs.post_processing_parameters
+                        .topk || 4,
                   },
+                  map_source_parameters:
+                    currentInput.inferenceInputs.map_source_parameters,
                 });
                 break;
 
               case "mask-generation":
                 currentInput = await (instance as any).inference({
                   inputs: {
-                    polygon: currentInput.polygon,
+                    ...currentInput.inferenceInputs.inputs,
                     input: currentInput,
                   },
                   post_processing_parameters: {
-                    maxMasks: currentInput.maxMasks || 1,
+                    maxMasks:
+                      currentInput.inferenceInputs.post_processing_parameters
+                        .maxMasks || 1,
                   },
+                  map_source_parameters:
+                    currentInput.inferenceInputs.map_source_parameters,
                 });
                 break;
 
               case "object-detection":
                 currentInput = await (instance as any).inference({
-                  inputs: {
-                    polygon: currentInput.polygon,
-                  },
+                  inputs: currentInput.inferenceInputs.inputs,
                   post_processing_parameters: {
-                    confidence: currentInput.confidence || 0.9,
+                    confidence:
+                      currentInput.inferenceInputs.post_processing_parameters
+                        .confidence || 0.9,
                   },
+                  map_source_parameters:
+                    currentInput.inferenceInputs.map_source_parameters,
                 });
                 break;
 
@@ -244,7 +272,6 @@ class Pipeline {
 
 const geobaseAi = {
   pipeline: Pipeline.pipeline,
-  chain: Pipeline.chain,
   tasks: Pipeline.listTasks,
   models: Pipeline.listModels,
   validateChain: Pipeline.findValidChains,
