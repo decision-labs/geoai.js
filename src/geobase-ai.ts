@@ -10,8 +10,14 @@ import {
   SegmentationResults,
 } from "./core/types";
 import { modelRegistry } from "./registry";
-import { ObjectDetectionResults } from "./models/zero_shot_object_detection";
+// TODO: move ObjectDetectionResults to types.ts
+import {
+  ObjectDetectionResults,
+  ZeroShotObjectDetection,
+} from "./models/zero_shot_object_detection";
 import { InferenceParameters } from "./core/types";
+import { GenericSegmentation } from "./models/generic_segmentation";
+import { ObjectDetection } from "./models/object_detection";
 
 interface PipelineInstance {
   instance: ModelsInstances;
@@ -189,7 +195,7 @@ class Pipeline {
       async inference(
         inputs: InferenceParameters
       ): Promise<ObjectDetectionResults | SegmentationResults> {
-        let currentInput: any = { ...inputs };
+        let currentInput: any;
         for (let i = 0; i < pipelines.length; i++) {
           const { instance, task } = pipelines[i];
           currentInput.inferenceInputs = { ...inputs };
@@ -200,15 +206,16 @@ class Pipeline {
             // Execute the task
             switch (task) {
               case "zero-shot-object-detection":
-                currentInput = await (instance as any).inference({
+                currentInput = await (
+                  instance as ZeroShotObjectDetection
+                ).inference({
                   inputs: currentInput.inferenceInputs.inputs,
                   post_processing_parameters: {
                     threshold:
                       currentInput.inferenceInputs.post_processing_parameters
-                        ?.threshold || 0.2,
-                    topk:
-                      currentInput.inferenceInputs.post_processing_parameters
-                        ?.topk || 4,
+                        ?.threshold,
+                    topk: currentInput.inferenceInputs
+                      .post_processing_parameters?.topk,
                   },
                   map_source_parameters:
                     currentInput.inferenceInputs.map_source_parameters,
@@ -216,7 +223,9 @@ class Pipeline {
                 break;
 
               case "mask-generation":
-                currentInput = await (instance as any).inference({
+                currentInput = await (
+                  instance as GenericSegmentation
+                ).inference({
                   inputs: {
                     ...currentInput.inferenceInputs.inputs,
                     input: currentInput,
@@ -224,7 +233,7 @@ class Pipeline {
                   post_processing_parameters: {
                     maxMasks:
                       currentInput.inferenceInputs.post_processing_parameters
-                        ?.maxMasks || 1,
+                        ?.maxMasks,
                   },
                   map_source_parameters:
                     currentInput.inferenceInputs.map_source_parameters,
@@ -232,7 +241,7 @@ class Pipeline {
                 break;
 
               case "object-detection":
-                currentInput = await (instance as any).inference({
+                currentInput = await (instance as ObjectDetection).inference({
                   inputs: currentInput.inferenceInputs.inputs,
                   post_processing_parameters: {
                     confidence:

@@ -1,3 +1,9 @@
+import { PretrainedOptions } from "@huggingface/transformers";
+import * as ort from "onnxruntime-web";
+import { GeoRawImage } from "@/types/images/GeoRawImage";
+
+// Model Types:
+// ==============================
 import {
   GenericSegmentation,
   SegmentationInput,
@@ -17,10 +23,9 @@ import {
   ObjectDetectionResults,
   ZeroShotObjectDetection,
 } from "@/models/zero_shot_object_detection";
-import { PretrainedOptions } from "@huggingface/transformers";
-import * as ort from "onnxruntime-web";
-import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { BuildingFootPrintSegmentation } from "@/models/building_footprint_segmentation";
+// NOTE: Add new models here
+// ==============================
 
 export type MapboxParams = {
   provider: "mapbox";
