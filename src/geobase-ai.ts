@@ -205,10 +205,10 @@ class Pipeline {
                   post_processing_parameters: {
                     threshold:
                       currentInput.inferenceInputs.post_processing_parameters
-                        .threshold || 0.5,
+                        ?.threshold || 0.2,
                     topk:
                       currentInput.inferenceInputs.post_processing_parameters
-                        .topk || 4,
+                        ?.topk || 4,
                   },
                   map_source_parameters:
                     currentInput.inferenceInputs.map_source_parameters,
@@ -224,7 +224,7 @@ class Pipeline {
                   post_processing_parameters: {
                     maxMasks:
                       currentInput.inferenceInputs.post_processing_parameters
-                        .maxMasks || 1,
+                        ?.maxMasks || 1,
                   },
                   map_source_parameters:
                     currentInput.inferenceInputs.map_source_parameters,
@@ -237,7 +237,7 @@ class Pipeline {
                   post_processing_parameters: {
                     confidence:
                       currentInput.inferenceInputs.post_processing_parameters
-                        .confidence || 0.9,
+                        ?.confidence || 0.9,
                   },
                   map_source_parameters:
                     currentInput.inferenceInputs.map_source_parameters,

@@ -4,6 +4,7 @@ import { ZeroShotObjectDetection } from "../src/models/zero_shot_object_detectio
 import { GenericSegmentation } from "../src/models/generic_segmentation";
 import { geobaseParamsBuilding, polygonBuilding } from "./constants";
 import { geoJsonToGist } from "./utils/saveToGist";
+import { InferenceParameters } from "../src/core/types";
 
 describe("geobase-ai", () => {
   it("should be an object", () => {
@@ -154,17 +155,19 @@ describe("Pipeline Chain", () => {
       geobaseParamsBuilding
     );
 
-    expect("run" in chain).toBe(true);
-    if (!("run" in chain)) {
-      throw new Error("Chain result should have run method");
+    expect("inference" in chain).toBe(true);
+    if (!("inference" in chain)) {
+      throw new Error("Chain result should have inference method");
     }
 
-    const inputs = {
-      polygon: polygonBuilding,
-      text: "house .",
+    const chainInferenceInputs: InferenceParameters = {
+      inputs: {
+        polygon: polygonBuilding,
+        classLabel: "house .",
+      },
     };
 
-    const result = await chain.inference(inputs);
+    const result = await chain.inference(chainInferenceInputs);
 
     // Check basic properties
     ["geoRawImage", "masks"].forEach(prop => {
@@ -201,16 +204,18 @@ describe("Pipeline Chain", () => {
       geobaseParamsBuilding
     );
 
-    expect("run" in chain).toBe(true);
-    if (!("run" in chain)) {
-      throw new Error("Chain result should have run method");
+    expect("inference" in chain).toBe(true);
+    if (!("inference" in chain)) {
+      throw new Error("Chain result should have inference method");
     }
 
-    const inputs = {
-      polygon: null,
-      text: "house .",
+    const chainInferenceInputs: InferenceParameters = {
+      inputs: {
+        polygon: null,
+        classLabel: "house .",
+      },
     };
 
-    await expect(chain.run(inputs)).rejects.toThrow();
+    await expect(chain.inference(chainInferenceInputs)).rejects.toThrow();
   });
 });
