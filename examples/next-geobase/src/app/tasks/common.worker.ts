@@ -5,7 +5,7 @@ import { PretrainedOptions } from "@huggingface/transformers";
 
 // Worker message types
 type WorkerMessage = {
-  type: "init" | "inference" | "chain";
+  type: "init" | "inference";
   payload: any;
 };
 
@@ -212,25 +212,6 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
           break;
         }
 
-      case "chain": {
-        console.log("[Worker] Received chain message");
-        if (!modelInstance) {
-          console.error("[Worker] Model instance not initialized");
-          throw new Error("Object detector not initialized");
-        }
-        const chain = modelInstance as any;
-        const result = await chain.run({
-          polygon: payload.polygon,
-          text: payload.text,
-        });
-        console.log("[Worker] Chain completed successfully");
-        console.log({ result });
-        self.postMessage({
-          type: "inference_complete",
-          payload: result
-        });
-        break;
-      }
     }
   } catch (error) {
     console.error("[Worker] Error occurred:", error);
