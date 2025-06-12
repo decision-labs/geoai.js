@@ -195,12 +195,18 @@ class Pipeline {
 
     return {
       async inference(
-        inputs: InferenceParameters
+        params: InferenceParameters
       ): Promise<ObjectDetectionResults | SegmentationResults> {
-        let currentInput: any;
+        let currentInput: any = {
+          inferenceInputs: {
+            inputs: {},
+            post_processing_parameters: {},
+            map_source_parameters: {},
+          } as InferenceParameters,
+        };
         for (let i = 0; i < pipelines.length; i++) {
           const { instance, task } = pipelines[i];
-          currentInput.inferenceInputs = { ...inputs };
+          currentInput.inferenceInputs = { ...params };
           try {
             // Validate and transform input
             Pipeline.validateTaskInput(task, currentInput);
