@@ -33,6 +33,7 @@ type InferencePayload = {
   minArea?: number;
   inputPoint?: any;
   maxMasks?: number;
+  task: string;
 };
 
 let modelInstance: any = null;
