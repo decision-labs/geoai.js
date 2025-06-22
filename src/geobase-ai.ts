@@ -198,11 +198,11 @@ class Pipeline {
         params: InferenceParameters
       ): Promise<ObjectDetectionResults | SegmentationResults> {
         let currentInput: any = {
-          inferenceInputs: {
-            inputs: {},
-            post_processing_parameters: {},
-            map_source_parameters: {},
-          } as InferenceParameters,
+          // inferenceInputs: {
+          //   inputs: {},
+          //   post_processing_parameters: {},
+          //   map_source_parameters: {},
+          // } as InferenceParameters,
         };
         for (let i = 0; i < pipelines.length; i++) {
           const { instance, task } = pipelines[i];
