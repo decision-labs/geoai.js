@@ -128,7 +128,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
               zoomLevel: payload.zoomLevel
             }
           }),
-          "wetland-detection": (payload) => ({
+          "wetland-segmentation": (payload) => ({
             inputs: {
               polygon: payload.polygon
             },

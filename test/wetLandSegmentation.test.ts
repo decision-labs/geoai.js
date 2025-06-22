@@ -10,7 +10,7 @@ import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { WetLandSegmentation } from "../src/models/geoai_models";
 import { geoJsonToGist } from "./utils/saveToGist";
 
-describe("test model geobase/wetland-detection", () => {
+describe("test model geobase/wetland-segmentation", () => {
   let wetlandInstance: WetLandSegmentation;
 
   beforeAll(async () => {
