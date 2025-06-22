@@ -23,6 +23,7 @@
     "onnxruntime-web": "^1.22.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-github-btn": "^1.4.0",
     "react-syntax-highlighter": "^15.6.1"
   },
   "devDependencies": {

@@ -5,6 +5,7 @@ import maplibregl from "maplibre-gl";
 import { geobaseAi } from "geobase-ai";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import GitHubButton from 'react-github-btn'
 
 const GEOBASE_CONFIG = {
   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
@@ -119,6 +120,10 @@ export default function Home() {
               >
                 About
               </a>
+              {/* add github star button */}
+              <div className="flex items-center">
+                <GitHubButton href="https://github.com/decision-labs/geobase-ai.js" data-color-scheme="no-preference: light; light: light; dark: light;" data-size="large" data-show-count="true" aria-label="Star decision-labs/geobase-ai.js on GitHub">Star</GitHubButton>
+              </div>
             </nav>
           </div>
         </div>
@@ -147,7 +152,7 @@ export default function Home() {
             style={{ fontFamily: 'Permanent Marker, cursive', transform: 'rotate(-3deg)' }}
           >
             We're working on more models—stay tuned or{' '}
-            <a href="/newsletter" className="underline hover:text-yellow-700 font-bold text-blue-900">join our newsletter</a>!
+            <a href="https://mailchi.mp/ece911e44b4e/new-geoaijs-models" className="underline hover:text-yellow-700 font-bold text-blue-900" target="_blank" rel="noopener noreferrer">join our newsletter</a>!
           </div>
         </div>
 
