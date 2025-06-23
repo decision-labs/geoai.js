@@ -162,7 +162,7 @@ export class OrientedObjectDetection extends BaseModel {
       throw new Error("Data provider not initialized");
     }
 
-    const geoRawImage = await this.polygon_to_image(
+    const geoRawImage = await this.polygonToImage(
       polygon,
       map_source_parameters?.zoomLevel,
       map_source_parameters?.bands,

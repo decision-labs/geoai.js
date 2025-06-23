@@ -146,7 +146,7 @@ export class GenericSegmentation extends BaseModel {
 
     const geoRawImage: GeoRawImage = isChained
       ? (input as ObjectDetectionResults).geoRawImage
-      : await this.polygon_to_image(
+      : await this.polygonToImage(
           polygon,
           map_source_parameters?.zoomLevel,
           map_source_parameters?.bands,

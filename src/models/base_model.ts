@@ -74,7 +74,7 @@ export abstract class BaseModel {
    * @returns A Promise that resolves to a GeoRawImage corresponding to the input polygon.
    * @throws {Error} If the data provider is not initialized.
    */
-  protected async polygon_to_image(
+  protected async polygonToImage(
     polygon: GeoJSON.Feature,
     zoomLevel?: number,
     bands?: number[],

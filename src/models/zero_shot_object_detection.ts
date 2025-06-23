@@ -87,7 +87,7 @@ export class ZeroShotObjectDetection extends BaseModel {
       await this.initialize();
     }
 
-    const geoRawImage = await this.polygon_to_image(
+    const geoRawImage = await this.polygonToImage(
       polygon,
       map_source_parameters?.zoomLevel,
       map_source_parameters?.bands,
