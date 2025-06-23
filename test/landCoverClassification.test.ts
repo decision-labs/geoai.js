@@ -14,7 +14,7 @@ describe("test model geobase/land-cover-classification", () => {
   beforeAll(async () => {
     // Initialize instance for reuse across tests
     const result = await geobaseAi.pipeline(
-      "land-cover-classification",
+      [{ task: "land-cover-classification" }],
       geobaseParams
     );
     landCoverInstance = result.instance as LandCoverClassification;
@@ -22,7 +22,7 @@ describe("test model geobase/land-cover-classification", () => {
 
   it("should initialize a land cover classification pipeline", async () => {
     const result = await geobaseAi.pipeline(
-      "land-cover-classification",
+      [{ task: "land-cover-classification" }],
       geobaseParams
     );
 
@@ -33,11 +33,11 @@ describe("test model geobase/land-cover-classification", () => {
 
   it("should reuse the same instance for the same model", async () => {
     const result1 = await geobaseAi.pipeline(
-      "land-cover-classification",
+      [{ task: "land-cover-classification" }],
       geobaseParams
     );
     const result2 = await geobaseAi.pipeline(
-      "land-cover-classification",
+      [{ task: "land-cover-classification" }],
       geobaseParams
     );
 

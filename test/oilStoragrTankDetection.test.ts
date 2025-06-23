@@ -12,7 +12,7 @@ describe("test model geobase/oil-storage-tank-detection", () => {
   beforeAll(async () => {
     // Initialize instance for reuse across tests
     const result = await geobaseAi.pipeline(
-      "oil-storage-tank-detection",
+      [{ task: "oil-storage-tank-detection" }],
       mapboxParams
     );
     oilStorageInstance = result.instance as OilStorageTankDetection;
@@ -20,7 +20,7 @@ describe("test model geobase/oil-storage-tank-detection", () => {
 
   it("should initialize a oil-storage-tank detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
-      "oil-storage-tank-detection",
+      [{ task: "oil-storage-tank-detection" }],
       mapboxParams
     );
 
@@ -31,11 +31,11 @@ describe("test model geobase/oil-storage-tank-detection", () => {
 
   it("should reuse the same instance for the same model", async () => {
     const result1 = await geobaseAi.pipeline(
-      "oil-storage-tank-detection",
+      [{ task: "oil-storage-tank-detection" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "oil-storage-tank-detection",
+      [{ task: "oil-storage-tank-detection" }],
       mapboxParams
     );
 

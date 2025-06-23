@@ -13,18 +13,26 @@ describe("geobaseAi.objectDetection", () => {
   beforeAll(async () => {
     // Initialize instance for reuse across tests
     const result = await geobaseAi.pipeline(
-      "object-detection",
-      mapboxParams,
-      "geobase/WALDO30_yolov8m_640x640"
+      [
+        {
+          task: "object-detection",
+          modelId: "geobase/WALDO30_yolov8m_640x640",
+        },
+      ],
+      mapboxParams
     );
     objectDetectionInstance = result.instance as ObjectDetection;
   });
 
   it("should initialize a object detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
-      "object-detection",
-      mapboxParams,
-      "geobase/WALDO30_yolov8m_640x640"
+      [
+        {
+          task: "object-detection",
+          modelId: "geobase/WALDO30_yolov8m_640x640",
+        },
+      ],
+      mapboxParams
     );
 
     expect(result.instance).toBeInstanceOf(ObjectDetection);
@@ -34,14 +42,22 @@ describe("geobaseAi.objectDetection", () => {
 
   it("should reuse the same instance for the same model", async () => {
     const result1 = await geobaseAi.pipeline(
-      "object-detection",
-      mapboxParams,
-      "geobase/WALDO30_yolov8m_640x640"
+      [
+        {
+          task: "object-detection",
+          modelId: "geobase/WALDO30_yolov8m_640x640",
+        },
+      ],
+      mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "object-detection",
-      mapboxParams,
-      "geobase/WALDO30_yolov8m_640x640"
+      [
+        {
+          task: "object-detection",
+          modelId: "geobase/WALDO30_yolov8m_640x640",
+        },
+      ],
+      mapboxParams
     );
 
     expect(result1.instance).toBe(result2.instance);
@@ -49,8 +65,14 @@ describe("geobaseAi.objectDetection", () => {
   });
 
   it("should create new instances for different configurations", async () => {
-    const result1 = await geobaseAi.pipeline("object-detection", mapboxParams);
-    const result2 = await geobaseAi.pipeline("object-detection", geobaseParams);
+    const result1 = await geobaseAi.pipeline(
+      [{ task: "object-detection" }],
+      mapboxParams
+    );
+    const result2 = await geobaseAi.pipeline(
+      [{ task: "object-detection" }],
+      geobaseParams
+    );
     expect(result1.instance).not.toBe(result2.instance);
   });
 
@@ -66,10 +88,14 @@ describe("geobaseAi.objectDetection", () => {
     for (const options of invalidOptions) {
       await expect(
         geobaseAi.pipeline(
-          "object-detection",
-          mapboxParams,
-          "geobase/WALDO30_yolov8m_640x640",
-          options
+          [
+            {
+              task: "object-detection",
+              modelId: "geobase/WALDO30_yolov8m_640x640",
+              modelParams: options,
+            },
+          ],
+          mapboxParams
         )
       ).rejects.toThrow();
     }

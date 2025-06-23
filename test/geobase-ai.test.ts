@@ -37,10 +37,13 @@ describe("geobase-ai", () => {
 
 describe("Pipeline", () => {
   it("should create pipeline for valid task", async () => {
-    const pipeline = await geobaseAi.pipeline("zero-shot-object-detection", {
-      provider: "mapbox",
-      apiKey: "test",
-    } as ProviderParams);
+    const pipeline = await geobaseAi.pipeline(
+      [{ task: "zero-shot-object-detection" }],
+      {
+        provider: "mapbox",
+        apiKey: "test",
+      } as ProviderParams
+    );
 
     expect(pipeline).toBeDefined();
     expect("instance" in pipeline).toBe(true);

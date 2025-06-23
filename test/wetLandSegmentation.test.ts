@@ -16,7 +16,7 @@ describe("test model geobase/wetland-segmentation", () => {
   beforeAll(async () => {
     // Initialize instance for reuse across tests
     const result = await geobaseAi.pipeline(
-      "wetland-segmentation",
+      [{ task: "wetland-segmentation" }],
       geobaseParamsWetLand
     );
     wetlandInstance = result.instance as WetLandSegmentation;
@@ -24,7 +24,7 @@ describe("test model geobase/wetland-segmentation", () => {
 
   it("should initialize a wetland detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
-      "wetland-segmentation",
+      [{ task: "wetland-segmentation" }],
       mapboxParams
     );
 
@@ -35,11 +35,11 @@ describe("test model geobase/wetland-segmentation", () => {
 
   it("should reuse the same instance for the same model", async () => {
     const result1 = await geobaseAi.pipeline(
-      "wetland-segmentation",
+      [{ task: "wetland-segmentation" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "wetland-segmentation",
+      [{ task: "wetland-segmentation" }],
       mapboxParams
     );
 
@@ -48,11 +48,11 @@ describe("test model geobase/wetland-segmentation", () => {
 
   it("should create new instances for different configurations", async () => {
     const result1 = await geobaseAi.pipeline(
-      "wetland-segmentation",
+      [{ task: "wetland-segmentation" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "wetland-segmentation",
+      [{ task: "wetland-segmentation" }],
       geobaseParamsWetLand
     );
     expect(result1.instance).not.toBe(result2.instance);

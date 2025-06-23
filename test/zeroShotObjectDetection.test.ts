@@ -21,17 +21,25 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
   beforeAll(async () => {
     // Initialize instances for reuse across tests
     const owlvitResult = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "Xenova/owlvit-base-patch32",
+        },
+      ],
+      mapboxParams
     );
     owlvitInstance = owlvitResult.instance as ZeroShotObjectDetection;
 
     const groundingDinoResult = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "onnx-community/grounding-dino-tiny-ONNX",
-      { cache_dir: "./cache" }
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "onnx-community/grounding-dino-tiny-ONNX",
+          modelParams: { cache_dir: "./cache" },
+        },
+      ],
+      mapboxParams
     );
     groundingDinoInstance =
       groundingDinoResult.instance as ZeroShotObjectDetection;
@@ -39,9 +47,13 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
 
   it("should initialize a zero-shot object detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "Xenova/owlvit-base-patch32",
+        },
+      ],
+      mapboxParams
     );
 
     expect(result.instance).toBeInstanceOf(ZeroShotObjectDetection);
@@ -51,14 +63,22 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
 
   it("should reuse the same instance for the same model", async () => {
     const result1 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "Xenova/owlvit-base-patch32",
+        },
+      ],
+      mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "Xenova/owlvit-base-patch32",
+        },
+      ],
+      mapboxParams
     );
 
     expect(result1.instance).toBe(result2.instance);
@@ -67,14 +87,21 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
 
   it("should create new instances for different configurations", async () => {
     const result1 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
+      [{ task: "zero-shot-object-detection" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "onnx-community/grounding-dino-tiny-ONNX",
-      { model_file_name: "model_quantized", cache_dir: "./cache" }
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "onnx-community/grounding-dino-tiny-ONNX",
+          modelParams: {
+            model_file_name: "model_quantized",
+            cache_dir: "./cache",
+          },
+        },
+      ],
+      mapboxParams
     );
     expect(result1.instance.detector).not.toBe(result2.instance.detector);
     expect(result1.instance).not.toBe(result2.instance);
@@ -92,10 +119,14 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     for (const options of invalidOptions) {
       try {
         await geobaseAi.pipeline(
-          "zero-shot-object-detection",
-          mapboxParams,
-          "onnx-community/grounding-dino-tiny-ONNX",
-          options
+          [
+            {
+              task: "zero-shot-object-detection",
+              modelId: "onnx-community/grounding-dino-tiny-ONNX",
+              modelParams: options,
+            },
+          ],
+          mapboxParams
         );
       } catch (error) {
         expect(error).toBeInstanceOf(Error);

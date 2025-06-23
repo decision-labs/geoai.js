@@ -30,7 +30,10 @@ const geojsonCoordsFromBounds = (bounds: {
 describe("test model geobase/car-detection", () => {
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    const result = await geobaseAi.pipeline("car-detection", geobaseParamsCar);
+    const result = await geobaseAi.pipeline(
+      [{ task: "car-detection" }],
+      geobaseParamsCar
+    );
     carInstance = result.instance as CarDetection;
     const workingBounds = {
       north: 29.679105,
@@ -50,7 +53,10 @@ describe("test model geobase/car-detection", () => {
   });
 
   it("should initialize a car detection pipeline", async () => {
-    const result = await geobaseAi.pipeline("car-detection", mapboxParams);
+    const result = await geobaseAi.pipeline(
+      [{ task: "car-detection" }],
+      mapboxParams
+    );
 
     expect(result.instance).toBeInstanceOf(CarDetection);
     expect(result.instance).toBeDefined();
@@ -58,16 +64,28 @@ describe("test model geobase/car-detection", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline("car-detection", mapboxParams);
-    const result2 = await geobaseAi.pipeline("car-detection", mapboxParams);
+    const result1 = await geobaseAi.pipeline(
+      [{ task: "car-detection" }],
+      mapboxParams
+    );
+    const result2 = await geobaseAi.pipeline(
+      [{ task: "car-detection" }],
+      mapboxParams
+    );
 
     expect(result1.instance).toBe(result2.instance);
     expect(result1.instance.detector).toBe(result2.instance.detector);
   });
 
   it("should create new instances for different configurations", async () => {
-    const result1 = await geobaseAi.pipeline("car-detection", mapboxParams);
-    const result2 = await geobaseAi.pipeline("car-detection", geobaseParamsCar);
+    const result1 = await geobaseAi.pipeline(
+      [{ task: "car-detection" }],
+      mapboxParams
+    );
+    const result2 = await geobaseAi.pipeline(
+      [{ task: "car-detection" }],
+      geobaseParamsCar
+    );
     expect(result1.instance).not.toBe(result2.instance);
   });
 

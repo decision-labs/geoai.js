@@ -16,7 +16,7 @@ describe("test model solar pannel detection", () => {
   beforeAll(async () => {
     // Initialize instance for reuse across tests
     const result = await geobaseAi.pipeline(
-      "solar-panel-detection",
+      [{ task: "solar-panel-detection" }],
       mapboxParams
     );
     solarPanelInstance = result.instance as SolarPanelDetection;
@@ -24,7 +24,7 @@ describe("test model solar pannel detection", () => {
 
   it("should initialize a solar panel detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
-      "solar-panel-detection",
+      [{ task: "solar-panel-detection" }],
       mapboxParams
     );
 
@@ -35,11 +35,11 @@ describe("test model solar pannel detection", () => {
 
   it("should reuse the same instance for the same model", async () => {
     const result1 = await geobaseAi.pipeline(
-      "solar-panel-detection",
+      [{ task: "solar-panel-detection" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "solar-panel-detection",
+      [{ task: "solar-panel-detection" }],
       mapboxParams
     );
 
@@ -48,11 +48,11 @@ describe("test model solar pannel detection", () => {
 
   it("should create new instances for different configurations", async () => {
     const result1 = await geobaseAi.pipeline(
-      "solar-panel-detection",
+      [{ task: "solar-panel-detection" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "solar-panel-detection",
+      [{ task: "solar-panel-detection" }],
       geobaseParamsSolarPanel
     );
     expect(result1.instance).not.toBe(result2.instance);

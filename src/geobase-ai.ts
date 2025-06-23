@@ -119,35 +119,31 @@ class Pipeline {
   /**
    * Creates a pipeline for a single task or a chain of tasks
    * @param taskOrTasks Single task or list of tasks to chain
-   * @param params Provider parameters
-   * @param modelId Optional model ID for single task
-   * @param modelParams Optional model parameters for single task
+   * @param providerParams Provider parameters
    * @returns A function that takes inputs and returns the output of the last task in the chain
    */
   static async pipeline(
-    taskOrTasks:
-      | string
-      | {
-          task: string;
-          modelId?: string;
-          modelParams?: PretrainedOptions;
-        }[],
-    params: ProviderParams,
-    modelId?: string,
-    modelParams?: PretrainedOptions
+    taskOrTasks: {
+      task: string;
+      modelId?: string;
+      modelParams?: PretrainedOptions;
+    }[],
+    providerParams: ProviderParams
   ): Promise<PipelineInstance | ChainInstance> {
     // Handle single task case
-    if (typeof taskOrTasks === "string") {
-      const config = modelRegistry.find(model => model.task === taskOrTasks);
+    if (taskOrTasks.length === 1) {
+      const config = modelRegistry.find(
+        model => model.task === taskOrTasks[0].task
+      );
 
       if (!config) {
         throw new Error(`Model for task ${taskOrTasks} not found`);
       }
 
       const instance = await config.geobase_ai_pipeline(
-        params,
-        modelId,
-        modelParams || config.modelParams
+        providerParams,
+        taskOrTasks[0].modelId,
+        taskOrTasks[0].modelParams || config.modelParams
       );
       return instance as PipelineInstance;
     }
@@ -180,10 +176,14 @@ class Pipeline {
         throw new Error(`Task not found in tasksList`);
       }
       const pipeline = await Pipeline.pipeline(
-        taskObj.task,
-        params,
-        taskObj.modelId,
-        taskObj.modelParams
+        [
+          {
+            task: taskObj.task,
+            modelId: taskObj.modelId,
+            modelParams: taskObj.modelParams,
+          },
+        ],
+        providerParams
       );
       pipelines.push({
         instance: (pipeline as PipelineInstance).instance,

@@ -17,7 +17,7 @@ describe("test model building detection", () => {
   beforeAll(async () => {
     // Initialize instance for reuse across tests
     const result = await geobaseAi.pipeline(
-      "building-footprint-segmentation",
+      [{ task: "building-footprint-segmentation" }],
       geobaseParamsBuilding
     );
     buildingInstance = result.instance as BuildingFootPrintSegmentation;
@@ -25,7 +25,7 @@ describe("test model building detection", () => {
 
   it("should initialize a building  Footprint detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
-      "building-footprint-segmentation",
+      [{ task: "building-footprint-segmentation" }],
       mapboxParams
     );
 
@@ -36,11 +36,11 @@ describe("test model building detection", () => {
 
   it("should reuse the same instance for the same model", async () => {
     const result1 = await geobaseAi.pipeline(
-      "building-footprint-segmentation",
+      [{ task: "building-footprint-segmentation" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "building-footprint-segmentation",
+      [{ task: "building-footprint-segmentation" }],
       mapboxParams
     );
 
@@ -50,11 +50,11 @@ describe("test model building detection", () => {
 
   it("should create new instances for different configurations", async () => {
     const result1 = await geobaseAi.pipeline(
-      "building-footprint-segmentation",
+      [{ task: "building-footprint-segmentation" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "building-footprint-segmentation",
+      [{ task: "building-footprint-segmentation" }],
       geobaseParamsBuilding
     );
     expect(result1.instance).not.toBe(result2.instance);

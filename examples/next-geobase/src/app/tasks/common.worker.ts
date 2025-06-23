@@ -60,7 +60,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         }
         else {
           response = await geobaseAi.pipeline(
-            task!,
+            [{task}]!,
             { provider, ...config } as ProviderParams,
           );
           modelInstance = response.instance;

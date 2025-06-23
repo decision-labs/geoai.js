@@ -26,22 +26,26 @@ describe("geobaseAi.genericSegmentation", () => {
     try {
       // Initialize instances for reuse across tests
       const mapboxResult = await geobaseAi.pipeline(
-        "mask-generation",
+        [{ task: "mask-generation" }],
         mapboxParams
       );
       mapboxInstance = mapboxResult.instance as GenericSegmentation;
 
       const geobaseResult = await geobaseAi.pipeline(
-        "mask-generation",
+        [{ task: "mask-generation" }],
         geobaseParams
       );
       geobaseInstance = geobaseResult.instance as GenericSegmentation;
 
       const geobaseBuildingResult = await geobaseAi.pipeline(
-        "mask-generation",
-        geobaseParamsBuilding,
-        "Xenova/slimsam-77-uniform",
-        { revision: "boxes" }
+        [
+          {
+            task: "mask-generation",
+            modelId: "Xenova/slimsam-77-uniform",
+            modelParams: { revision: "boxes" },
+          },
+        ],
+        geobaseParamsBuilding
       );
       geobaseBuildingInstance =
         geobaseBuildingResult.instance as GenericSegmentation;
@@ -65,29 +69,45 @@ describe("geobaseAi.genericSegmentation", () => {
   });
 
   it("should initialize a segmentation pipeline", async () => {
-    const result = await geobaseAi.pipeline("mask-generation", mapboxParams);
+    const result = await geobaseAi.pipeline(
+      [{ task: "mask-generation" }],
+      mapboxParams
+    );
     expect(result.instance).toBeInstanceOf(GenericSegmentation);
     expect(result.instance).toBeDefined();
     expect(result.instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline("mask-generation", mapboxParams);
-    const result2 = await geobaseAi.pipeline("mask-generation", mapboxParams);
+    const result1 = await geobaseAi.pipeline(
+      [{ task: "mask-generation" }],
+      mapboxParams
+    );
+    const result2 = await geobaseAi.pipeline(
+      [{ task: "mask-generation" }],
+      mapboxParams
+    );
     expect(result1.instance).toBe(result2.instance);
     expect(result1.instance.model).toBe(result2.instance.model);
   });
 
   it("should create a new instance for different configurations of the model", async () => {
-    const result1 = await geobaseAi.pipeline("mask-generation", mapboxParams);
+    const result1 = await geobaseAi.pipeline(
+      [{ task: "mask-generation" }],
+      mapboxParams
+    );
     const result2 = await geobaseAi.pipeline(
-      "mask-generation",
-      mapboxParams,
-      "Xenova/slimsam-77-uniform",
-      {
-        revision: "boxes",
-        cache_dir: "./cache",
-      }
+      [
+        {
+          task: "mask-generation",
+          modelId: "Xenova/slimsam-77-uniform",
+          modelParams: {
+            revision: "boxes",
+            cache_dir: "./cache",
+          },
+        },
+      ],
+      mapboxParams
     );
     expect(result1.instance.model).not.toBe(result2.instance.model);
     expect(result1.instance).not.toBe(result2.instance);
@@ -105,10 +125,14 @@ describe("geobaseAi.genericSegmentation", () => {
     for (const options of invalidOptions) {
       try {
         await geobaseAi.pipeline(
-          "mask-generation",
-          mapboxParams,
-          "Xenova/slimsam-77-uniform",
-          options
+          [
+            {
+              task: "mask-generation",
+              modelId: "Xenova/slimsam-77-uniform",
+              modelParams: options,
+            },
+          ],
+          mapboxParams
         );
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
@@ -242,10 +266,14 @@ describe("boxes pipeline with thresholds parameter", () => {
   beforeAll(async () => {
     try {
       const { instance } = await geobaseAi.pipeline(
-        "mask-generation",
-        geobaseParamsBuilding,
-        "Xenova/slimsam-77-uniform",
-        { revision: "boxes" }
+        [
+          {
+            task: "mask-generation",
+            modelId: "Xenova/slimsam-77-uniform",
+            modelParams: { revision: "boxes" },
+          },
+        ],
+        geobaseParamsBuilding
       );
       boxesInstance = instance as GenericSegmentation;
     } catch (error) {

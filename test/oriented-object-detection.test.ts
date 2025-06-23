@@ -22,7 +22,7 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
   beforeAll(async () => {
     // Initialize instance for reuse across tests
     const result = await geobaseAi.pipeline(
-      "oriented-object-detection",
+      [{ task: "oriented-object-detection" }],
       mapboxParams
     );
     orientedObjectInstance = result.instance as OrientedObjectDetection;
@@ -30,7 +30,7 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
 
   it("should initialize a oriented object detection pipeline", async () => {
     const result = await geobaseAi.pipeline(
-      "oriented-object-detection",
+      [{ task: "oriented-object-detection" }],
       mapboxParams
     );
 
@@ -41,11 +41,11 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
 
   it("should reuse the same instance for the same model", async () => {
     const result1 = await geobaseAi.pipeline(
-      "oriented-object-detection",
+      [{ task: "oriented-object-detection" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "oriented-object-detection",
+      [{ task: "oriented-object-detection" }],
       mapboxParams
     );
 
@@ -54,11 +54,11 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
 
   it("should create new instances for different configurations", async () => {
     const result1 = await geobaseAi.pipeline(
-      "oriented-object-detection",
+      [{ task: "oriented-object-detection" }],
       mapboxParams
     );
     const result2 = await geobaseAi.pipeline(
-      "oriented-object-detection",
+      [{ task: "oriented-object-detection" }],
       geobaseParams
     );
     expect(result1.instance).not.toBe(result2.instance);
@@ -95,7 +95,7 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
 
   it("should process a polygon for oriented object detection for polygon for source geobase", async () => {
     const { instance } = await geobaseAi.pipeline(
-      "oriented-object-detection",
+      [{ task: "oriented-object-detection" }],
       geobaseParams
     );
 
