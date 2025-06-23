@@ -28,8 +28,6 @@ interface ChainInstance {
   inference: (
     inputs: InferenceParameters
   ) => Promise<ObjectDetectionResults | SegmentationResults>;
-  pipelines: { instance: ModelsInstances; task: string }[];
-  getTaskOrder: () => string[];
 }
 
 class Pipeline {
@@ -273,8 +271,6 @@ class Pipeline {
 
         return currentInput;
       },
-      pipelines,
-      getTaskOrder: () => validChain,
     };
   }
 

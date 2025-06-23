@@ -100,15 +100,6 @@ describe("Pipeline Chain", () => {
       } as ProviderParams
     );
     expect(chain).toBeDefined();
-    expect("pipelines" in chain).toBe(true);
-    if ("pipelines" in chain) {
-      expect(chain.pipelines[0].instance).toBeInstanceOf(
-        ZeroShotObjectDetection
-      );
-      expect(chain.pipelines[0].task).toBe("zero-shot-object-detection");
-      expect(chain.pipelines[1].instance).toBeInstanceOf(GenericSegmentation);
-      expect(chain.pipelines[1].task).toBe("mask-generation");
-    }
   });
 
   it("should throw error when chain configuration is empty", async () => {
