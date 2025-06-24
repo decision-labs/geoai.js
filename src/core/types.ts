@@ -76,14 +76,14 @@ export type onnxModel = ort.InferenceSession;
 
 export type ProviderParams = MapboxParams | SentinelParams | GeobaseParams;
 
-export type HuggingFaceModelTasks =
+export type HuggingFaceModelTask =
   | "mask-generation"
   | "zero-shot-object-detection"
   | "zero-shot-image-classification"
   | "object-detection"
   | "oriented-object-detection";
 
-export type GeobaseAiModelTasks =
+export type GeobaseAiModelTask =
   | "damage-assessment"
   | "vegetation-classification"
   | "land-cover-classification"
@@ -98,7 +98,7 @@ export type GeobaseAiModelTasks =
   | "oil-storage-tank-detection"
   | "building-footprint-segmentation";
 
-export type ModelsInstances =
+export type ModelsInstance =
   | GenericSegmentation
   | ZeroShotObjectDetection
   | ObjectDetection
@@ -113,7 +113,7 @@ export type ModelsInstances =
   | BuildingFootPrintSegmentation;
 
 export type ModelConfig = {
-  task: HuggingFaceModelTasks | GeobaseAiModelTasks;
+  task: HuggingFaceModelTask | GeobaseAiModelTask;
   library: string;
   description: string;
   geobase_ai_pipeline: (
@@ -121,7 +121,7 @@ export type ModelConfig = {
     modelId?: string,
     modelParams?: PretrainedOptions
   ) => Promise<{
-    instance: ModelsInstances;
+    instance: ModelsInstance;
   }>;
   chainableTasks?: string[];
   ioConfig?: {
