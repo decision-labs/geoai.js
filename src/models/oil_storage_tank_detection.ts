@@ -3,10 +3,9 @@ import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import * as ort from "onnxruntime-web";
 import { loadOnnxModel } from "./model_utils";
-import { InferenceParams } from "@/core/types";
+import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 const cv = require("@techstark/opencv-js");
 
 export class OilStorageTankDetection extends BaseModel {

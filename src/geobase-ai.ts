@@ -1,21 +1,14 @@
-// TODO models to incorporate
-// https://huggingface.co/models?other=zero-shot-object-detection&library=transformers.js
-// https://huggingface.co/models?pipeline_tag=zero-shot-image-classification&library=transformers.js
-
 import { PretrainedOptions } from "@huggingface/transformers";
 import {
   ModelConfig,
   ModelsInstance,
   ProviderParams,
   SegmentationResults,
-} from "./core/types";
-import { modelRegistry } from "./registry";
-// TODO: move ObjectDetectionResults to types.ts
-import {
   ObjectDetectionResults,
-  ZeroShotObjectDetection,
-} from "./models/zero_shot_object_detection";
-import { InferenceParams } from "./core/types";
+  InferenceParams,
+} from "@/core/types";
+import { modelRegistry } from "./registry";
+import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
 import { GenericSegmentation } from "./models/generic_segmentation";
 import { ObjectDetection } from "./models/object_detection";
 import { ErrorType, GeobaseError } from "./errors";

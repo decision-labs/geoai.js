@@ -1,9 +1,7 @@
 import { describe, expect, it, beforeAll } from "vitest";
-
-import * as ort from "onnxruntime-web";
-import { geobaseAi } from "../src/geobase-ai";
+import { geobaseAi } from "@/geobase-ai";
 import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
-import { ObjectDetectionResults } from "../src/models/zero_shot_object_detection";
+import { ObjectDetectionResults } from "@/core/types";
 import {
   NMSOptions,
   OrientedObjectDetection,

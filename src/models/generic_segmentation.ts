@@ -8,9 +8,8 @@ import { maskToGeoJSON, parametersChanged } from "@/utils/utils";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import { BaseModel } from "./base_model";
-import { InferenceParams } from "@/core/types";
+import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 export interface SegmentationInput {
   type: "points" | "boxes";

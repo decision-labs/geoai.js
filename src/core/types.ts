@@ -19,10 +19,7 @@ import { LandCoverClassification } from "@/models/land_cover_classification";
 import { ObjectDetection } from "@/models/object_detection";
 import { OilStorageTankDetection } from "@/models/oil_storage_tank_detection";
 import { OrientedObjectDetection } from "@/models/oriented_object_detection";
-import {
-  ObjectDetectionResults,
-  ZeroShotObjectDetection,
-} from "@/models/zero_shot_object_detection";
+import { ZeroShotObjectDetection } from "@/models/zero_shot_object_detection";
 import { BuildingFootPrintSegmentation } from "@/models/building_footprint_segmentation";
 // NOTE: Add new models here
 // ==============================
@@ -164,3 +161,8 @@ export type baseIOConfig = {
   };
   outputs: ObjectDetectionResults;
 };
+
+export interface ObjectDetectionResults {
+  detections: GeoJSON.FeatureCollection;
+  geoRawImage: GeoRawImage;
+}

@@ -1,7 +1,6 @@
 import { RawImage } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 
-import { ObjectDetectionResults } from "../models/zero_shot_object_detection";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
@@ -9,7 +8,7 @@ import * as ort from "onnxruntime-web";
 import { iouPoly } from "@/utils/gghl/polyiou";
 import { BaseModel } from "./base_model"; // <-- import BaseModel
 import { loadOnnxModel } from "./model_utils";
-import { InferenceParams } from "@/core/types";
+import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 interface ConvertPredParams {
   pred_bbox: number[][];

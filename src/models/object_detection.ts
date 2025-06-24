@@ -6,12 +6,11 @@ import {
   YolosForObjectDetection,
 } from "@huggingface/transformers";
 import { detectionsToGeoJSON, parametersChanged } from "@/utils/utils";
-import { ObjectDetectionResults } from "../models/zero_shot_object_detection";
 import { postProcessYoloOutput } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { BaseModel } from "./base_model";
-import { InferenceParams } from "@/core/types";
+import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 export class ObjectDetection extends BaseModel {
   protected static instance: ObjectDetection | null = null;

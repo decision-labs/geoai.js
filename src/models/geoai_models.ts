@@ -1,13 +1,11 @@
 import { getPolygonFromMask, parametersChanged } from "@/utils/utils";
-
-import { ObjectDetectionResults } from "../models/zero_shot_object_detection";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
 import { loadOnnxModel } from "./model_utils";
-import { InferenceParams } from "@/core/types";
+import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 /**
  * Base class for all geo-based detection models

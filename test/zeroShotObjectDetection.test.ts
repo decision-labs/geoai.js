@@ -1,17 +1,8 @@
 import { describe, expect, it, beforeAll } from "vitest";
-import { geobaseAi } from "../src/geobase-ai";
-import {
-  geobaseParamsBuilding,
-  mapboxParams,
-  polygon,
-  polygonBuilding,
-  quadrants,
-} from "./constants";
-import { GeoRawImage } from "../src/types/images/GeoRawImage";
-import {
-  ObjectDetectionResults,
-  ZeroShotObjectDetection,
-} from "../src/models/zero_shot_object_detection";
+import { geobaseAi } from "@/geobase-ai";
+import { mapboxParams, polygon, quadrants } from "./constants";
+import { GeoRawImage } from "@/types/images/GeoRawImage";
+import { ZeroShotObjectDetection } from "@/models/zero_shot_object_detection";
 import { geoJsonToGist } from "./utils/saveToGist";
 
 describe("geobaseAi.zeroShotObjectDetection", () => {

@@ -2,14 +2,8 @@ import { pipeline, RawImage } from "@huggingface/transformers";
 import { detectionsToGeoJSON, parametersChanged } from "@/utils/utils";
 import { BaseModel } from "./base_model";
 import { ProviderParams } from "@/geobase-ai";
-import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { InferenceParams } from "@/core/types";
-
-export interface ObjectDetectionResults {
-  detections: GeoJSON.FeatureCollection;
-  geoRawImage: GeoRawImage;
-}
+import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 export class ZeroShotObjectDetection extends BaseModel {
   protected static instance: ZeroShotObjectDetection | null = null;

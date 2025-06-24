@@ -2,8 +2,8 @@ import { describe, expect, it, beforeAll } from "vitest";
 import { geobaseAi } from "../src/geobase-ai";
 import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
 import { ObjectDetection } from "../src/models/object_detection";
-import { detectionsToGeoJSON } from "../src/utils/utils";
-import { ObjectDetectionResults } from "../src/models/zero_shot_object_detection";
+// import { detectionsToGeoJSON } from "../src/utils/utils";
+import { ObjectDetectionResults } from "@/core/types";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { geoJsonToGist } from "./utils/saveToGist";
 

@@ -5,11 +5,9 @@ import {
   ModelConfig,
   ProviderParams,
   zeroShotModelIOConfig,
-} from "./core/types";
-import {
   ObjectDetectionResults,
-  ZeroShotObjectDetection,
-} from "./models/zero_shot_object_detection";
+} from "@/core/types";
+import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
 import { GenericSegmentation } from "./models/generic_segmentation";
 import { ObjectDetection } from "./models/object_detection";
 import { OrientedObjectDetection } from "./models/oriented_object_detection";
