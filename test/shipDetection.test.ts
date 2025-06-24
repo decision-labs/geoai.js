@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from "vitest";
 
-import { geobaseAi } from "@/geobase-ai";
+import { geoai } from "@/geobase-ai";
 import { geobaseParamsShip, mapboxParams, polygonShip } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { ShipDetection } from "../src/models/geoai_models";
@@ -11,14 +11,14 @@ describe("test model geobase/ship-detection", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    shipInstance = await geobaseAi.pipeline(
+    shipInstance = await geoai.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
   });
 
   it("should initialize a ship detection pipeline", async () => {
-    const instance = await geobaseAi.pipeline(
+    const instance = await geoai.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
@@ -29,11 +29,11 @@ describe("test model geobase/ship-detection", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
@@ -42,11 +42,11 @@ describe("test model geobase/ship-detection", () => {
   });
 
   it("should create new instances for different configurations", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "ship-detection" }],
       geobaseParamsShip
     );

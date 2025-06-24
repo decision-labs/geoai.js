@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from "vitest";
 
-import { geobaseAi } from "@/geobase-ai";
+import { geoai } from "@/geobase-ai";
 import {
   geobaseParamsBuilding,
   mapboxParams,
@@ -16,14 +16,14 @@ describe("test model building detection", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    buildingInstance = await geobaseAi.pipeline(
+    buildingInstance = await geoai.pipeline(
       [{ task: "building-footprint-segmentation" }],
       geobaseParamsBuilding
     );
   });
 
   it("should initialize a building  Footprint detection pipeline", async () => {
-    const instance = await geobaseAi.pipeline(
+    const instance = await geoai.pipeline(
       [{ task: "building-footprint-segmentation" }],
       mapboxParams
     );
@@ -34,11 +34,11 @@ describe("test model building detection", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "building-footprint-segmentation" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "building-footprint-segmentation" }],
       mapboxParams
     );
@@ -47,11 +47,11 @@ describe("test model building detection", () => {
   });
 
   it("should create new instances for different configurations", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "building-footprint-segmentation" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "building-footprint-segmentation" }],
       geobaseParamsBuilding
     );

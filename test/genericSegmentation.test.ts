@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
-import { geobaseAi } from "@/geobase-ai";
+import { geoai } from "@/geobase-ai";
 import {
   GenericSegmentation,
   SegmentationInput,
@@ -17,7 +17,7 @@ import {
 } from "./constants";
 import { geoJsonToGist } from "./utils/saveToGist";
 
-describe("geobaseAi.genericSegmentation", () => {
+describe("geoai.genericSegmentation", () => {
   let mapboxInstance: GenericSegmentation | undefined;
   let geobaseInstance: GenericSegmentation | undefined;
   let geobaseBuildingInstance: GenericSegmentation | undefined;
@@ -25,17 +25,17 @@ describe("geobaseAi.genericSegmentation", () => {
   beforeAll(async () => {
     try {
       // Initialize instances for reuse across tests
-      mapboxInstance = await geobaseAi.pipeline(
+      mapboxInstance = await geoai.pipeline(
         [{ task: "mask-generation" }],
         mapboxParams
       );
 
-      geobaseInstance = await geobaseAi.pipeline(
+      geobaseInstance = await geoai.pipeline(
         [{ task: "mask-generation" }],
         geobaseParams
       );
 
-      geobaseBuildingInstance = await geobaseAi.pipeline(
+      geobaseBuildingInstance = await geoai.pipeline(
         [
           {
             task: "mask-generation",
@@ -65,7 +65,7 @@ describe("geobaseAi.genericSegmentation", () => {
   });
 
   it("should initialize a segmentation pipeline", async () => {
-    const instance = await geobaseAi.pipeline(
+    const instance = await geoai.pipeline(
       [{ task: "mask-generation" }],
       mapboxParams
     );
@@ -75,11 +75,11 @@ describe("geobaseAi.genericSegmentation", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "mask-generation" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "mask-generation" }],
       mapboxParams
     );
@@ -87,11 +87,11 @@ describe("geobaseAi.genericSegmentation", () => {
   });
 
   it("should create a new instance for different configurations of the model", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "mask-generation" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [
         {
           task: "mask-generation",
@@ -119,7 +119,7 @@ describe("geobaseAi.genericSegmentation", () => {
 
     for (const options of invalidOptions) {
       try {
-        await geobaseAi.pipeline(
+        await geoai.pipeline(
           [
             {
               task: "mask-generation",
@@ -260,7 +260,7 @@ describe("boxes pipeline with thresholds parameter", () => {
 
   beforeAll(async () => {
     try {
-      boxesInstance = await geobaseAi.pipeline(
+      boxesInstance = await geoai.pipeline(
         [
           {
             task: "mask-generation",

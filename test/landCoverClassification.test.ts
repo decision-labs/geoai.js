@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from "vitest";
 
-import { geobaseAi } from "@/geobase-ai";
+import { geoai } from "@/geobase-ai";
 import { geobaseParams, polygon } from "./constants";
 
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
@@ -13,14 +13,14 @@ describe("test model geobase/land-cover-classification", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    landCoverInstance = await geobaseAi.pipeline(
+    landCoverInstance = await geoai.pipeline(
       [{ task: "land-cover-classification" }],
       geobaseParams
     );
   });
 
   it("should initialize a land cover classification pipeline", async () => {
-    const instance = await geobaseAi.pipeline(
+    const instance = await geoai.pipeline(
       [{ task: "land-cover-classification" }],
       geobaseParams
     );
@@ -31,11 +31,11 @@ describe("test model geobase/land-cover-classification", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "land-cover-classification" }],
       geobaseParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "land-cover-classification" }],
       geobaseParams
     );

@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll } from "vitest";
-import { geobaseAi } from "@/geobase-ai";
+import { geoai } from "@/geobase-ai";
 import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
 import { ObjectDetection } from "../src/models/object_detection";
 // import { detectionsToGeoJSON } from "../src/utils/utils";
@@ -7,12 +7,12 @@ import { ObjectDetectionResults } from "@/core/types";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { geoJsonToGist } from "./utils/saveToGist";
 
-describe("geobaseAi.objectDetection", () => {
+describe("geoai.objectDetection", () => {
   let objectDetectionInstance: ObjectDetection;
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    objectDetectionInstance = await geobaseAi.pipeline(
+    objectDetectionInstance = await geoai.pipeline(
       [
         {
           task: "object-detection",
@@ -24,7 +24,7 @@ describe("geobaseAi.objectDetection", () => {
   });
 
   it("should initialize a object detection pipeline", async () => {
-    const instance = await geobaseAi.pipeline(
+    const instance = await geoai.pipeline(
       [
         {
           task: "object-detection",
@@ -40,7 +40,7 @@ describe("geobaseAi.objectDetection", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [
         {
           task: "object-detection",
@@ -49,7 +49,7 @@ describe("geobaseAi.objectDetection", () => {
       ],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [
         {
           task: "object-detection",
@@ -63,11 +63,11 @@ describe("geobaseAi.objectDetection", () => {
   });
 
   it("should create new instances for different configurations", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "object-detection" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "object-detection" }],
       geobaseParams
     );
@@ -85,7 +85,7 @@ describe("geobaseAi.objectDetection", () => {
 
     for (const options of invalidOptions) {
       await expect(
-        geobaseAi.pipeline(
+        geoai.pipeline(
           [
             {
               task: "object-detection",

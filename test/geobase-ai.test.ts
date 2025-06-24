@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { geobaseAi, ProviderParams } from "@/geobase-ai";
+import { geoai, ProviderParams } from "@/geobase-ai";
 import { ZeroShotObjectDetection } from "../src/models/zero_shot_object_detection";
 import { GenericSegmentation } from "../src/models/generic_segmentation";
 import { geobaseParamsBuilding, polygonBuilding } from "./constants";
@@ -8,18 +8,18 @@ import { InferenceParams } from "../src/core/types";
 
 describe("@geobase/geoai", () => {
   it("should be an object", () => {
-    expect(geobaseAi).toBeInstanceOf(Object);
+    expect(geoai).toBeInstanceOf(Object);
   });
 
   it("should have core API functions", () => {
-    expect(geobaseAi.tasks).toBeInstanceOf(Function);
-    expect(geobaseAi.models).toBeInstanceOf(Function);
-    expect(geobaseAi.pipeline).toBeInstanceOf(Function);
-    expect(geobaseAi.validateChain).toBeInstanceOf(Function);
+    expect(geoai.tasks).toBeInstanceOf(Function);
+    expect(geoai.models).toBeInstanceOf(Function);
+    expect(geoai.pipeline).toBeInstanceOf(Function);
+    expect(geoai.validateChain).toBeInstanceOf(Function);
   });
 
   it("should list tasks", () => {
-    const tasks = geobaseAi.tasks();
+    const tasks = geoai.tasks();
     expect(tasks).toContain("zero-shot-object-detection");
     expect(tasks).toContain("mask-generation");
     expect(tasks).toBeInstanceOf(Array);
@@ -27,7 +27,7 @@ describe("@geobase/geoai", () => {
   });
 
   it("should list models", () => {
-    const models = geobaseAi.models();
+    const models = geoai.models();
     expect(models.length).toBeGreaterThan(0);
     expect(models[0]).toHaveProperty("task");
     expect(models[0]).toHaveProperty("library");
@@ -37,7 +37,7 @@ describe("@geobase/geoai", () => {
 
 describe("Pipeline", () => {
   it("should create pipeline for valid task", async () => {
-    const pipeline = await geobaseAi.pipeline(
+    const pipeline = await geoai.pipeline(
       [{ task: "zero-shot-object-detection" }],
       {
         provider: "mapbox",
@@ -52,7 +52,7 @@ describe("Pipeline", () => {
 
   it("should throw error for invalid task", async () => {
     await expect(
-      geobaseAi.pipeline([{ task: "invalid-task" }], {
+      geoai.pipeline([{ task: "invalid-task" }], {
         provider: "mapbox",
         apiKey: "test",
       } as ProviderParams)
@@ -61,7 +61,7 @@ describe("Pipeline", () => {
 
   it("should throw error when missing required provider params", async () => {
     await expect(
-      geobaseAi.pipeline(
+      geoai.pipeline(
         [{ task: "zero-shot-object-detection" }],
         {} as ProviderParams
       )
@@ -70,7 +70,7 @@ describe("Pipeline", () => {
 
   it("should throw error when provider is invalid", async () => {
     await expect(
-      geobaseAi.pipeline([{ task: "zero-shot-object-detection" }], {
+      geoai.pipeline([{ task: "zero-shot-object-detection" }], {
         provider: "invalid-provider",
         apiKey: "test",
       } as unknown as ProviderParams)
@@ -80,7 +80,7 @@ describe("Pipeline", () => {
 
 describe("Pipeline Chain", () => {
   it("should list valid chains", () => {
-    const chains = geobaseAi.validateChain([
+    const chains = geoai.validateChain([
       "mask-generation",
       "zero-shot-object-detection",
     ]);
@@ -89,7 +89,7 @@ describe("Pipeline Chain", () => {
   });
 
   it("should create chain with multiple pipelines", async () => {
-    const chain = await geobaseAi.pipeline(
+    const chain = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -108,7 +108,7 @@ describe("Pipeline Chain", () => {
 
   it("should throw error when chain configuration is empty", async () => {
     await expect(
-      geobaseAi.pipeline([], {
+      geoai.pipeline([], {
         provider: "mapbox",
         apiKey: "test",
       } as ProviderParams)
@@ -117,7 +117,7 @@ describe("Pipeline Chain", () => {
 
   it("should throw error when any pipeline in chain is invalid", async () => {
     await expect(
-      geobaseAi.pipeline(
+      geoai.pipeline(
         [
           {
             task: "zero-shot-object-detection",
@@ -135,7 +135,7 @@ describe("Pipeline Chain", () => {
   });
 
   it("should return detection results for valid input chain", async () => {
-    const chain = await geobaseAi.pipeline(
+    const chain = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -184,7 +184,7 @@ describe("Pipeline Chain", () => {
   });
 
   it("should throw error when input is invalid", async () => {
-    const chain = await geobaseAi.pipeline(
+    const chain = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",

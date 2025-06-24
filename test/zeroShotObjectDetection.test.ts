@@ -1,17 +1,17 @@
 import { describe, expect, it, beforeAll } from "vitest";
-import { geobaseAi } from "@/geobase-ai";
+import { geoai } from "@/geobase-ai";
 import { mapboxParams, polygon, quadrants } from "./constants";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ZeroShotObjectDetection } from "@/models/zero_shot_object_detection";
 import { geoJsonToGist } from "./utils/saveToGist";
 
-describe("geobaseAi.zeroShotObjectDetection", () => {
+describe("geoai.zeroShotObjectDetection", () => {
   let owlvitInstance: ZeroShotObjectDetection;
   let groundingDinoInstance: ZeroShotObjectDetection;
 
   beforeAll(async () => {
     // Initialize instances for reuse across tests
-    owlvitInstance = await geobaseAi.pipeline(
+    owlvitInstance = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -21,7 +21,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       mapboxParams
     );
 
-    groundingDinoInstance = await geobaseAi.pipeline(
+    groundingDinoInstance = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -34,7 +34,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
   }, 50000);
 
   it("should initialize a zero-shot object detection pipeline", async () => {
-    const instance = await geobaseAi.pipeline(
+    const instance = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -50,7 +50,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -59,7 +59,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       ],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -74,11 +74,11 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
   });
 
   it("should create new instances for different configurations", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "zero-shot-object-detection" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -105,7 +105,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
 
     for (const options of invalidOptions) {
       try {
-        await geobaseAi.pipeline(
+        await geoai.pipeline(
           [
             {
               task: "zero-shot-object-detection",

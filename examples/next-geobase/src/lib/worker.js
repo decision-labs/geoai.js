@@ -1,10 +1,10 @@
-import { geobaseAi } from "@geobase/geoai";
+import { geoai } from "@geobase/geoai";
 console.log("inside worker");
 
 const instances = new Map();
 
 async function getPipelineInstance(task, config, model) {
-  const { instance } = await geobaseAi.pipeline(task, config, model);
+  const { instance } = await geoai.pipeline(task, config, model);
   return instance;
 }
 

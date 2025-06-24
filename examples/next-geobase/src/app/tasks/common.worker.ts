@@ -1,4 +1,4 @@
-import { geobaseAi, ProviderParams } from "@geobase/geoai";
+import { geoai, ProviderParams } from "@geobase/geoai";
 import { PretrainedOptions } from "@huggingface/transformers";
 
 // Worker message types
@@ -51,13 +51,13 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
         console.log("[Worker] Starting pipeline initialization");
         if (chain_config) {
-          modelInstance = await geobaseAi.pipeline(
+          modelInstance = await geoai.pipeline(
             chain_config as { task: string; modelId?: string; modelParams?: PretrainedOptions }[],
             { provider, ...config } as ProviderParams
           );
         }
         else {
-          modelInstance = await geobaseAi.pipeline(
+          modelInstance = await geoai.pipeline(
             [{task}]!,
             { provider, ...config } as ProviderParams,
           );

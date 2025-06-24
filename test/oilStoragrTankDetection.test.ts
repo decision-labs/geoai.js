@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from "vitest";
 
-import { geobaseAi } from "@/geobase-ai";
+import { geoai } from "@/geobase-ai";
 import { mapboxParams, polygonOilStorage } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { OilStorageTankDetection } from "../src/models/oil_storage_tank_detection";
@@ -11,14 +11,14 @@ describe("test model geobase/oil-storage-tank-detection", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    oilStorageInstance = await geobaseAi.pipeline(
+    oilStorageInstance = await geoai.pipeline(
       [{ task: "oil-storage-tank-detection" }],
       mapboxParams
     );
   });
 
   it("should initialize a oil-storage-tank detection pipeline", async () => {
-    const instance = await geobaseAi.pipeline(
+    const instance = await geoai.pipeline(
       [{ task: "oil-storage-tank-detection" }],
       mapboxParams
     );
@@ -29,11 +29,11 @@ describe("test model geobase/oil-storage-tank-detection", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "oil-storage-tank-detection" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "oil-storage-tank-detection" }],
       mapboxParams
     );

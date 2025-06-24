@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from "vitest";
 
-import { geobaseAi } from "@/geobase-ai";
+import { geoai } from "@/geobase-ai";
 import {
   geobaseParamsWetLand,
   mapboxParams,
@@ -15,14 +15,14 @@ describe("test model geobase/wetland-segmentation", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    wetlandInstance = await geobaseAi.pipeline(
+    wetlandInstance = await geoai.pipeline(
       [{ task: "wetland-segmentation" }],
       geobaseParamsWetLand
     );
   });
 
   it("should initialize a wetland detection pipeline", async () => {
-    const instance = await geobaseAi.pipeline(
+    const instance = await geoai.pipeline(
       [{ task: "wetland-segmentation" }],
       mapboxParams
     );
@@ -33,11 +33,11 @@ describe("test model geobase/wetland-segmentation", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "wetland-segmentation" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "wetland-segmentation" }],
       mapboxParams
     );
@@ -46,11 +46,11 @@ describe("test model geobase/wetland-segmentation", () => {
   });
 
   it("should create new instances for different configurations", async () => {
-    const instance1 = await geobaseAi.pipeline(
+    const instance1 = await geoai.pipeline(
       [{ task: "wetland-segmentation" }],
       mapboxParams
     );
-    const instance2 = await geobaseAi.pipeline(
+    const instance2 = await geoai.pipeline(
       [{ task: "wetland-segmentation" }],
       geobaseParamsWetLand
     );
