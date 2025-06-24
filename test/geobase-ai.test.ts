@@ -46,15 +46,13 @@ describe("Pipeline", () => {
     );
 
     expect(pipeline).toBeDefined();
-    expect("instance" in pipeline).toBe(true);
-    if ("instance" in pipeline) {
-      expect(pipeline.instance).toBeInstanceOf(ZeroShotObjectDetection);
-    }
+    expect("inference" in pipeline).toBe(true);
+    expect(pipeline).toBeInstanceOf(ZeroShotObjectDetection);
   });
 
   it("should throw error for invalid task", async () => {
     await expect(
-      geobaseAi.pipeline("invalid-task", {
+      geobaseAi.pipeline([{ task: "invalid-task" }], {
         provider: "mapbox",
         apiKey: "test",
       } as ProviderParams)
@@ -63,13 +61,16 @@ describe("Pipeline", () => {
 
   it("should throw error when missing required provider params", async () => {
     await expect(
-      geobaseAi.pipeline("zero-shot-object-detection", {} as ProviderParams)
+      geobaseAi.pipeline(
+        [{ task: "zero-shot-object-detection" }],
+        {} as ProviderParams
+      )
     ).rejects.toThrow();
   });
 
   it("should throw error when provider is invalid", async () => {
     await expect(
-      geobaseAi.pipeline("zero-shot-object-detection", {
+      geobaseAi.pipeline([{ task: "zero-shot-object-detection" }], {
         provider: "invalid-provider",
         apiKey: "test",
       } as unknown as ProviderParams)

@@ -12,7 +12,7 @@ describe("geobaseAi.objectDetection", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    const result = await geobaseAi.pipeline(
+    objectDetectionInstance = await geobaseAi.pipeline(
       [
         {
           task: "object-detection",
@@ -21,11 +21,10 @@ describe("geobaseAi.objectDetection", () => {
       ],
       mapboxParams
     );
-    objectDetectionInstance = result.instance as ObjectDetection;
   });
 
   it("should initialize a object detection pipeline", async () => {
-    const result = await geobaseAi.pipeline(
+    const instance = await geobaseAi.pipeline(
       [
         {
           task: "object-detection",
@@ -35,13 +34,13 @@ describe("geobaseAi.objectDetection", () => {
       mapboxParams
     );
 
-    expect(result.instance).toBeInstanceOf(ObjectDetection);
-    expect(result.instance).toBeDefined();
-    expect(result.instance).not.toBeNull();
+    expect(instance).toBeInstanceOf(ObjectDetection);
+    expect(instance).toBeDefined();
+    expect(instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [
         {
           task: "object-detection",
@@ -50,7 +49,7 @@ describe("geobaseAi.objectDetection", () => {
       ],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [
         {
           task: "object-detection",
@@ -60,20 +59,19 @@ describe("geobaseAi.objectDetection", () => {
       mapboxParams
     );
 
-    expect(result1.instance).toBe(result2.instance);
-    expect(result1.instance.detector).toBe(result2.instance.detector);
+    expect(instance1).toBe(instance2);
   });
 
   it("should create new instances for different configurations", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "object-detection" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "object-detection" }],
       geobaseParams
     );
-    expect(result1.instance).not.toBe(result2.instance);
+    expect(instance1).not.toBe(instance2);
   });
 
   it("should throw exception for invalid model parameters", async () => {

@@ -15,47 +15,46 @@ describe("test model solar pannel detection", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    const result = await geobaseAi.pipeline(
+    solarPanelInstance = await geobaseAi.pipeline(
       [{ task: "solar-panel-detection" }],
       mapboxParams
     );
-    solarPanelInstance = result.instance as SolarPanelDetection;
   });
 
   it("should initialize a solar panel detection pipeline", async () => {
-    const result = await geobaseAi.pipeline(
+    const instance = await geobaseAi.pipeline(
       [{ task: "solar-panel-detection" }],
       mapboxParams
     );
 
-    expect(result.instance).toBeInstanceOf(SolarPanelDetection);
-    expect(result.instance).toBeDefined();
-    expect(result.instance).not.toBeNull();
+    expect(instance).toBeInstanceOf(SolarPanelDetection);
+    expect(instance).toBeDefined();
+    expect(instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "solar-panel-detection" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "solar-panel-detection" }],
       mapboxParams
     );
 
-    expect(result1.instance).toBe(result2.instance);
+    expect(instance1).toBe(instance2);
   });
 
   it("should create new instances for different configurations", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "solar-panel-detection" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "solar-panel-detection" }],
       geobaseParamsSolarPanel
     );
-    expect(result1.instance).not.toBe(result2.instance);
+    expect(instance1).not.toBe(instance2);
   });
 
   it("should process a polygon for solar panel detection", async () => {

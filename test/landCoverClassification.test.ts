@@ -13,35 +13,34 @@ describe("test model geobase/land-cover-classification", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    const result = await geobaseAi.pipeline(
+    landCoverInstance = await geobaseAi.pipeline(
       [{ task: "land-cover-classification" }],
       geobaseParams
     );
-    landCoverInstance = result.instance as LandCoverClassification;
   });
 
   it("should initialize a land cover classification pipeline", async () => {
-    const result = await geobaseAi.pipeline(
+    const instance = await geobaseAi.pipeline(
       [{ task: "land-cover-classification" }],
       geobaseParams
     );
 
-    expect(result.instance).toBeInstanceOf(LandCoverClassification);
-    expect(result.instance).toBeDefined();
-    expect(result.instance).not.toBeNull();
+    expect(instance).toBeInstanceOf(LandCoverClassification);
+    expect(instance).toBeDefined();
+    expect(instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "land-cover-classification" }],
       geobaseParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "land-cover-classification" }],
       geobaseParams
     );
 
-    expect(result1.instance).toBe(result2.instance);
+    expect(instance1).toBe(instance2);
   });
 
   it("should process a polygon for land cover classification", async () => {

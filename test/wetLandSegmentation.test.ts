@@ -15,47 +15,46 @@ describe("test model geobase/wetland-segmentation", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    const result = await geobaseAi.pipeline(
+    wetlandInstance = await geobaseAi.pipeline(
       [{ task: "wetland-segmentation" }],
       geobaseParamsWetLand
     );
-    wetlandInstance = result.instance as WetLandSegmentation;
   });
 
   it("should initialize a wetland detection pipeline", async () => {
-    const result = await geobaseAi.pipeline(
+    const instance = await geobaseAi.pipeline(
       [{ task: "wetland-segmentation" }],
       mapboxParams
     );
 
-    expect(result.instance).toBeInstanceOf(WetLandSegmentation);
-    expect(result.instance).toBeDefined();
-    expect(result.instance).not.toBeNull();
+    expect(instance).toBeInstanceOf(WetLandSegmentation);
+    expect(instance).toBeDefined();
+    expect(instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "wetland-segmentation" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "wetland-segmentation" }],
       mapboxParams
     );
 
-    expect(result1.instance).toBe(result2.instance);
+    expect(instance1).toBe(instance2);
   });
 
   it("should create new instances for different configurations", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "wetland-segmentation" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "wetland-segmentation" }],
       geobaseParamsWetLand
     );
-    expect(result1.instance).not.toBe(result2.instance);
+    expect(instance1).not.toBe(instance2);
   });
 
   it("should process a polygon for wetland detection", async () => {

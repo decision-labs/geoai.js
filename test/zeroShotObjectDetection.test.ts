@@ -20,7 +20,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
 
   beforeAll(async () => {
     // Initialize instances for reuse across tests
-    const owlvitResult = await geobaseAi.pipeline(
+    owlvitInstance = await geobaseAi.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -29,9 +29,8 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       ],
       mapboxParams
     );
-    owlvitInstance = owlvitResult.instance as ZeroShotObjectDetection;
 
-    const groundingDinoResult = await geobaseAi.pipeline(
+    groundingDinoInstance = await geobaseAi.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -41,12 +40,10 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       ],
       mapboxParams
     );
-    groundingDinoInstance =
-      groundingDinoResult.instance as ZeroShotObjectDetection;
   }, 50000);
 
   it("should initialize a zero-shot object detection pipeline", async () => {
-    const result = await geobaseAi.pipeline(
+    const instance = await geobaseAi.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -56,13 +53,13 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       mapboxParams
     );
 
-    expect(result.instance).toBeInstanceOf(ZeroShotObjectDetection);
-    expect(result.instance.detector).toBeDefined();
-    expect(result.instance.detector).not.toBeNull();
+    expect(instance).toBeInstanceOf(ZeroShotObjectDetection);
+    expect(instance.inference).toBeDefined();
+    expect(instance.inference).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -71,7 +68,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       ],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -81,16 +78,16 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       mapboxParams
     );
 
-    expect(result1.instance).toBe(result2.instance);
-    expect(result1.instance.detector).toBe(result2.instance.detector);
+    expect(instance1).toBe(instance2);
+    expect(instance1.inference).toBe(instance2.inference);
   });
 
   it("should create new instances for different configurations", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "zero-shot-object-detection" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [
         {
           task: "zero-shot-object-detection",
@@ -103,8 +100,7 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
       ],
       mapboxParams
     );
-    expect(result1.instance.detector).not.toBe(result2.instance.detector);
-    expect(result1.instance).not.toBe(result2.instance);
+    expect(instance1).not.toBe(instance2.instance);
   });
 
   it("should throw exceptions for invalid model parameters", async () => {

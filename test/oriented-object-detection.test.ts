@@ -21,47 +21,46 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    const result = await geobaseAi.pipeline(
+    orientedObjectInstance = await geobaseAi.pipeline(
       [{ task: "oriented-object-detection" }],
       mapboxParams
     );
-    orientedObjectInstance = result.instance as OrientedObjectDetection;
   });
 
   it("should initialize a oriented object detection pipeline", async () => {
-    const result = await geobaseAi.pipeline(
+    const instance = await geobaseAi.pipeline(
       [{ task: "oriented-object-detection" }],
       mapboxParams
     );
 
-    expect(result.instance).toBeInstanceOf(OrientedObjectDetection);
-    expect(result.instance).toBeDefined();
-    expect(result.instance).not.toBeNull();
+    expect(instance).toBeInstanceOf(OrientedObjectDetection);
+    expect(instance).toBeDefined();
+    expect(instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "oriented-object-detection" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "oriented-object-detection" }],
       mapboxParams
     );
 
-    expect(result1.instance).toBe(result2.instance);
+    expect(instance1).toBe(instance2);
   });
 
   it("should create new instances for different configurations", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "oriented-object-detection" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "oriented-object-detection" }],
       geobaseParams
     );
-    expect(result1.instance).not.toBe(result2.instance);
+    expect(instance1).not.toBe(instance2);
   });
 
   it("should process a polygon for oriented object detection in each quadrant", async () => {
@@ -94,14 +93,12 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
   });
 
   it("should process a polygon for oriented object detection for polygon for source geobase", async () => {
-    const { instance } = await geobaseAi.pipeline(
+    const instance: OrientedObjectDetection = await geobaseAi.pipeline(
       [{ task: "oriented-object-detection" }],
       geobaseParams
     );
 
-    const results: ObjectDetectionResults = await (
-      instance as OrientedObjectDetection
-    ).inference({
+    const results: ObjectDetectionResults = await instance.inference({
       inputs: { polygon },
       post_processing_parameters: { ...options },
     });

@@ -25,19 +25,17 @@ describe("geobaseAi.genericSegmentation", () => {
   beforeAll(async () => {
     try {
       // Initialize instances for reuse across tests
-      const mapboxResult = await geobaseAi.pipeline(
+      mapboxInstance = await geobaseAi.pipeline(
         [{ task: "mask-generation" }],
         mapboxParams
       );
-      mapboxInstance = mapboxResult.instance as GenericSegmentation;
 
-      const geobaseResult = await geobaseAi.pipeline(
+      geobaseInstance = await geobaseAi.pipeline(
         [{ task: "mask-generation" }],
         geobaseParams
       );
-      geobaseInstance = geobaseResult.instance as GenericSegmentation;
 
-      const geobaseBuildingResult = await geobaseAi.pipeline(
+      geobaseBuildingInstance = await geobaseAi.pipeline(
         [
           {
             task: "mask-generation",
@@ -47,8 +45,6 @@ describe("geobaseAi.genericSegmentation", () => {
         ],
         geobaseParamsBuilding
       );
-      geobaseBuildingInstance =
-        geobaseBuildingResult.instance as GenericSegmentation;
     } catch (error) {
       console.error("Error initializing test instances:", error);
       throw error;
@@ -69,34 +65,33 @@ describe("geobaseAi.genericSegmentation", () => {
   });
 
   it("should initialize a segmentation pipeline", async () => {
-    const result = await geobaseAi.pipeline(
+    const instance = await geobaseAi.pipeline(
       [{ task: "mask-generation" }],
       mapboxParams
     );
-    expect(result.instance).toBeInstanceOf(GenericSegmentation);
-    expect(result.instance).toBeDefined();
-    expect(result.instance).not.toBeNull();
+    expect(instance).toBeInstanceOf(GenericSegmentation);
+    expect(instance).toBeDefined();
+    expect(instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "mask-generation" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "mask-generation" }],
       mapboxParams
     );
-    expect(result1.instance).toBe(result2.instance);
-    expect(result1.instance.model).toBe(result2.instance.model);
+    expect(instance1).toBe(instance2);
   });
 
   it("should create a new instance for different configurations of the model", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "mask-generation" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [
         {
           task: "mask-generation",
@@ -109,8 +104,8 @@ describe("geobaseAi.genericSegmentation", () => {
       ],
       mapboxParams
     );
-    expect(result1.instance.model).not.toBe(result2.instance.model);
-    expect(result1.instance).not.toBe(result2.instance);
+    expect(instance1.model).not.toBe(instance2.model);
+    expect(instance1).not.toBe(instance2);
   });
 
   it("should throw exception for invalid model parameters", async () => {
@@ -265,7 +260,7 @@ describe("boxes pipeline with thresholds parameter", () => {
 
   beforeAll(async () => {
     try {
-      const { instance } = await geobaseAi.pipeline(
+      boxesInstance = await geobaseAi.pipeline(
         [
           {
             task: "mask-generation",
@@ -275,7 +270,6 @@ describe("boxes pipeline with thresholds parameter", () => {
         ],
         geobaseParamsBuilding
       );
-      boxesInstance = instance as GenericSegmentation;
     } catch (error) {
       console.error("Error initializing boxes instance:", error);
       throw error;

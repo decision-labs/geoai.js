@@ -20,10 +20,6 @@ import { GenericSegmentation } from "./models/generic_segmentation";
 import { ObjectDetection } from "./models/object_detection";
 import { ErrorType, GeobaseError } from "./errors";
 
-interface PipelineInstance {
-  instance: ModelsInstances;
-}
-
 interface ChainInstance {
   inference: (
     inputs: InferenceParameters
@@ -129,7 +125,7 @@ class Pipeline {
       modelParams?: PretrainedOptions;
     }[],
     providerParams: ProviderParams
-  ): Promise<PipelineInstance | ChainInstance> {
+  ): Promise<ModelsInstances | ChainInstance> {
     // Handle single task case
     if (taskOrTasks.length === 1) {
       const config = modelRegistry.find(
@@ -145,7 +141,7 @@ class Pipeline {
         taskOrTasks[0].modelId,
         taskOrTasks[0].modelParams || config.modelParams
       );
-      return instance as PipelineInstance;
+      return instance?.instance as ModelsInstances;
     }
 
     // Handle task chain case
@@ -186,7 +182,7 @@ class Pipeline {
         providerParams
       );
       pipelines.push({
-        instance: (pipeline as PipelineInstance).instance,
+        instance: pipeline as ModelsInstances,
         task: taskObj.task,
       });
     }

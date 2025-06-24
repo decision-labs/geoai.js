@@ -50,20 +50,17 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         console.log("[Worker] Init payload:", { task, provider, modelId, config });
 
         console.log("[Worker] Starting pipeline initialization");
-        let response;
         if (chain_config) {
-          response = await geobaseAi.pipeline(
+          modelInstance = await geobaseAi.pipeline(
             chain_config as { task: string; modelId?: string; modelParams?: PretrainedOptions }[],
             { provider, ...config } as ProviderParams
           );
-          modelInstance = response;
         }
         else {
-          response = await geobaseAi.pipeline(
+          modelInstance = await geobaseAi.pipeline(
             [{task}]!,
             { provider, ...config } as ProviderParams,
           );
-          modelInstance = response.instance;
         }
 
         console.log("[Worker] Pipeline initialized successfully");

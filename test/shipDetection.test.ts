@@ -11,47 +11,46 @@ describe("test model geobase/ship-detection", () => {
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    const result = await geobaseAi.pipeline(
+    shipInstance = await geobaseAi.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
-    shipInstance = result.instance as ShipDetection;
   });
 
   it("should initialize a ship detection pipeline", async () => {
-    const result = await geobaseAi.pipeline(
+    const instance = await geobaseAi.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
 
-    expect(result.instance).toBeInstanceOf(ShipDetection);
-    expect(result.instance).toBeDefined();
-    expect(result.instance).not.toBeNull();
+    expect(instance).toBeInstanceOf(ShipDetection);
+    expect(instance).toBeDefined();
+    expect(instance).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
 
-    expect(result1.instance).toBe(result2.instance);
+    expect(instance1).toBe(instance2);
   });
 
   it("should create new instances for different configurations", async () => {
-    const result1 = await geobaseAi.pipeline(
+    const instance1 = await geobaseAi.pipeline(
       [{ task: "ship-detection" }],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
+    const instance2 = await geobaseAi.pipeline(
       [{ task: "ship-detection" }],
       geobaseParamsShip
     );
-    expect(result1.instance).not.toBe(result2.instance);
+    expect(instance1).not.toBe(instance2);
   });
 
   it("should process a polygon for ship detection", async () => {
