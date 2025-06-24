@@ -1,16 +1,16 @@
 {
-  "name": "geobase-ai",
+  "name": "@geobase/geoai",
   "private": true,
   "version": "0.0.4",
-  "module": "./dist/geobase-ai.js",
+  "module": "./dist/@geobase/geoai.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/geobase-ai.js",
+      "import": "./dist/@geobase/geoai.js",
       "types": "./dist/index.d.ts"
     },
     "./dist": {
-      "import": "./dist/geobase-ai.js"
+      "import": "./dist/@geobase/geoai.js"
     }
   },
   "types": "./dist/index.d.ts",

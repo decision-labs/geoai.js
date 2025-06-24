@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from "vitest";
 
-import { geobaseAi } from "../src/geobase-ai";
+import { geobaseAi } from "@geobase/geoai";
 import { mapboxParams, polygonOilStorage } from "./constants";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { OilStorageTankDetection } from "../src/models/oil_storage_tank_detection";

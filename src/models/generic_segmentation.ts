@@ -6,7 +6,7 @@ import {
 } from "@huggingface/transformers";
 import { maskToGeoJSON, parametersChanged } from "@/utils/utils";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { ProviderParams } from "@/geobase-ai";
+import { ProviderParams } from "@geobase/geoai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { BaseModel } from "./base_model";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";

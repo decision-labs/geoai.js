@@ -1,7 +1,7 @@
 import { pipeline, RawImage } from "@huggingface/transformers";
 import { detectionsToGeoJSON, parametersChanged } from "@/utils/utils";
 import { BaseModel } from "./base_model";
-import { ProviderParams } from "@/geobase-ai";
+import { ProviderParams } from "@geobase/geoai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import { geobaseAi } from "geobase-ai";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import GitHubButton from 'react-github-btn'

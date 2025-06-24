@@ -1,5 +1,4 @@
-import { geobaseAi } from "geobase-ai/geobase-ai";
-// const { geobaseAi } = require("geobase-ai");
+import { geobaseAi } from "@geobase/geoai";
 console.log("inside worker");
 
 const instances = new Map();

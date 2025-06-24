@@ -1,4 +1,4 @@
-import { geobaseAi, ProviderParams } from "geobase-ai";
+import { geobaseAi, ProviderParams } from "@geobase/geoai";
 import { PretrainedOptions } from "@huggingface/transformers";
 
 // Worker message types

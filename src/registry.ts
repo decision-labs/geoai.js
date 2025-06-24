@@ -25,7 +25,7 @@ import { BuildingFootPrintSegmentation } from "./models/building_footprint_segme
 export const modelRegistry: ModelConfig[] = [
   {
     task: "zero-shot-object-detection",
-    library: "transformers.js",
+    library: "@huggingface/transformers",
     description: "Zero-shot object detection model.",
     chainableTasks: ["mask-generation"],
     ioConfig: {} as zeroShotModelIOConfig,
@@ -41,7 +41,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "mask-generation",
-    library: "transformers.js",
+    library: "@huggingface/transformers",
     description: "Mask generation model.",
     ioConfig: {} as maskGenerationIOConfig,
     geobase_ai_pipeline: (
@@ -56,7 +56,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "object-detection",
-    library: "transformers.js",
+    library: "@huggingface/transformers",
     description: "Object Detection model.",
     chainableTasks: ["mask-generation"],
     ioConfig: {} as baseIOConfig,
@@ -72,7 +72,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "oriented-object-detection",
-    library: "transformers.js",
+    library: "@huggingface/transformers",
     description: "Oriented Object Detection model.",
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
@@ -87,7 +87,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "land-cover-classification",
-    library: "geobase-ai",
+    library: "@geobase/geoai",
     description: "Land Cover Classification model.",
     ioConfig: {} as {
       inputs: {
@@ -108,7 +108,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "solar-panel-detection",
-    library: "geobase-ai",
+    library: "@geobase/geoai",
     description: "Land Cover Classification model.",
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
@@ -123,7 +123,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "ship-detection",
-    library: "geobase-ai",
+    library: "@geobase/geoai",
     description: "Land Cover Classification model.",
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
@@ -138,7 +138,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "car-detection",
-    library: "geobase-ai",
+    library: "@geobase/geoai",
     description: "Land Cover Classification model.",
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
@@ -153,7 +153,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "wetland-segmentation",
-    library: "geobase-ai",
+    library: "@geobase/geoai",
     description: "Land Cover Classification model.",
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
@@ -168,7 +168,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "building-detection",
-    library: "geobase-ai",
+    library: "@geobase/geoai",
     description: "Land Cover Classification model.",
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
@@ -183,7 +183,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "oil-storage-tank-detection",
-    library: "geobase-ai",
+    library: "@geobase/geoai",
     description: "Oil Storage Tank Detection Model.",
     ioConfig: {} as {
       inputs: {
@@ -205,7 +205,7 @@ export const modelRegistry: ModelConfig[] = [
   },
   {
     task: "building-footprint-segmentation",
-    library: "geobase-ai",
+    library: "@geobase/geoai",
     description: "Building Footprint Segmentation Model.",
     ioConfig: {} as {
       inputs: {

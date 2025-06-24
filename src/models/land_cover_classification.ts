@@ -3,7 +3,7 @@ import { RawImage } from "@huggingface/transformers";
 import { parametersChanged, refineMasks } from "@/utils/utils";
 const cv = require("@techstark/opencv-js");
 
-import { ProviderParams } from "@/geobase-ai";
+import { ProviderParams } from "@geobase/geoai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { InferenceParams, onnxModel } from "@/core/types";

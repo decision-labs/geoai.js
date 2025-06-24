@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll } from "vitest";
-import { geobaseAi } from "../src/geobase-ai";
+import { geobaseAi } from "@geobase/geoai";
 import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
 import { ObjectDetection } from "../src/models/object_detection";
 // import { detectionsToGeoJSON } from "../src/utils/utils";

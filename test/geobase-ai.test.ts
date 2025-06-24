@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { geobaseAi, ProviderParams } from "../src/geobase-ai";
+import { geobaseAi, ProviderParams } from "@geobase/geoai";
 import { ZeroShotObjectDetection } from "../src/models/zero_shot_object_detection";
 import { GenericSegmentation } from "../src/models/generic_segmentation";
 import { geobaseParamsBuilding, polygonBuilding } from "./constants";
 import { geoJsonToGist } from "./utils/saveToGist";
 import { InferenceParams } from "../src/core/types";
 
-describe("geobase-ai", () => {
+describe("@geobase/geoai", () => {
   it("should be an object", () => {
     expect(geobaseAi).toBeInstanceOf(Object);
   });
