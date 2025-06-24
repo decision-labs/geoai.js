@@ -170,11 +170,11 @@ const mapProviderConfig = {
   provider: "geobase", projectRef, apikey, cogImagery
 };
 
-const { instance } = await geoai.pipeline(
+const pipeline = await geoai.pipeline(
   "object-detection", mapProviderConfig
 );
 
-const result = await instance.inference(polygon);`}
+const result = await pipeline.inference(polygon);`}
           </SyntaxHighlighter>
         </section>
 
