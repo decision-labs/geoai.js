@@ -1,5 +1,5 @@
 import { getPolygonFromMask, parametersChanged } from "@/utils/utils";
-import { ProviderParams } from "@geobase/geoai";
+import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";

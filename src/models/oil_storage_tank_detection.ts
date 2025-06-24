@@ -1,7 +1,7 @@
 import { BaseModel } from "@/models/base_model";
 import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
-import { ProviderParams } from "@geobase/geoai";
+import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import * as ort from "onnxruntime-web";
 import { loadOnnxModel } from "./model_utils";

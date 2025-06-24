@@ -7,7 +7,7 @@ import {
 } from "@huggingface/transformers";
 import { detectionsToGeoJSON, parametersChanged } from "@/utils/utils";
 import { postProcessYoloOutput } from "@/utils/utils";
-import { ProviderParams } from "@geobase/geoai";
+import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { BaseModel } from "./base_model";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
