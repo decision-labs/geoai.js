@@ -68,7 +68,7 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
       const results: ObjectDetectionResults =
         await orientedObjectInstance.inference({
           inputs: { polygon },
-          post_processing_parameters: { ...options },
+          postProcessingParams: { ...options },
         });
 
       // Validate GeoJSON structure
@@ -100,7 +100,7 @@ describe("test model geobase/gghl-oriented-object-detection", () => {
 
     const results: ObjectDetectionResults = await instance.inference({
       inputs: { polygon },
-      post_processing_parameters: { ...options },
+      postProcessingParams: { ...options },
     });
 
     // Validate GeoJSON structure

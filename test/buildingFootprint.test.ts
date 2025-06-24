@@ -9,7 +9,7 @@ import {
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
 import { geoJsonToGist } from "./utils/saveToGist";
 import { BuildingFootPrintSegmentation } from "../src/models/building_footprint_segmentation";
-import { InferenceParameters } from "../src/core/types";
+import { InferenceParams } from "../src/core/types";
 
 describe("test model building detection", () => {
   let buildingInstance: BuildingFootPrintSegmentation;
@@ -59,11 +59,11 @@ describe("test model building detection", () => {
   });
 
   it("should process a polygon for building Footprint detection", async () => {
-    const inferenceParams: InferenceParameters = {
+    const inferenceParams: InferenceParams = {
       inputs: {
         polygon: polygonBuilding,
       },
-      map_source_parameters: {
+      mapSourceParams: {
         zoomLevel: 17,
       },
     };

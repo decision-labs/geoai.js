@@ -3,7 +3,7 @@ import { Geobase } from "@/data_providers/geobase";
 import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { InferenceParameters } from "@/core/types";
+import { InferenceParams } from "@/core/types";
 
 export abstract class BaseModel {
   protected static instance: BaseModel | null = null;
@@ -97,5 +97,5 @@ export abstract class BaseModel {
   protected abstract initializeModel(): Promise<void>;
 
   // Abstract method for model-specific inference
-  public abstract inference(params: InferenceParameters): Promise<unknown>;
+  public abstract inference(params: InferenceParams): Promise<unknown>;
 }

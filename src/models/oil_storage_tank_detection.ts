@@ -6,7 +6,7 @@ import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import * as ort from "onnxruntime-web";
 import { loadOnnxModel } from "./model_utils";
-import { InferenceParameters } from "@/core/types";
+import { InferenceParams } from "@/core/types";
 const cv = require("@techstark/opencv-js");
 
 export class OilStorageTankDetection extends BaseModel {
@@ -111,16 +111,14 @@ export class OilStorageTankDetection extends BaseModel {
     };
   }
 
-  async inference(
-    params: InferenceParameters
-  ): Promise<ObjectDetectionResults> {
+  async inference(params: InferenceParams): Promise<ObjectDetectionResults> {
     const {
       inputs: { polygon },
-      post_processing_parameters: {
+      postProcessingParams: {
         confidenceThreshold = 0.5,
         nmsThreshold = 0.3,
       } = {},
-      map_source_parameters,
+      mapSourceParams,
     } = params;
 
     if (!polygon) {
@@ -140,9 +138,9 @@ export class OilStorageTankDetection extends BaseModel {
 
     const geoRawImage = await this.polygonToImage(
       polygon,
-      map_source_parameters?.zoomLevel,
-      map_source_parameters?.bands,
-      map_source_parameters?.expression
+      mapSourceParams?.zoomLevel,
+      mapSourceParams?.bands,
+      mapSourceParams?.expression
     );
 
     const inputs = await this.preProcessor(geoRawImage);

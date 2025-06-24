@@ -46,7 +46,7 @@ describe("test model geobase/oil-storage-tank-detection", () => {
       inputs: {
         polygon: polygonOilStorage,
       },
-      post_processing_parameters: {
+      postProcessingParams: {
         confidenceThreshold: 0.5,
         nmsThreshold: 0.3,
       },

@@ -95,7 +95,7 @@ describe("test model geobase/car-detection", () => {
       inputs: {
         polygon: copyPolygon,
       },
-      map_source_parameters: {
+      mapSourceParams: {
         zoomLevel: 20,
       },
     });
@@ -130,7 +130,7 @@ describe("test model geobase/car-detection", () => {
       inputs: {
         polygon: copyPolygon,
       },
-      map_source_parameters: {
+      mapSourceParams: {
         zoomLevel: 22,
       },
     });

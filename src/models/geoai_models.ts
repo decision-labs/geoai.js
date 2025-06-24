@@ -7,7 +7,7 @@ import { PretrainedOptions, RawImage } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
 import { loadOnnxModel } from "./model_utils";
-import { InferenceParameters } from "@/core/types";
+import { InferenceParams } from "@/core/types";
 
 /**
  * Base class for all geo-based detection models
@@ -127,12 +127,10 @@ abstract class BaseDetectionModel extends BaseModel {
     };
   }
 
-  async inference(
-    params: InferenceParameters
-  ): Promise<ObjectDetectionResults> {
+  async inference(params: InferenceParams): Promise<ObjectDetectionResults> {
     const {
       inputs: { polygon },
-      map_source_parameters,
+      mapSourceParams,
     } = params;
 
     if (!polygon) {
@@ -154,9 +152,9 @@ abstract class BaseDetectionModel extends BaseModel {
 
     const geoRawImage = await this.polygonToImage(
       polygon,
-      map_source_parameters?.zoomLevel,
-      map_source_parameters?.bands,
-      map_source_parameters?.expression,
+      mapSourceParams?.zoomLevel,
+      mapSourceParams?.bands,
+      mapSourceParams?.expression,
       true // models require square image
     );
 
@@ -364,12 +362,10 @@ export class WetLandSegmentation extends BaseModel {
     };
   }
 
-  async inference(
-    params: InferenceParameters
-  ): Promise<ObjectDetectionResults> {
+  async inference(params: InferenceParams): Promise<ObjectDetectionResults> {
     const {
       inputs: { polygon },
-      map_source_parameters,
+      mapSourceParams,
     } = params;
 
     if (!polygon) {
@@ -391,9 +387,9 @@ export class WetLandSegmentation extends BaseModel {
 
     const geoRawImage = await this.polygonToImage(
       polygon,
-      map_source_parameters?.zoomLevel,
-      map_source_parameters?.bands,
-      map_source_parameters?.expression
+      mapSourceParams?.zoomLevel,
+      mapSourceParams?.bands,
+      mapSourceParams?.expression
     );
 
     const inputs = await this.preProcessor(geoRawImage);

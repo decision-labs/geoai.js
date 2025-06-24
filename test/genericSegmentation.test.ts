@@ -299,7 +299,7 @@ describe("boxes pipeline with thresholds parameter", () => {
           polygon: polygonBuilding,
           input: boxInput,
         },
-        post_processing_parameters: {
+        postProcessingParams: {
           maxMasks: 2,
         },
       });
@@ -313,7 +313,7 @@ describe("boxes pipeline with thresholds parameter", () => {
           polygon: polygonBuilding,
           input: boxInput,
         },
-        post_processing_parameters: {
+        postProcessingParams: {
           maxMasks: 1,
         },
       });

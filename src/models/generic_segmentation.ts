@@ -10,7 +10,7 @@ import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { ObjectDetectionResults } from "./zero_shot_object_detection";
 import { BaseModel } from "./base_model";
-import { InferenceParameters } from "@/core/types";
+import { InferenceParams } from "@/core/types";
 
 export interface SegmentationInput {
   type: "points" | "boxes";
@@ -106,8 +106,8 @@ export class GenericSegmentation extends BaseModel {
    *
    * @param params - Inference parameters containing:
    *                - inputs: Object containing polygon and segmentation input
-   *                - post_processing_parameters: Optional parameters for post-processing
-   *                - map_source_parameters: Optional parameters for map source configuration
+   *                - postProcessingParams: Optional parameters for post-processing
+   *                - mapSourceParams: Optional parameters for map source configuration
    *
    * @returns Promise<SegmentationResult> containing:
    *          - masks: GeoJSON representation of the segmentation masks
@@ -118,11 +118,11 @@ export class GenericSegmentation extends BaseModel {
    * @throws {Error} If segmentation process fails
    * @throws {Error} If input type is not supported
    */
-  async inference(params: InferenceParameters): Promise<SegmentationResult> {
+  async inference(params: InferenceParams): Promise<SegmentationResult> {
     const {
       inputs: { polygon, input },
-      post_processing_parameters: { maxMasks = 1 } = {},
-      map_source_parameters,
+      postProcessingParams: { maxMasks = 1 } = {},
+      mapSourceParams,
     } = params;
 
     if (!polygon) {
@@ -148,9 +148,9 @@ export class GenericSegmentation extends BaseModel {
       ? (input as ObjectDetectionResults).geoRawImage
       : await this.polygonToImage(
           polygon,
-          map_source_parameters?.zoomLevel,
-          map_source_parameters?.bands,
-          map_source_parameters?.expression
+          mapSourceParams?.zoomLevel,
+          mapSourceParams?.bands,
+          mapSourceParams?.expression
         );
 
     const batch_input = isChained

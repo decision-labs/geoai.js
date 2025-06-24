@@ -4,7 +4,7 @@ import { BaseModel } from "./base_model";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { InferenceParameters } from "@/core/types";
+import { InferenceParams } from "@/core/types";
 
 export interface ObjectDetectionResults {
   detections: GeoJSON.FeatureCollection;
@@ -66,13 +66,11 @@ export class ZeroShotObjectDetection extends BaseModel {
    * @returns Promise resolving to object detection results containing GeoJSON features and raw image data
    * @throws Error if data provider is not initialized
    */
-  async inference(
-    params: InferenceParameters
-  ): Promise<ObjectDetectionResults> {
+  async inference(params: InferenceParams): Promise<ObjectDetectionResults> {
     const {
       inputs: { polygon, classLabel: text },
-      post_processing_parameters: { threshold = 0.2, topk = 4 } = {},
-      map_source_parameters,
+      postProcessingParams: { threshold = 0.2, topk = 4 } = {},
+      mapSourceParams,
     } = params;
 
     if (!polygon) {
@@ -89,9 +87,9 @@ export class ZeroShotObjectDetection extends BaseModel {
 
     const geoRawImage = await this.polygonToImage(
       polygon,
-      map_source_parameters?.zoomLevel,
-      map_source_parameters?.bands,
-      map_source_parameters?.expression
+      mapSourceParams?.zoomLevel,
+      mapSourceParams?.bands,
+      mapSourceParams?.expression
     );
 
     let outputs;

@@ -11,7 +11,7 @@ import { postProcessYoloOutput } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { PretrainedOptions } from "@huggingface/transformers";
 import { BaseModel } from "./base_model";
-import { InferenceParameters } from "@/core/types";
+import { InferenceParams } from "@/core/types";
 
 export class ObjectDetection extends BaseModel {
   protected static instance: ObjectDetection | null = null;
@@ -67,13 +67,11 @@ export class ObjectDetection extends BaseModel {
    * @returns Promise<ObjectDetectionResults> containing detected objects as GeoJSON features and the raw image used for detection
    * @throws {Error} If data provider, model or processor are not properly initialized
    */
-  async inference(
-    params: InferenceParameters
-  ): Promise<ObjectDetectionResults> {
+  async inference(params: InferenceParams): Promise<ObjectDetectionResults> {
     const {
       inputs: { polygon },
-      post_processing_parameters: { confidence = 0.9 } = {},
-      map_source_parameters,
+      postProcessingParams: { confidence = 0.9 } = {},
+      mapSourceParams,
     } = params;
 
     if (!polygon) {
@@ -90,9 +88,9 @@ export class ObjectDetection extends BaseModel {
 
     const geoRawImage = await this.polygonToImage(
       polygon,
-      map_source_parameters?.zoomLevel,
-      map_source_parameters?.bands,
-      map_source_parameters?.expression
+      mapSourceParams?.zoomLevel,
+      mapSourceParams?.bands,
+      mapSourceParams?.expression
     );
 
     let outputs;

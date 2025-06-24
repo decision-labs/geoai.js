@@ -51,20 +51,20 @@ export interface InferenceInputs {
   [key: string]: unknown;
 }
 
-export type PostProcessingParameters = {
+export type PostProcessingParams = {
   [key: string]: unknown;
 };
 
-export interface MapSourceParameters {
+export interface MapSourceParams {
   zoomLevel?: number;
   bands?: number[];
   expression?: string;
 }
 
-export interface InferenceParameters {
+export interface InferenceParams {
   inputs: InferenceInputs;
-  post_processing_parameters?: PostProcessingParameters;
-  map_source_parameters?: MapSourceParameters;
+  postProcessingParams?: PostProcessingParams;
+  map_source_parameters?: MapSourceParams;
 }
 
 export interface mapSourceConfig {

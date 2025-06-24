@@ -4,7 +4,7 @@ import { ZeroShotObjectDetection } from "../src/models/zero_shot_object_detectio
 import { GenericSegmentation } from "../src/models/generic_segmentation";
 import { geobaseParamsBuilding, polygonBuilding } from "./constants";
 import { geoJsonToGist } from "./utils/saveToGist";
-import { InferenceParameters } from "../src/core/types";
+import { InferenceParams } from "../src/core/types";
 
 describe("geobase-ai", () => {
   it("should be an object", () => {
@@ -155,7 +155,7 @@ describe("Pipeline Chain", () => {
       throw new Error("Chain result should have inference method");
     }
 
-    const chainInferenceInputs: InferenceParameters = {
+    const chainInferenceInputs: InferenceParams = {
       inputs: {
         polygon: polygonBuilding,
         classLabel: "house .",
@@ -204,7 +204,7 @@ describe("Pipeline Chain", () => {
       throw new Error("Chain result should have inference method");
     }
 
-    const chainInferenceInputs: InferenceParameters = {
+    const chainInferenceInputs: InferenceParams = {
       inputs: {
         polygon: null,
         classLabel: "house .",

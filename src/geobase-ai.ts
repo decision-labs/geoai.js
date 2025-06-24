@@ -15,14 +15,14 @@ import {
   ObjectDetectionResults,
   ZeroShotObjectDetection,
 } from "./models/zero_shot_object_detection";
-import { InferenceParameters } from "./core/types";
+import { InferenceParams } from "./core/types";
 import { GenericSegmentation } from "./models/generic_segmentation";
 import { ObjectDetection } from "./models/object_detection";
 import { ErrorType, GeobaseError } from "./errors";
 
 interface ChainInstance {
   inference: (
-    inputs: InferenceParameters
+    inputs: InferenceParams
   ) => Promise<ObjectDetectionResults | SegmentationResults>;
 }
 
@@ -189,14 +189,14 @@ class Pipeline {
 
     return {
       async inference(
-        params: InferenceParameters
+        params: InferenceParams
       ): Promise<ObjectDetectionResults | SegmentationResults> {
         let currentInput: any = {
           // inferenceInputs: {
           //   inputs: {},
-          //   post_processing_parameters: {},
-          //   map_source_parameters: {},
-          // } as InferenceParameters,
+          //   postProcessingParams: {},
+          //   mapSourceParams: {},
+          // } as InferenceParams,
         };
         for (let i = 0; i < pipelines.length; i++) {
           const { instance, task } = pipelines[i];
@@ -212,15 +212,14 @@ class Pipeline {
                   instance as ZeroShotObjectDetection
                 ).inference({
                   inputs: currentInput.inferenceInputs.inputs,
-                  post_processing_parameters: {
+                  postProcessingParams: {
                     threshold:
-                      currentInput.inferenceInputs.post_processing_parameters
+                      currentInput.inferenceInputs.postProcessingParams
                         ?.threshold,
-                    topk: currentInput.inferenceInputs
-                      .post_processing_parameters?.topk,
+                    topk: currentInput.inferenceInputs.postProcessingParams
+                      ?.topk,
                   },
-                  map_source_parameters:
-                    currentInput.inferenceInputs.map_source_parameters,
+                  mapSourceParams: currentInput.inferenceInputs.mapSourceParams,
                 });
                 break;
 
@@ -232,26 +231,24 @@ class Pipeline {
                     ...currentInput.inferenceInputs.inputs,
                     input: currentInput,
                   },
-                  post_processing_parameters: {
+                  postProcessingParams: {
                     maxMasks:
-                      currentInput.inferenceInputs.post_processing_parameters
+                      currentInput.inferenceInputs.postProcessingParams
                         ?.maxMasks,
                   },
-                  map_source_parameters:
-                    currentInput.inferenceInputs.map_source_parameters,
+                  mapSourceParams: currentInput.inferenceInputs.mapSourceParams,
                 });
                 break;
 
               case "object-detection":
                 currentInput = await (instance as ObjectDetection).inference({
                   inputs: currentInput.inferenceInputs.inputs,
-                  post_processing_parameters: {
+                  postProcessingParams: {
                     confidence:
-                      currentInput.inferenceInputs.post_processing_parameters
+                      currentInput.inferenceInputs.postProcessingParams
                         ?.confidence || 0.9,
                   },
-                  map_source_parameters:
-                    currentInput.inferenceInputs.map_source_parameters,
+                  mapSourceParams: currentInput.inferenceInputs.mapSourceParams,
                 });
                 break;
 

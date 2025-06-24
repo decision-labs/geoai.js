@@ -9,7 +9,7 @@ import * as ort from "onnxruntime-web";
 import { iouPoly } from "@/utils/gghl/polyiou";
 import { BaseModel } from "./base_model"; // <-- import BaseModel
 import { loadOnnxModel } from "./model_utils";
-import { InferenceParameters } from "@/core/types";
+import { InferenceParams } from "@/core/types";
 
 interface ConvertPredParams {
   pred_bbox: number[][];
@@ -136,13 +136,11 @@ export class OrientedObjectDetection extends BaseModel {
    * @returns {Promise<ObjectDetectionResults>} A promise that resolves to the detection results, including the detections array and raw image
    * @throws {Error} If the data provider or model is not properly initialized
    */
-  async inference(
-    params: InferenceParameters
-  ): Promise<ObjectDetectionResults> {
+  async inference(params: InferenceParams): Promise<ObjectDetectionResults> {
     const {
       inputs: { polygon },
-      post_processing_parameters,
-      map_source_parameters,
+      postProcessingParams,
+      mapSourceParams,
     } = params;
 
     if (!polygon) {
@@ -164,9 +162,9 @@ export class OrientedObjectDetection extends BaseModel {
 
     const geoRawImage = await this.polygonToImage(
       polygon,
-      map_source_parameters?.zoomLevel,
-      map_source_parameters?.bands,
-      map_source_parameters?.expression,
+      mapSourceParams?.zoomLevel,
+      mapSourceParams?.bands,
+      mapSourceParams?.expression,
       true
     );
 
@@ -185,7 +183,7 @@ export class OrientedObjectDetection extends BaseModel {
     outputs = await this.postProcessor(
       outputs,
       geoRawImage,
-      post_processing_parameters as NMSOptions
+      postProcessingParams as NMSOptions
     );
 
     return {

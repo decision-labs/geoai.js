@@ -6,7 +6,7 @@ const cv = require("@techstark/opencv-js");
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedOptions } from "@huggingface/transformers";
-import { InferenceParameters, onnxModel } from "@/core/types";
+import { InferenceParams, onnxModel } from "@/core/types";
 import { loadOnnxModel } from "./model_utils";
 import * as ort from "onnxruntime-web";
 
@@ -164,11 +164,11 @@ export class LandCoverClassification extends BaseModel {
     this.model = await loadOnnxModel(this.model_id);
   }
 
-  async inference(params: InferenceParameters): Promise<any> {
+  async inference(params: InferenceParams): Promise<any> {
     const {
       inputs: { polygon },
-      post_processing_parameters: { minArea = 20 } = {},
-      map_source_parameters,
+      postProcessingParams: { minArea = 20 } = {},
+      mapSourceParams,
     } = params;
 
     if (!polygon) {
@@ -188,9 +188,9 @@ export class LandCoverClassification extends BaseModel {
 
     const geoRawImage = await this.polygonToImage(
       polygon,
-      map_source_parameters?.zoomLevel,
-      map_source_parameters?.bands,
-      map_source_parameters?.expression,
+      mapSourceParams?.zoomLevel,
+      mapSourceParams?.bands,
+      mapSourceParams?.expression,
       true
     );
 

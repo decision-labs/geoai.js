@@ -87,11 +87,11 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
               polygon: payload.polygon,
               classLabel: payload.classLabel
             },
-            post_processing_parameters: {
+            postProcessingParams: {
               threshold: payload.confidenceScore,
               topk: payload.topk,
             },
-            map_source_parameters: {
+            mapSourceParams: {
               zoomLevel: payload.zoomLevel
             }
           }),
@@ -99,11 +99,11 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             inputs: {
               polygon: payload.polygon
             },
-            post_processing_parameters: {
+            postProcessingParams: {
               confidenceThreshold: payload.confidenceScore,
               nmsThreshold: payload.nmsThreshold,
             },
-            map_source_parameters: {
+            mapSourceParams: {
               zoomLevel: payload.zoomLevel
             }
           }),
@@ -111,10 +111,10 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             inputs: {
               polygon: payload.polygon
             },
-            post_processing_parameters: {
+            postProcessingParams: {
               minArea: payload.minArea,
             },
-            map_source_parameters: {
+            mapSourceParams: {
               zoomLevel: payload.zoomLevel
             }
           }),
@@ -122,7 +122,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             inputs: {
               polygon: payload.polygon
             },
-            map_source_parameters: {
+            mapSourceParams: {
               zoomLevel: payload.zoomLevel
             }
           }),
@@ -130,7 +130,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             inputs: {
               polygon: payload.polygon
             },
-            map_source_parameters: {
+            mapSourceParams: {
               zoomLevel: payload.zoomLevel
             }
           }),
@@ -138,10 +138,10 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             inputs: {
               polygon: payload.polygon
             },
-            post_processing_parameters: {
+            postProcessingParams: {
               confidence: payload.confidenceScore
             },
-            map_source_parameters: {
+            mapSourceParams: {
               zoomLevel: payload.zoomLevel
             }
           }),
@@ -149,11 +149,11 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             inputs: {
               polygon: payload.polygon
             },
-            post_processing_parameters: {
+            postProcessingParams: {
               confidenceThreshold: payload.confidenceScore,
               minArea: payload.minArea
             },
-            map_source_parameters: {
+            mapSourceParams: {
               zoomLevel: payload.zoomLevel
             }
           }),
@@ -162,10 +162,10 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
               polygon: payload.polygon,
               input: payload.inputPoint
             },
-            post_processing_parameters: {
+            postProcessingParams: {
               maxMasks: payload.maxMasks
             },
-            map_source_parameters: {
+            mapSourceParams: {
               zoomLevel: payload.zoomLevel
             }
           })
@@ -178,12 +178,12 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
             classLabel: payload.classLabel,
             input: payload.inputPoint
           },
-          post_processing_parameters: {
+          postProcessingParams: {
             confidence: payload.confidenceScore,
             topk: payload.topk,
             minArea: payload.minArea,
           },
-          map_source_parameters: {
+          mapSourceParams: {
             zoomLevel: payload.zoomLevel
           }
         });
