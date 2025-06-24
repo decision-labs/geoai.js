@@ -95,7 +95,7 @@ export type GeobaseAiModelTask =
   | "oil-storage-tank-detection"
   | "building-footprint-segmentation";
 
-export type ModelsInstance =
+export type ModelInstance =
   | GenericSegmentation
   | ZeroShotObjectDetection
   | ObjectDetection
@@ -118,7 +118,7 @@ export type ModelConfig = {
     modelId?: string,
     modelParams?: PretrainedOptions
   ) => Promise<{
-    instance: ModelsInstance;
+    instance: ModelInstance;
   }>;
   chainableTasks?: string[];
   ioConfig?: {

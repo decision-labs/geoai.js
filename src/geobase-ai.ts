@@ -1,7 +1,7 @@
 import { PretrainedOptions } from "@huggingface/transformers";
 import {
   ModelConfig,
-  ModelsInstance,
+  ModelInstance,
   ProviderParams,
   SegmentationResults,
   ObjectDetectionResults,
@@ -118,7 +118,7 @@ class Pipeline {
       modelParams?: PretrainedOptions;
     }[],
     providerParams: ProviderParams
-  ): Promise<ModelsInstance | ChainInstance> {
+  ): Promise<ModelInstance | ChainInstance> {
     // Handle single task case
     if (taskOrTasks.length === 1) {
       const config = modelRegistry.find(
@@ -134,7 +134,7 @@ class Pipeline {
         taskOrTasks[0].modelId,
         taskOrTasks[0].modelParams || config.modelParams
       );
-      return instance?.instance as ModelsInstance;
+      return instance?.instance as ModelInstance;
     }
 
     // Handle task chain case
@@ -158,7 +158,7 @@ class Pipeline {
       taskOrTasks.find(taskObj => taskObj.task === task)
     );
 
-    const pipelines: { instance: ModelsInstance; task: string }[] = [];
+    const pipelines: { instance: ModelInstance; task: string }[] = [];
 
     for (const taskObj of validTaskList) {
       if (!taskObj) {
@@ -175,7 +175,7 @@ class Pipeline {
         providerParams
       );
       pipelines.push({
-        instance: pipeline as ModelsInstance,
+        instance: pipeline as ModelInstance,
         task: taskObj.task,
       });
     }
