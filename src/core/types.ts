@@ -64,7 +64,7 @@ export interface MapSourceParams {
 export interface InferenceParams {
   inputs: InferenceInputs;
   postProcessingParams?: PostProcessingParams;
-  map_source_parameters?: MapSourceParams;
+  mapSourceParams?: MapSourceParams;
 }
 
 export interface mapSourceConfig {
