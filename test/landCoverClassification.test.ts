@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from "vitest";
 
-import { geobaseAi } from "@geobase/geoai";
+import { geobaseAi } from "@/geobase-ai";
 import { geobaseParams, polygon } from "./constants";
 
 import { GeoRawImage } from "../src/types/images/GeoRawImage";

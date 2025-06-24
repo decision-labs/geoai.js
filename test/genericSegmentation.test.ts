@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
-import { geobaseAi } from "@geobase/geoai";
+import { geobaseAi } from "@/geobase-ai";
 import {
   GenericSegmentation,
   SegmentationInput,

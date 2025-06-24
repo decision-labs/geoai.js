@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { geobaseAi, ProviderParams } from "@geobase/geoai";
+import { geobaseAi, ProviderParams } from "@/geobase-ai";
 import { ZeroShotObjectDetection } from "../src/models/zero_shot_object_detection";
 import { GenericSegmentation } from "../src/models/generic_segmentation";
 import { geobaseParamsBuilding, polygonBuilding } from "./constants";
