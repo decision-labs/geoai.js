@@ -171,7 +171,7 @@ const mapProviderConfig = {
 };
 
 const pipeline = await geoai.pipeline(
-  "object-detection", mapProviderConfig
+  [{ task : "object-detection"}], mapProviderConfig
 );
 
 const result = await pipeline.inference(polygon);`}
