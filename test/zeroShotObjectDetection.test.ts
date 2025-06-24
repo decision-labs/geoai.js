@@ -5,28 +5,16 @@ import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ZeroShotObjectDetection } from "@/models/zero_shot_object_detection";
 import { geoJsonToGist } from "./utils/saveToGist";
 
-describe("geoai.zeroShotObjectDetection", () => {
+describe("geoai.zeroShotObjectDetection - OWL-ViT", () => {
   let owlvitInstance: ZeroShotObjectDetection;
-  let groundingDinoInstance: ZeroShotObjectDetection;
 
   beforeAll(async () => {
-    // Initialize instances for reuse across tests
+    // Initialize OWL-ViT instance for reuse across tests
     owlvitInstance = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
           modelId: "Xenova/owlvit-base-patch32",
-        },
-      ],
-      mapboxParams
-    );
-
-    groundingDinoInstance = await geoai.pipeline(
-      [
-        {
-          task: "zero-shot-object-detection",
-          modelId: "onnx-community/grounding-dino-tiny-ONNX",
-          modelParams: { cache_dir: "./cache" },
         },
       ],
       mapboxParams
@@ -124,40 +112,10 @@ describe("geoai.zeroShotObjectDetection", () => {
     }
   });
 
-  it("should process polygons and detect objects with Grounding DINO", async () => {
-    const text = ["tree."];
-
-    for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const results = await groundingDinoInstance.inference({
-        inputs: { polygon, classLabel: text },
-      });
-      const result = Array.isArray(results) ? results[0] : results;
-
-      // Validate GeoJSON structure
-      expect(result.detections).toBeDefined();
-      expect(result.detections.type).toBe("FeatureCollection");
-      expect(Array.isArray(result.detections.features)).toBe(true);
-
-      // Validate image data
-      expect(result.geoRawImage).toBeInstanceOf(GeoRawImage);
-      expect(result.geoRawImage.data).toBeDefined();
-      expect(result.geoRawImage.width).toBeGreaterThan(0);
-      expect(result.geoRawImage.height).toBeGreaterThan(0);
-
-      // Save output to gist
-      await geoJsonToGist({
-        content: result.detections,
-        fileName: "zeroShotODGroundingDino.geojson",
-        description:
-          "result zeroShotObjectDetection - should process polygons and detect objects with Grounding DINO",
-      });
-    }
-  });
-
   it("should process polygons and detect multiple object types with OWL-ViT", async () => {
     const text = ["tree", "car", "vehicle", "building", "road", "person"];
 
-    for (const [quadrant, polygon] of Object.entries(quadrants)) {
+    for (const [, polygon] of Object.entries(quadrants)) {
       const results = await owlvitInstance.inference({
         inputs: { polygon, classLabel: text },
       });
@@ -209,5 +167,53 @@ describe("geoai.zeroShotObjectDetection", () => {
       description:
         "result zeroShotObjectDetection - should process geobase source polygons with OWL-ViT",
     });
+  });
+});
+
+describe("geoai.zeroShotObjectDetection - Grounding DINO", () => {
+  let groundingDinoInstance: ZeroShotObjectDetection;
+
+  beforeAll(async () => {
+    // Initialize Grounding DINO instance for reuse across tests
+    groundingDinoInstance = await geoai.pipeline(
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "onnx-community/grounding-dino-tiny-ONNX",
+          modelParams: { cache_dir: "./cache" },
+        },
+      ],
+      mapboxParams
+    );
+  }, 50000);
+
+  it("should process polygons and detect objects with Grounding DINO", async () => {
+    const text = ["tree."];
+
+    for (const [, polygon] of Object.entries(quadrants)) {
+      const results = await groundingDinoInstance.inference({
+        inputs: { polygon, classLabel: text },
+      });
+      const result = Array.isArray(results) ? results[0] : results;
+
+      // Validate GeoJSON structure
+      expect(result.detections).toBeDefined();
+      expect(result.detections.type).toBe("FeatureCollection");
+      expect(Array.isArray(result.detections.features)).toBe(true);
+
+      // Validate image data
+      expect(result.geoRawImage).toBeInstanceOf(GeoRawImage);
+      expect(result.geoRawImage.data).toBeDefined();
+      expect(result.geoRawImage.width).toBeGreaterThan(0);
+      expect(result.geoRawImage.height).toBeGreaterThan(0);
+
+      // Save output to gist
+      await geoJsonToGist({
+        content: result.detections,
+        fileName: "zeroShotODGroundingDino.geojson",
+        description:
+          "result zeroShotObjectDetection - should process polygons and detect objects with Grounding DINO",
+      });
+    }
   });
 });
