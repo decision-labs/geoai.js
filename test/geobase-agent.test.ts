@@ -40,7 +40,7 @@ describe("queryAgent", () => {
       },
       {
         query: "Can you show me the industrial areas on this map?",
-        expected: "land-cover-classification",
+        expected: "building-detection",
       },
       {
         query: "identify the wind turbines in this region.",
@@ -57,7 +57,7 @@ describe("queryAgent", () => {
       },
       {
         query: "Identify buildings in this industrial zone.",
-        expected: "object-detection",
+        expected: "building-detection",
       },
       // zero-shot-object-detection
       {
@@ -151,13 +151,19 @@ describe("queryAgent", () => {
     ];
 
     for (const { query, expected } of testCases) {
-      // Run your agent or task selection logic here
       const result = await queryAgent(query, mapboxParams);
-      // For demonstration, we'll just print expected vs returned
-      // Replace the next line with your actual call and result extraction
-      const returned = result.task; // Replace with actual result
+      const returned = result.task;
+      // ANSI color codes
+      const green = "\x1b[32m";
+      const red = "\x1b[31m";
+      const yellow = "\x1b[33m";
+      const reset = "\x1b[0m";
+      const match = returned === expected;
       console.log(
-        `Query: ${query}\nExpected: ${expected}\nReturned: ${returned}\n---`
+        `${yellow}Query:${reset} ${query}\n` +
+          `${green}Expected:${reset} ${expected}\n` +
+          `${match ? green : red}Returned:${reset} ${returned}\n` +
+          `${match ? green + "✔ Match" : red + "✘ Mismatch"}${reset}\n---`
       );
     }
   });
