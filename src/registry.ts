@@ -55,7 +55,6 @@ export const modelRegistry: ModelConfig[] = [
     examples: [
       "Segment all forests in this region.",
       "Identify all lakes in this satellite image.",
-      "Find large solar farms in this desert area.",
       "Detect all agricultural fields in this farmland.",
       "Locate urban parks in this cityscape.",
     ],
