@@ -10,6 +10,7 @@ const tasks = [
   "zero-shot-object-detection:onnx-community/grounding-dino-tiny-ONNX",
   "zero-shot-object-detection:Xenova/owlvit-base-patch32",
   "mask-generation:Xenova/slimsam-77-uniform",
+  "land-cover-classification:https://huggingface.co/geobase/sparsemask/resolve/main/onnx/sparsemask_model.onnx",
   "solar-panel-detection",
   "ship-detection",
   "car-detection",
@@ -31,6 +32,9 @@ const model_descriptions = [
 
   // mask-generation
   "mask-generation:Xenova/slimsam-77-uniform - useful when user wants to find things that are best represented as contiguous areas like roads, farms, car-parks, lakes, arrays of solar panels or even mountain ranges. Not useful for finding individual items. Example queries: 'Segment all forests in this region.', 'Identify all lakes in this satellite image.', 'Find large solar farms in this desert area.', 'Detect all agricultural fields in this farmland.', 'Locate urban parks in this cityscape.'",
+
+  // land-cover-classification
+  "land-cover-classification:https://huggingface.co/geobase/sparsemask/resolve/main/onnx/sparsemask_model.onnx - Classifies land cover types in a given region. Useful for mapping vegetation, urban areas, water, and other land use categories. Example queries: 'Categorize this area by land use.', 'What are the green areas on this map?', 'Find residential and commercial zones.', 'Identify agricultural fields and forests.'",
 
   // solar-panel-detection
   "solar-panel-detection:https://huggingface.co/geobase/geoai_models/resolve/main/solarPanelDetection_quantized.onnx - Detects and locates solar panels in satellite or aerial imagery. Useful for identifying solar farms, rooftop solar installations, or tracking renewable energy infrastructure. Example queries: 'Find all solar panels in this industrial area.', 'Locate solar farms in this desert region.', 'Identify rooftop solar installations in this city.'",
