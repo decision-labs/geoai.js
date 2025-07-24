@@ -53,13 +53,23 @@ const model_descriptions = [
   // building-footprint-segmentation
   "building-footprint-segmentation:https://huggingface.co/geobase/building_footprint_segmentation/resolve/main/model.onnx - Segments the precise outlines (footprints) of buildings in imagery. Useful for mapping, urban planning, or disaster assessment. Example queries: 'Segment building footprints in this city block.', 'Identify the outlines of all buildings in this image.', 'Find building perimeters in this urban area.'",
 ];
-// const model_id = 'jinaai/jina-reranker-v1-tiny-en';
-const model_id = "Xenova/ms-marco-TinyBERT-L-2-v2";
+// Define available cross-encoder models for easy swapping
+const CROSS_ENCODER_MODELS = {
+  msMarcoTinyBERT: "Xenova/ms-marco-TinyBERT-L-2-v2",
+  jinaRerankerTiny: "jinaai/jina-reranker-v1-tiny-en",
+  jinaEmbeddingsSmall: "Xenova/jina-embeddings-v2-small-en",
+  miniLML6v2: "Xenova/all-MiniLM-L6-v2",
+  gteSmall: "Xenova/gte-small",
+};
+
+// Pick the model you want to use here:
+const SELECTED_CROSS_ENCODER = CROSS_ENCODER_MODELS.jinaRerankerTiny;
+
 const model = await AutoModelForSequenceClassification.from_pretrained(
-  model_id,
+  SELECTED_CROSS_ENCODER,
   { model_file_name: "model_quantized" }
 );
-const tokenizer = await AutoTokenizer.from_pretrained(model_id);
+const tokenizer = await AutoTokenizer.from_pretrained(SELECTED_CROSS_ENCODER);
 
 /**
  * Parses user queries and determines which geospatial AI task(s) to run.
@@ -82,7 +92,7 @@ async function parseQuery(userQuery: string) {
 async function queryAgent(userQuery: string, providerParams: ProviderParams) {
   const results = await parseQuery(userQuery);
   const parts = results.split(":");
-  const task: any = parts[0];
+  const task: string = parts[0];
   const model_id = parts[1];
 
   const model = geoai.models().find(m => m.task === task);
