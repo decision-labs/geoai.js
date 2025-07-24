@@ -1,0 +1,26 @@
+# Exclude source files and configs
+src/
+test/
+examples/
+.vscode/
+.github/
+.husky/
+cache/
+task-classifier/
+build/
+*.log
+*.ts
+*.tsx
+*.map
+*.DS_Store
+*.env
+*.env.*
+node_modules/
+pnpm-lock.yaml
+vite.config.ts
+tsconfig.json
+dts-bundle-generator.config.ts
+.prettier*
+.eslint*
+.stylelint*
+*.md~ 

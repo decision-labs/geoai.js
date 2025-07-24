@@ -1,24 +1,44 @@
-# Change Log
+# Changelog
 
-All notable changes to the "vite-vanilla-ts-lib-starter" project will be documented in this file.
+All notable changes to the @geobase-js/geoai project will be documented in this file.
 
-## [0.0.4] - 2024-07-30
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-- Update all packages to the latest versions
-- Remove support for CommonJS modules
+## [0.0.1] - 2024-12-19
 
-## [0.0.3] - 2024-01-23
+### Added
 
-- Update all packages to the latest versions (update to vite 5.x)
+- Initial public release of @geobase-js/geoai
+- Support for multiple Geo AI models:
+  - Object Detection
+  - Building Footprint Segmentation
+  - Land Cover Classification
+  - Zero-shot Object Detection
+  - Oriented Object Detection
+  - Oil Storage Tank Detection
+  - Solar Panel Detection
+  - Ship Detection
+  - Car Detection
+  - Wetland Segmentation
+- TypeScript support with full type definitions
+- ESM module support
+- CDN distribution via unpkg and jsDelivr
+- Comprehensive test suite
+- Documentation and examples
 
-## [0.0.2] - 2023-01-18
+### Features
 
-- Update all packages to the latest versions (update to vite 4.x)
+- Core GeoAI class for model interaction
+- GeoRawImage class for image data handling
+- Support for various image formats and sources
+- Configurable confidence thresholds and parameters
+- Framework-agnostic design for use with any JavaScript framework
 
-## [0.0.1] - 2022-09-08
+### Technical
 
-- Update all packages to the latest versions (update to vite 3.x)
-
-## [0.0.0] - 2022-03-28
-
-- Initial release
+- Built with Vite 5.x
+- TypeScript compilation and type generation
+- ESLint and Prettier for code quality
+- Vitest for testing
+- Husky for pre-commit hooks

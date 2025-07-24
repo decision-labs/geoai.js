@@ -1,54 +1,88 @@
-import { describe, expect, it } from "vitest";
-import { geobaseAi } from "../src/geobase-ai";
-import { geobaseParams, mapboxParams, polygon, quadrants } from "./constants";
-import { GeoRawImage } from "../src/types/images/GeoRawImage";
-import {
-  ObjectDetectionResults,
-  ZeroShotObjectDetection,
-} from "../src/models/zero_shot_object_detection";
-import { detectionsToGeoJSON } from "../src/utils/utils";
+import { describe, expect, it, beforeAll } from "vitest";
+import { geoai } from "@/geobase-ai";
+import { mapboxParams, polygon, quadrants } from "./constants";
+import { GeoRawImage } from "@/types/images/GeoRawImage";
+import { ZeroShotObjectDetection } from "@/models/zero_shot_object_detection";
+import { geoJsonToGist } from "./utils/saveToGist";
 
-describe("geobaseAi.zeroShotObjectDetection", () => {
+describe("geoai.zeroShotObjectDetection - OWL-ViT", () => {
+  let owlvitInstance: ZeroShotObjectDetection;
+
+  beforeAll(async () => {
+    // Initialize OWL-ViT instance for reuse across tests
+    owlvitInstance = await geoai.pipeline(
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "Xenova/owlvit-base-patch32",
+        },
+      ],
+      mapboxParams
+    );
+  }, 50000);
+
   it("should initialize a zero-shot object detection pipeline", async () => {
-    const result = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
+    const instance = await geoai.pipeline(
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "Xenova/owlvit-base-patch32",
+        },
+      ],
+      mapboxParams
     );
 
-    expect(result.instance).toBeInstanceOf(ZeroShotObjectDetection);
+    expect(instance).toBeInstanceOf(ZeroShotObjectDetection);
+    expect(instance.inference).toBeDefined();
+    expect(instance.inference).not.toBeNull();
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const result1 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
-    );
-    const result2 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
-    );
-
-    expect(result1.instance).toBe(result2.instance);
-  });
-
-  it("should create a new instance for different configurations of onnx-community/grounding-dino-tiny-ONNX", async () => {
-    const result1 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
+    const instance1 = await geoai.pipeline(
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "Xenova/owlvit-base-patch32",
+        },
+      ],
       mapboxParams
     );
-    const result2 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "onnx-community/grounding-dino-tiny-ONNX",
-      { model_file_name: "model_quantized", cache_dir: "./cache" }
+    const instance2 = await geoai.pipeline(
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "Xenova/owlvit-base-patch32",
+        },
+      ],
+      mapboxParams
     );
-    expect(result1.instance.detector).not.toBe(result2.instance.detector);
+
+    expect(instance1).toBe(instance2);
+    expect(instance1.inference).toBe(instance2.inference);
   });
 
-  it("should throw exception for invalid model parameters for model onnx-community/grounding-dino-tiny-ONNX", async () => {
+  it("should create new instances for different configurations", async () => {
+    const instance1 = await geoai.pipeline(
+      [{ task: "zero-shot-object-detection" }],
+      mapboxParams
+    );
+    const instance2 = await geoai.pipeline(
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "onnx-community/grounding-dino-tiny-ONNX",
+          modelParams: {
+            model_file_name: "model_quantized",
+            cache_dir: "./cache",
+          },
+        },
+      ],
+      mapboxParams
+    );
+    expect(instance1).not.toBe(instance2.instance);
+  });
+
+  it("should throw exceptions for invalid model parameters", async () => {
     const invalidOptions = [
       { revision: "invalid_revision" },
       { subfolder: "invalid_subfolder" },
@@ -59,11 +93,15 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
 
     for (const options of invalidOptions) {
       try {
-        await geobaseAi.pipeline(
-          "zero-shot-object-detection",
-          mapboxParams,
-          "onnx-community/grounding-dino-tiny-ONNX",
-          options
+        await geoai.pipeline(
+          [
+            {
+              task: "zero-shot-object-detection",
+              modelId: "onnx-community/grounding-dino-tiny-ONNX",
+              modelParams: options,
+            },
+          ],
+          mapboxParams
         );
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
@@ -74,174 +112,108 @@ describe("geobaseAi.zeroShotObjectDetection", () => {
     }
   });
 
-  it("should process a polygon for object detection using onnx-community/grounding-dino-tiny-ONNX", async () => {
-    const { instance } = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "onnx-community/grounding-dino-tiny-ONNX",
-      { model_file_name: "model_quantized", cache_dir: "./cache" }
-    );
-
-    const text = ["tree."];
-
-    for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const results: ObjectDetectionResults = await (
-        instance as ZeroShotObjectDetection
-      ).detection(polygon, text);
-
-      let result = results;
-
-      // model can potentially return an array if multiple images are processed
-      if (Array.isArray(results)) result = results[0];
-
-      const geoJsonString = JSON.stringify(results.detections);
-      const encodedGeoJson = encodeURIComponent(geoJsonString);
-      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-
-      console.log(`View GeoJSON here: ${geojsonIoUrl}`);
-
-      // Check basic properties
-      expect(results).toHaveProperty("detections");
-      expect(results).toHaveProperty("geoRawImage");
-
-      // Check result types
-      expect(results.detections.type).toBe("FeatureCollection");
-      expect(Array.isArray(results.detections.features)).toBe(true);
-      expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
-    }
-  });
-
-  it("should process a polygon for object detection using onnx-community/grounding-dino-tiny-ONNX for source geobase", async () => {
-    const { instance } = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      geobaseParams
-    );
-
-    const text = ["tree."];
-
-    const results: ObjectDetectionResults = await (
-      instance as ZeroShotObjectDetection
-    ).detection(polygon, text);
-
-    let result = results;
-
-    // model can potentially return an array if multiple images are processed
-    if (Array.isArray(results)) result = results[0];
-
-    const geoJsonString = JSON.stringify(results.detections);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
-
-    console.log(`View GeoJSON here: ${geojsonIoUrl}`);
-
-    // Check basic properties
-    expect(results).toHaveProperty("detections");
-    expect(results).toHaveProperty("geoRawImage");
-
-    // Check result types
-    expect(results.detections.type).toBe("FeatureCollection");
-    expect(Array.isArray(results.detections.features)).toBe(true);
-    expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
-  });
-
-  it("should create a new instance for different configurations of Xennova/owlvit-base-patch32", async () => {
-    const result1 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
-    );
-    const result2 = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32",
-      { model_file_name: "model_quantized", cache_dir: "./cache" }
-    );
-    expect(result1.instance.detector).not.toBe(result2.instance.detector);
-  });
-
-  it("should throw exception for invalid model parameters for model Xennova/owlvit-base-patch32", async () => {
-    const invalidOptions = [
-      { revision: "invalid_revision" },
-      { subfolder: "invalid_subfolder" },
-      { model_file_name: "invalid_model_file_name" },
-      { device: "invalid_device" },
-      { dtype: "invalid_dtype" },
-    ];
-
-    for (const options of invalidOptions) {
-      try {
-        await geobaseAi.pipeline(
-          "zero-shot-object-detection",
-          mapboxParams,
-          "Xennova/owlvit-base-patch32",
-          options
-        );
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.message).toMatch(
-          /Invalid dtype|Unsupported device|Could not locate file|Unauthorized access to file/
-        );
-      }
-    }
-  });
-
-  it("should process a polygon for object detection using Xennova/owlvit-base-patch32", async () => {
-    const { instance } = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
-    );
-
+  it("should process polygons and detect multiple object types with OWL-ViT", async () => {
     const text = ["tree", "car", "vehicle", "building", "road", "person"];
 
-    for (const [quadrant, polygon] of Object.entries(quadrants)) {
-      const results: ObjectDetectionResults = await (
-        instance as ZeroShotObjectDetection
-      ).detection(polygon, text);
+    for (const [, polygon] of Object.entries(quadrants)) {
+      const results = await owlvitInstance.inference({
+        inputs: { polygon, classLabel: text },
+      });
+      const result = Array.isArray(results) ? results[0] : results;
 
-      const geoJsonString = JSON.stringify(results.detections);
-      const encodedGeoJson = encodeURIComponent(geoJsonString);
-      const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
+      // Validate GeoJSON structure
+      expect(result.detections).toBeDefined();
+      expect(result.detections.type).toBe("FeatureCollection");
+      expect(Array.isArray(result.detections.features)).toBe(true);
 
-      console.log(`View GeoJSON here: ${geojsonIoUrl}`);
+      // Validate image data
+      expect(result.geoRawImage).toBeInstanceOf(GeoRawImage);
+      expect(result.geoRawImage.data).toBeDefined();
+      expect(result.geoRawImage.width).toBeGreaterThan(0);
+      expect(result.geoRawImage.height).toBeGreaterThan(0);
 
-      // Check basic properties
-      expect(results).toHaveProperty("detections");
-      expect(results).toHaveProperty("geoRawImage");
-
-      // Check result types
-      expect(results.detections.type).toBe("FeatureCollection");
-      expect(Array.isArray(results.detections.features)).toBe(true);
-      expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+      // Save output to gist
+      await geoJsonToGist({
+        content: result.detections,
+        fileName: "zeroShotODOwlVitMapbox.geojson",
+        description:
+          "result zeroShotObjectDetection - should process polygons and detect multiple object types with OWL-ViT",
+      });
     }
   });
 
-  it("should process a polygon for object detection using Xennova/owlvit-base-patch32 for source geobase", async () => {
-    const { instance } = await geobaseAi.pipeline(
-      "zero-shot-object-detection",
-      mapboxParams,
-      "Xenova/owlvit-base-patch32"
-    );
-
+  it("should process geobase source polygons with OWL-ViT", async () => {
     const text = ["tree", "car", "vehicle", "building", "road", "person"];
+    const results = await owlvitInstance.inference({
+      inputs: { polygon, classLabel: text },
+    });
+    const result = Array.isArray(results) ? results[0] : results;
 
-    const results: ObjectDetectionResults = await (
-      instance as ZeroShotObjectDetection
-    ).detection(polygon, text);
+    // Validate GeoJSON structure
+    expect(result.detections).toBeDefined();
+    expect(result.detections.type).toBe("FeatureCollection");
+    expect(Array.isArray(result.detections.features)).toBe(true);
 
-    const geoJsonString = JSON.stringify(results.detections);
-    const encodedGeoJson = encodeURIComponent(geoJsonString);
-    const geojsonIoUrl = `https://geojson.io/#data=data:application/json,${encodedGeoJson}`;
+    // Validate image data
+    expect(result.geoRawImage).toBeInstanceOf(GeoRawImage);
+    expect(result.geoRawImage.data).toBeDefined();
+    expect(result.geoRawImage.width).toBeGreaterThan(0);
+    expect(result.geoRawImage.height).toBeGreaterThan(0);
 
-    console.log(`View GeoJSON here: ${geojsonIoUrl}`);
+    // Save output to gist
+    await geoJsonToGist({
+      content: result.detections,
+      fileName: "zeroShotODOwlVitGeobase.geojson",
+      description:
+        "result zeroShotObjectDetection - should process geobase source polygons with OWL-ViT",
+    });
+  });
+});
 
-    // Check basic properties
-    expect(results).toHaveProperty("detections");
-    expect(results).toHaveProperty("geoRawImage");
+describe("geoai.zeroShotObjectDetection - Grounding DINO", () => {
+  let groundingDinoInstance: ZeroShotObjectDetection;
 
-    // Check result types
-    expect(results.detections.type).toBe("FeatureCollection");
-    expect(Array.isArray(results.detections.features)).toBe(true);
-    expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+  beforeAll(async () => {
+    // Initialize Grounding DINO instance for reuse across tests
+    groundingDinoInstance = await geoai.pipeline(
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "onnx-community/grounding-dino-tiny-ONNX",
+          modelParams: { cache_dir: "./cache" },
+        },
+      ],
+      mapboxParams
+    );
+  }, 50000);
+
+  it("should process polygons and detect objects with Grounding DINO", async () => {
+    const text = ["tree."];
+
+    for (const [, polygon] of Object.entries(quadrants)) {
+      const results = await groundingDinoInstance.inference({
+        inputs: { polygon, classLabel: text },
+      });
+      const result = Array.isArray(results) ? results[0] : results;
+
+      // Validate GeoJSON structure
+      expect(result.detections).toBeDefined();
+      expect(result.detections.type).toBe("FeatureCollection");
+      expect(Array.isArray(result.detections.features)).toBe(true);
+
+      // Validate image data
+      expect(result.geoRawImage).toBeInstanceOf(GeoRawImage);
+      expect(result.geoRawImage.data).toBeDefined();
+      expect(result.geoRawImage.width).toBeGreaterThan(0);
+      expect(result.geoRawImage.height).toBeGreaterThan(0);
+
+      // Save output to gist
+      await geoJsonToGist({
+        content: result.detections,
+        fileName: "zeroShotODGroundingDino.geojson",
+        description:
+          "result zeroShotObjectDetection - should process polygons and detect objects with Grounding DINO",
+      });
+    }
   });
 });

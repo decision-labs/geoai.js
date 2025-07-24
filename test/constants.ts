@@ -1,20 +1,160 @@
-import { ProviderParams } from "../src/geobase-ai";
+import { ProviderParams } from "@/geobase-ai";
 
 export const mapboxParams: ProviderParams = {
   provider: "mapbox",
-  apiKey:
-    "pk.eyJ1Ijoic2FiIiwiYSI6ImNsNDE3bGR3bzB2MmczaXF5dmxpaTloNmcifQ.NQ-B8jBPtOd53tNYt42Gqw",
+  apiKey: process.env.MAPBOX_API_KEY || "test",
   style: "mapbox://styles/mapbox/satellite-v9",
 };
 
 export const geobaseParams: ProviderParams = {
   provider: "geobase",
-  projectRef: "wmrosdnjsecywfkvxtrw",
-  apikey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTY1NDU4MjUsImlhdCI6MTczODc2MTQyNSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.M8jeru5dbHe4tGh52xe2E2HlUiGCAPbZ8-JrfbxiRk0",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
-    "https://oin-hotosm-temp.s3.amazonaws.com/63556b6771072f000580f8cd/0/63556b6771072f000580f8ce.tif",
+    "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif",
 };
+
+export const geobaseParamsSolarPanel: ProviderParams = {
+  provider: "geobase",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
+  cogImagery:
+    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/solar_panels_davis_ca.tif",
+};
+
+export const geobaseParamsShip: ProviderParams = {
+  provider: "geobase",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
+  cogImagery:
+    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/ships_dubai.tif",
+};
+
+export const geobaseParamsCar: ProviderParams = {
+  provider: "geobase",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
+  cogImagery:
+    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/cars_7cm.tif",
+};
+
+export const geobaseParamsWetLand: ProviderParams = {
+  provider: "geobase",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
+  cogImagery:
+    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip/m_4609932_nw_14_1_20100629.tif",
+};
+
+export const geobaseParamsBuilding: ProviderParams = {
+  provider: "geobase",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
+  cogImagery:
+    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip_train.tif",
+};
+
+export const polygonOilStorage = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [54.686191879921466, 24.7598344253214],
+        [54.686191879921466, 24.755029520893288],
+        [54.69148310706436, 24.755029520893288],
+        [54.69148310706436, 24.7598344253214],
+        [54.686191879921466, 24.7598344253214],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
+
+export const polygonBuilding = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [-117.59239617156095, 47.653614113446906],
+        [-117.59239617156095, 47.652878388765174],
+        [-117.59040545822742, 47.652878388765174],
+        [-117.59040545822742, 47.653614113446906],
+        [-117.59239617156095, 47.653614113446906],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
+
+export const polygonWetLand = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [-99.0983079371952, 46.60892272965549],
+        [-99.0983079371952, 46.5949877901148],
+        [-99.07778265091567, 46.5949877901148],
+        [-99.07778265091567, 46.60892272965549],
+        [-99.0983079371952, 46.60892272965549],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
+
+export const polygonCar = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [-95.42148774154262, 29.67906487977089],
+        [-95.42148774154262, 29.678781807220446],
+        [-95.4210323139897, 29.678781807220446],
+        [-95.4210323139897, 29.67906487977089],
+        [-95.42148774154262, 29.67906487977089],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
+
+export const polygonShip = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [55.13452909846484, 25.113936913196113],
+        [55.13452909846484, 25.11357075780853],
+        [55.135160503410304, 25.11357075780853],
+        [55.135160503410304, 25.113936913196113],
+        [55.13452909846484, 25.113936913196113],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
+
+export const polygonSolarPannel = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [-121.77483138694643, 38.55347243518358],
+        [-121.77483138694643, 38.553215934463736],
+        [-121.77421502202081, 38.553215934463736],
+        [-121.77421502202081, 38.55347243518358],
+        [-121.77483138694643, 38.55347243518358],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
 
 export const polygon = {
   type: "Feature",
@@ -22,19 +162,22 @@ export const polygon = {
   geometry: {
     coordinates: [
       [
-        [-102.32245205602885, 19.536415661502275],
-        [-102.32245205602885, 19.534836349733624],
-        [-102.32080637971754, 19.534836349733624],
-        [-102.32080637971754, 19.536415661502275],
-        [-102.32245205602885, 19.536415661502275],
+        [114.84807353432808, -3.449255329675921],
+        [114.84807353432808, -3.4502955104658923],
+        [114.84870049348092, -3.4502955104658923],
+        [114.84870049348092, -3.449255329675921],
+        [114.84807353432808, -3.449255329675921],
       ],
     ],
     type: "Polygon",
   },
 } as GeoJSON.Feature;
 
-export const input_point = [-102.32207526163147, 19.53570142468871];
+export const input_point = [114.84857638295142, -3.449805712621256];
 
+export const input_bbox = [
+  -117.59156514616313, 47.65322697023947, -117.59136143816093, 47.6530458073872,
+];
 export const quadrants = {
   "north-west": {
     type: "Feature",
@@ -108,3 +251,40 @@ export const quadrants_points = {
   "south-east": [18.587564882328365, -33.98004626342711],
   "south-west": [-69.2315934241316, -51.60952167421363],
 };
+
+export const polygonReturningNonSquareImage = {
+  type: "Feature",
+  properties: {
+    cogUri:
+      "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip/m_4609932_nw_14_1_20100629.tif",
+  },
+  geometry: {
+    coordinates: [
+      [
+        [-99.09284471759247, 46.60368240218915],
+        [-99.09284471759247, 46.602249848964505],
+        [-99.08158049838012, 46.602249848964505],
+        [-99.08158049838012, 46.60368240218915],
+        [-99.09284471759247, 46.60368240218915],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
+
+export const polygonReturningSquareImageVertical = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [-99.0893892469291, 46.606426499962225],
+        [-99.0893892469291, 46.59686070995582],
+        [-99.08877533471995, 46.59686070995582],
+        [-99.08877533471995, 46.606426499962225],
+        [-99.0893892469291, 46.606426499962225],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;

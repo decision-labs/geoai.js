@@ -1,24 +1,59 @@
 {
-  "name": "geobase-ai",
-  "private": true,
-  "version": "0.0.4",
-  "module": "./dist/geobase-ai.js",
+  "name": "@geobase-js/geoai",
+  "version": "0.0.1",
+  "description": "A JavaScript library for running Geo AI models in frontend applications",
+  "keywords": [
+    "geoai",
+    "geospatial",
+    "ai",
+    "machine-learning",
+    "satellite-imagery",
+    "object-detection",
+    "segmentation",
+    "javascript",
+    "typescript"
+  ],
+  "author": "Decision Labs",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/decision-labs/geobase-ai.js.git"
+  },
+  "homepage": "https://docs.geobase.app/geoaijs",
+  "bugs": "https://github.com/decision-labs/geobase-ai.js/issues",
+  "files": [
+    "build/dist",
+    "README.md",
+    "LICENSE.md",
+    "CHANGELOG.md"
+  ],
+  "main": "./build/dist/@geobase-js/geoai.js",
+  "module": "./build/dist/@geobase-js/geoai.js",
+  "unpkg": "./build/dist/@geobase-js/geoai.js",
+  "jsdelivr": "./build/dist/@geobase-js/geoai.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/geobase-ai.js"
+      "import": "./build/dist/@geobase-js/geoai.js",
+      "types": "./build/dist/index.d.ts"
     },
-    "./dist/": {
-      "import": "./dist/geobase-ai.js"
+    "./dist": {
+      "import": "./build/dist/@geobase-js/geoai.js"
     }
   },
-  "types": "./dist/index.d.ts",
+  "types": "./build/dist/index.d.ts",
+  "peerDependencies": {
+    "@huggingface/transformers": "^3.3.3",
+    "@techstark/opencv-js": "^4.10.0-release.1",
+    "onnxruntime-web": "^1.21.0"
+  },
   "scripts": {
     "dev": "vite --host",
     "build": "rimraf build/**/* && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts && copyfiles ./package.json build",
     "build:examples": "pnpm build && cp -r ./build ./examples/codepen-geobase",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
+    "test:build": "pnpm run build && vitest run test/build.test.ts",
     "lint:scripts": "eslint . --ext .ts",
     "lint:styles": "stylelint ./**/*.{css,scss}",
     "format:scripts": "prettier . --write",
@@ -28,12 +63,14 @@
     "uninstall-husky": "npm uninstall husky --no-save && git config --unset core.hooksPath && npx rimraf .husky"
   },
   "devDependencies": {
+    "@types/geojson": "^7946.0.14",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.13.4",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^2.1.9",
     "copyfiles": "^2.4.1",
+    "dotenv": "^16.5.0",
     "dts-bundle-generator": "^9.5.1",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
@@ -44,26 +81,24 @@
     "postcss-scss": "^4.0.9",
     "prettier": "^3.5.1",
     "rimraf": "^6.0.1",
+    "rollup-plugin-visualizer": "^5.12.0",
     "stylelint": "^16.14.1",
     "stylelint-config-recommended": "^14.0.1",
     "stylelint-config-sass-guidelines": "^12.1.0",
     "stylelint-order": "^6.0.4",
     "stylelint-prettier": "^5.0.3",
+    "terser": "^5.39.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "vite": "^5.4.14",
+    "vite-plugin-commonjs": "^0.10.4",
     "vitest": "^2.1.9"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.3.3",
-    "@turf/area": "^7.2.0",
     "@turf/bbox": "^7.2.0",
     "@turf/bbox-polygon": "^7.2.0",
-    "@turf/boolean-within": "^7.2.0",
-    "@turf/center": "^7.2.0",
-    "@turf/polygon-smooth": "^7.2.0",
-    "@turf/turf": "^7.2.0",
-    "global-mercator": "github:decision-labs/global-mercator"
+    "global-mercator": "github:decision-labs/global-mercator",
+    "node-fetch": "^3.3.2"
   },
   "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf"
 }

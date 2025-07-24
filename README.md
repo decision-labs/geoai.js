@@ -1,111 +1,255 @@
 [![Main](https://github.com/decision-labs/geobase-ai.js/actions/workflows/main.yml/badge.svg)](https://github.com/decision-labs/geobase-ai.js/actions/workflows/main.yml)
 
-# Geobase AI JavaScript Library
+# @geobase-js/geoai
 
-Provide user with a seamless experience of using Geo AI models in their frontend applications.
-
-## Features
-
-Inputs:
-
-- Task: ... more geo-specific tasks than what HF provides (e.g. damage assessment, vegetation classification, etc.)
-- Polygon
-- Imagery Source/Provider
-
-Outputs:
-
-- Mask
-- Points
-- Classifications
-
-## Future Ideas
-
-### Model Selection Assistant
-
-We can use [MobileBERT](https://huggingface.co/Xenova/mobilebert-uncased-mnli) to help developers select the appropriate model based on their description.
-
-Example implementation:
-
-```javascript
-const classifier = await pipeline(
-  "zero-shot-classification",
-  "Xenova/mobilebert-uncased-mnli"
-);
-
-const text = `Hi Everyone, I've been trying to find a method to extract points from a WMS server the background is transparent and the only thing on server is the points in raster the WFS server is returning nothing but errors if there are tools or pre existing scripts where i can achieve this please let me know it would be greatly appreciated.`;
-
-const labels = ["zero-shot-object-detection", "zero-shot-image-classification"];
-
-const output = await classifier(text, labels);
-/* Output:
-{
-    sequence: '...',
-    labels: ['zero-shot-object-detection', 'zero-shot-image-classification'],
-    scores: [0.5562091040482018, 0.1843621307860853]
-}
-*/
-```
-
-Source: [Discord Discussion](https://discord.com/channels/769917190182404127/1326839223331852319/1326839223331852319)
-
-# vite-vanilla-ts-lib-starter
-
-The starter is built on top of Vite 5.x and prepared for writing libraries in TypeScript. It generates a package with support for ESM modules and IIFE.
+A JavaScript library for running Geo AI models in frontend applications.
 
 ## Features
 
-- ESM modules
-- IIFE bundle for direct browser support without bundler
-- Typings bundle
-- ESLint - scripts linter
-- Stylelint - styles linter
-- Prettier - formatter
-- Vitest - test framework
-- Husky + lint-staged - pre-commit git hook set up for formatting
+- **Multiple AI Models**: Support for various geospatial AI tasks including object detection, segmentation, and classification
+- **Easy Integration**: Simple API for integrating AI models into web applications
+- **TypeScript Support**: Full TypeScript definitions included
+- **CDN Ready**: Available via npm, unpkg, and jsDelivr
+- **Framework Agnostic**: Works with any JavaScript framework or vanilla JS
 
-## GitHub Template
+## Installation
 
-This is a template repo. Click the green [Use this template](https://github.com/kbysiec/vite-vanilla-ts-lib-starter/generate) button to get started.
-
-## Clone to local
-
-If you prefer to do it manually with the cleaner git history
+### NPM
 
 ```bash
-git clone https://github.com/kbysiec/vite-vanilla-ts-lib-starter.git
-cd vite-vanilla-ts-lib-starter
-npm i
+npm install @geobase-js/geoai
 ```
 
-## Checklist
+### Yarn
 
-When you use this template, update the following:
+```bash
+yarn add @geobase-js/geoai
+```
 
-- Remove `.git` directory and run `git init` to clean up the history
-- Change the name in `package.json` - it will be the name of the IIFE bundle global variable and bundle files name (`.cjs`, `.mjs`, `.iife.js`, `d.ts`)
-- Change the author name in `LICENSE`
-- Clean up the `README` and `CHANGELOG` files
+### PNPM
 
-And, enjoy :)
+```bash
+pnpm add @geobase-js/geoai
+```
 
-## Usage
+### CDN
 
-The starter contains the following scripts:
+```html
+<!-- Unpkg -->
+<script src="https://unpkg.com/@geobase-js/geoai@0.0.1/dist/@geobase-js/geoai.js"></script>
 
-- `dev` - starts dev server
-- `build` - generates the following bundles: ESM (`.js`) and IIFE (`.iife.js`). The name of bundle is automatically taken from `package.json` name property
-- `test` - starts vitest and runs all tests
-- `test:coverage` - starts vitest and run all tests with code coverage report
-- `lint:scripts` - lint `.ts` files with eslint
-- `lint:styles` - lint `.css` and `.scss` files with stylelint
-- `format:scripts` - format `.ts`, `.html` and `.json` files with prettier
-- `format:styles` - format `.cs` and `.scss` files with stylelint
-- `format` - format all with prettier and stylelint
-- `prepare` - script for setting up husky pre-commit hook
-- `uninstall-husky` - script for removing husky from repository
+<!-- jsDelivr -->
+<script src="https://cdn.jsdelivr.net/npm/@geobase-js/geoai@0.0.1/dist/@geobase-js/geoai.js"></script>
+```
 
-## Acknowledgment
+## Quick Start
 
-If you found it useful somehow, I would be grateful if you could leave a star in the project's GitHub repository.
+```javascript
+import { geoai } from "@geobase-js/geoai";
 
-Thank you.
+// Initialize a pipeline for object detection
+const pipeline = await geoai.pipeline(
+  [
+    {
+      task: "object-detection",
+      modelId: "geobase/WALDO30_yolov8m_640x640",
+    },
+  ],
+  {
+    provider: "mapbox",
+    apiKey: "your-mapbox-api-key",
+  }
+);
+
+// Run inference on a polygon
+const result = await pipeline.inference({
+  inputs: {
+    polygon: {
+      type: "Feature",
+      geometry: {
+        type: "Polygon",
+        coordinates: [[[longitude, latitude], [longitude, latitude], ...]]
+      }
+    }
+  }
+});
+
+console.log(result.detections); // GeoJSON with detected objects
+console.log(result.geoRawImage); // Raw image data
+```
+
+## Supported Models
+
+- **Object Detection**: Detect objects in satellite imagery
+- **Building Footprint Segmentation**: Extract building footprints
+- **Land Cover Classification**: Classify land cover types
+- **Zero-shot Object Detection**: Detect objects without pre-training
+- **Oriented Object Detection**: Detect objects with orientation
+- **Oil Storage Tank Detection**: Specialized tank detection
+- **Solar Panel Detection**: Solar panel identification
+- **Ship Detection**: Maritime vessel detection
+- **Car Detection**: Vehicle detection in aerial imagery
+- **Wetland Segmentation**: Wetland area identification
+
+## API Reference
+
+### Core Functions
+
+#### geoai.pipeline()
+
+Create a pipeline for AI tasks.
+
+```javascript
+const pipeline = await geoai.pipeline(
+  [
+    {
+      task: "object-detection",
+      modelId: "geobase/WALDO30_yolov8m_640x640",
+    },
+  ],
+  {
+    provider: "mapbox", // or "geobase"
+    apiKey: "your-api-key",
+  }
+);
+```
+
+#### geoai.tasks()
+
+List all available tasks.
+
+```javascript
+const tasks = geoai.tasks();
+// Returns: ["object-detection", "zero-shot-object-detection", "mask-generation", ...]
+```
+
+#### geoai.models()
+
+List all available models.
+
+```javascript
+const models = geoai.models();
+// Returns array of model configurations
+```
+
+#### geoai.validateChain()
+
+Validate a chain of tasks.
+
+```javascript
+const validChains = geoai.validateChain([
+  "mask-generation",
+  "zero-shot-object-detection",
+]);
+```
+
+### Pipeline Methods
+
+#### inference()
+
+Run inference on the pipeline.
+
+```javascript
+const result = await pipeline.inference({
+  inputs: {
+    polygon: geoJsonPolygon,
+    classLabel: "house", // for zero-shot detection
+  },
+});
+```
+
+### Example: Object Detection
+
+```javascript
+import { geoai } from "@geobase-js/geoai";
+
+// Create object detection pipeline
+const objectDetection = await geoai.pipeline(
+  [
+    {
+      task: "object-detection",
+      modelId: "geobase/WALDO30_yolov8m_640x640",
+    },
+  ],
+  {
+    provider: "mapbox",
+    apiKey: "your-mapbox-api-key",
+  }
+);
+
+// Define a polygon area to analyze
+const polygon = {
+  type: "Feature",
+  geometry: {
+    type: "Polygon",
+    coordinates: [
+      [
+        [-74.006, 40.7128],
+        [-74.006, 40.7228],
+        [-73.996, 40.7228],
+        [-73.996, 40.7128],
+        [-74.006, 40.7128],
+      ],
+    ],
+  },
+};
+
+// Run detection
+const result = await objectDetection.inference({
+  inputs: { polygon },
+});
+
+// Results contain detected objects as GeoJSON
+console.log(result.detections.features); // Array of detected objects
+```
+
+### Example: Zero-shot Object Detection
+
+```javascript
+import { geoai } from "@geobase-js/geoai";
+
+// Create zero-shot detection pipeline
+const zeroShotDetection = await geoai.pipeline(
+  [
+    {
+      task: "zero-shot-object-detection",
+    },
+  ],
+  {
+    provider: "geobase",
+    apiKey: "your-geobase-api-key",
+  }
+);
+
+// Run detection with custom class labels
+const result = await zeroShotDetection.inference({
+  inputs: {
+    polygon: geoJsonPolygon,
+    classLabel: "car, building, tree",
+  },
+});
+
+console.log(result.detections);
+```
+
+## Examples
+
+See the [examples directory](./examples/) for complete working examples.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## Support
+
+- 📖 [Documentation](https://docs.geobase.app/geoaijs)
+- 🐛 [Report Issues](https://github.com/decision-labs/geobase-ai.js/issues)
+- 💬 [Discussions](https://github.com/decision-labs/geobase-ai.js/discussions)
