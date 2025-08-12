@@ -1,5 +1,5 @@
 import { BaseModel } from "@/models/base_model";
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import { parametersChanged, getPolygonFromMask } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
@@ -15,7 +15,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -23,7 +23,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: BuildingFootPrintSegmentation }> {
     if (
       !BuildingFootPrintSegmentation.instance ||
@@ -48,7 +48,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   protected async initializeModel(): Promise<void> {
     // Only load the model if not already loaded
     if (this.model) return;
-    this.model = await loadOnnxModel(this.model_id);
+    this.model = await loadOnnxModel(this.model_id, this.modelParams);
   }
 
   protected async preProcessor(

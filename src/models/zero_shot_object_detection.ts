@@ -2,7 +2,7 @@ import { pipeline, RawImage } from "@huggingface/transformers";
 import { detectionsToGeoJSON, parametersChanged } from "@/utils/utils";
 import { BaseModel } from "./base_model";
 import { ProviderParams } from "@/geobase-ai";
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 export class ZeroShotObjectDetection extends BaseModel {
@@ -13,7 +13,7 @@ export class ZeroShotObjectDetection extends BaseModel {
   protected constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -21,7 +21,7 @@ export class ZeroShotObjectDetection extends BaseModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: ZeroShotObjectDetection }> {
     if (
       !ZeroShotObjectDetection.instance ||

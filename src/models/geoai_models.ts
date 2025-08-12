@@ -1,7 +1,7 @@
 import { getPolygonFromMask, parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedOptions, RawImage } from "@huggingface/transformers";
+import { PretrainedModelOptions, RawImage } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
 import { loadOnnxModel } from "./model_utils";
@@ -17,7 +17,7 @@ abstract class BaseDetectionModel extends BaseModel {
   protected constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -63,7 +63,7 @@ abstract class BaseDetectionModel extends BaseModel {
   }
 
   protected async initializeModel(): Promise<void> {
-    this.model = await loadOnnxModel(this.model_id);
+    this.model = await loadOnnxModel(this.model_id, this.modelParams);
   }
 
   protected async postProcessor(
@@ -193,7 +193,7 @@ export class SolarPanelDetection extends BaseDetectionModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: SolarPanelDetection }> {
     if (
       !SolarPanelDetection.instanceRef ||
@@ -225,7 +225,7 @@ export class ShipDetection extends BaseDetectionModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: ShipDetection }> {
     if (
       !ShipDetection.instanceRef ||
@@ -253,7 +253,7 @@ export class CarDetection extends BaseDetectionModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: CarDetection }> {
     if (
       !CarDetection.instanceRef ||
@@ -281,7 +281,7 @@ export class BuildingDetection extends BaseDetectionModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: BuildingDetection }> {
     if (
       !BuildingDetection.instanceRef ||
@@ -310,7 +310,7 @@ export class WetLandSegmentation extends BaseModel {
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -318,7 +318,7 @@ export class WetLandSegmentation extends BaseModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: WetLandSegmentation }> {
     if (
       !WetLandSegmentation.instance ||
@@ -340,7 +340,7 @@ export class WetLandSegmentation extends BaseModel {
   }
 
   protected async initializeModel(): Promise<void> {
-    this.model = await loadOnnxModel(this.model_id);
+    this.model = await loadOnnxModel(this.model_id, this.modelParams);
   }
 
   protected async preProcessor(

@@ -1,5 +1,5 @@
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedOptions, RawImage } from "@huggingface/transformers";
+import { PretrainedModelOptions, RawImage } from "@huggingface/transformers";
 const cv = require("@techstark/opencv-js");
 
 type detection = {
@@ -119,7 +119,7 @@ export const parametersChanged = (
   instance: any,
   model_id: string,
   providerParams: any,
-  modelParams?: PretrainedOptions
+  modelParams?: PretrainedModelOptions
 ): boolean => {
   // Compare model_id
   if (instance.model_id !== model_id) {
@@ -165,7 +165,9 @@ export const parametersChanged = (
     const newModelParams = modelParams || {};
 
     // Compare only the keys that exist in both objects
-    const keys = Object.keys(newModelParams) as Array<keyof PretrainedOptions>;
+    const keys = Object.keys(newModelParams) as Array<
+      keyof PretrainedModelOptions
+    >;
     for (const key of keys) {
       if (instanceModelParams[key] !== newModelParams[key]) {
         return true;

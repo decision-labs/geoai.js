@@ -1,4 +1,4 @@
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import {
   baseIOConfig,
   maskGenerationIOConfig,
@@ -32,7 +32,7 @@ export const modelRegistry: ModelConfig[] = [
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "onnx-community/grounding-dino-tiny-ONNX",
-      modelParams?: PretrainedOptions
+      modelParams?: PretrainedModelOptions
     ): Promise<{
       instance: ZeroShotObjectDetection;
     }> => {
@@ -47,7 +47,7 @@ export const modelRegistry: ModelConfig[] = [
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "Xenova/slimsam-77-uniform",
-      modelParams?: PretrainedOptions
+      modelParams?: PretrainedModelOptions
     ): Promise<{
       instance: MaskGeneration;
     }> => {
@@ -62,8 +62,8 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "geobase/WALDO30_yolov8m_640x640",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/WALDO30-yolov8m-640x640",
+      modelParams?: PretrainedModelOptions
     ): Promise<{
       instance: ObjectDetection;
     }> => {
@@ -77,8 +77,10 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "https://huggingface.co/geobase/gghl-oriented-object-detection/resolve/main/onnx/model_quantized.onnx",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/gghl-oriented-object-detection",
+      modelParams: PretrainedModelOptions = {
+        model_file_name: "model_quantized",
+      }
     ): Promise<{
       instance: OrientedObjectDetection;
     }> => {
@@ -98,8 +100,8 @@ export const modelRegistry: ModelConfig[] = [
     },
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "https://huggingface.co/geobase/sparsemask/resolve/main/onnx/sparsemask_model.onnx",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/sparsemask",
+      modelParams?: PretrainedModelOptions
     ): Promise<{
       instance: LandCoverClassification;
     }> => {
@@ -113,8 +115,10 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/solarPanelDetection_quantized.onnx",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/geoai-models",
+      modelParams: PretrainedModelOptions = {
+        model_file_name: "solarPanelDetection_quantized",
+      }
     ): Promise<{
       instance: SolarPanelDetection;
     }> => {
@@ -128,8 +132,10 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/shipDetection_quantized.onnx",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/geoai-models",
+      modelParams: PretrainedModelOptions = {
+        model_file_name: "shipDetection_quantized",
+      }
     ): Promise<{
       instance: ShipDetection;
     }> => {
@@ -143,8 +149,10 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/carDetectionUSA_quantized.onnx",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/geoai-models",
+      modelParams: PretrainedModelOptions = {
+        model_file_name: "carDetectionUSA_quantized",
+      }
     ): Promise<{
       instance: CarDetection;
     }> => {
@@ -158,8 +166,10 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/wetland_detection_quantized.onnx",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/geoai-models",
+      modelParams: PretrainedModelOptions = {
+        model_file_name: "wetlandDetection_quantized",
+      }
     ): Promise<{
       instance: WetLandSegmentation;
     }> => {
@@ -173,8 +183,10 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "https://huggingface.co/geobase/geoai_models/resolve/main/buildingDetection_quantized.onnx",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/geoai-models",
+      modelParams: PretrainedModelOptions = {
+        model_file_name: "buildingDetection_quantized",
+      }
     ): Promise<{
       instance: BuildingDetection;
     }> => {
@@ -195,8 +207,10 @@ export const modelRegistry: ModelConfig[] = [
     },
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "https://huggingface.co/geobase/oil-storage-tank-detection/resolve/main/oil_storage_tank_yolox_quantized.onnx",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/oil-storage-tank-detection",
+      modelParams: PretrainedModelOptions = {
+        model_file_name: "model_quantized",
+      }
     ): Promise<{
       instance: OilStorageTankDetection;
     }> => {
@@ -217,8 +231,8 @@ export const modelRegistry: ModelConfig[] = [
     },
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "https://huggingface.co/geobase/building_footprint_segmentation/resolve/main/model.onnx",
-      modelParams?: PretrainedOptions
+      modelId: string = "geobase/building-footprint-segmentation",
+      modelParams?: PretrainedModelOptions
     ): Promise<{
       instance: BuildingFootPrintSegmentation;
     }> => {

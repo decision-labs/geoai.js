@@ -7,7 +7,7 @@ import {
 import { maskToGeoJSON, parametersChanged, polygonsEqual } from "@/utils/utils";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ProviderParams } from "@/geobase-ai";
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import { BaseModel } from "./base_model";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
@@ -64,7 +64,7 @@ export class MaskGeneration extends BaseModel {
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -72,7 +72,7 @@ export class MaskGeneration extends BaseModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: MaskGeneration }> {
     if (
       !MaskGeneration.instance ||

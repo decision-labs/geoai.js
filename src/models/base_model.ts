@@ -2,7 +2,7 @@ import { Mapbox } from "@/data_providers/mapbox";
 import { Geobase } from "@/data_providers/geobase";
 import { Esri } from "@/data_providers/esri";
 import { ProviderParams } from "@/geobase-ai";
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { InferenceParams } from "@/core/types";
 
@@ -12,12 +12,12 @@ export abstract class BaseModel {
   protected dataProvider: Mapbox | Geobase | Esri | undefined;
   protected model_id: string;
   protected initialized: boolean = false;
-  protected modelParams?: PretrainedOptions;
+  protected modelParams?: PretrainedModelOptions;
 
   protected constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     this.model_id = model_id;
     this.providerParams = providerParams;

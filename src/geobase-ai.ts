@@ -1,4 +1,4 @@
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import {
   ModelConfig,
   ModelInstance,
@@ -22,7 +22,7 @@ interface ChainInstance {
 interface TaskConfig {
   task: string;
   modelId?: string;
-  modelParams?: PretrainedOptions;
+  modelParams?: PretrainedModelOptions;
 }
 
 class Pipeline {

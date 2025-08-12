@@ -8,7 +8,7 @@ import {
 import { detectionsToGeoJSON, parametersChanged } from "@/utils/utils";
 import { postProcessYoloOutput } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import { BaseModel } from "./base_model";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
@@ -20,7 +20,7 @@ export class ObjectDetection extends BaseModel {
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -28,7 +28,7 @@ export class ObjectDetection extends BaseModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: ObjectDetection }> {
     if (
       !ObjectDetection.instance ||

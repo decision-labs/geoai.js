@@ -1,3 +1,4 @@
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 
 // Cross-platform cache utilities
@@ -236,9 +237,38 @@ async function fetchModelAsUint8Array(url: string): Promise<Uint8Array> {
   return modelData;
 }
 
+const buildModelUrl = (
+  modelId: string,
+  modelParams: PretrainedModelOptions | undefined
+): string => {
+  const baseUrl = "https://huggingface.co";
+  if (modelId.split("/").length !== 2) {
+    throw new Error(
+      "Model ID must be in the format username/reponame, e.g., geobase/car-detection"
+    );
+  }
+  const revision = modelParams?.revision || "main";
+  let modelFileName = modelParams?.model_file_name || "model";
+  if (modelFileName.toLowerCase().endsWith(".onnx")) {
+    modelFileName = modelFileName.slice(0, -5);
+  }
+  const subFolder =
+    modelParams?.subfolder === undefined ? "onnx" : modelParams?.subfolder;
+
+  let modelUrl;
+  if (subFolder && subFolder.trim() !== "") {
+    modelUrl = `${baseUrl}/${modelId}/resolve/${revision}/${subFolder}/${modelFileName}.onnx`;
+  } else {
+    modelUrl = `${baseUrl}/${modelId}/resolve/${revision}/${modelFileName}.onnx`;
+  }
+  return modelUrl;
+};
+
 export const loadOnnxModel = async (
-  url: string
+  modelId: string,
+  modelParams: PretrainedModelOptions | undefined
 ): Promise<ort.InferenceSession> => {
+  const url = buildModelUrl(modelId, modelParams);
   console.log("[loadOnnxModel] Start loading model from:", url);
 
   // Set ONNX WASM paths for browser

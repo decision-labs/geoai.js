@@ -1,4 +1,4 @@
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 
@@ -125,7 +125,7 @@ export type ModelConfig = {
   geobase_ai_pipeline: (
     params: ProviderParams,
     modelId?: string,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) => Promise<{
     instance: ModelInstance;
   }>;
@@ -135,7 +135,7 @@ export type ModelConfig = {
     outputs: any;
   };
   defaultModelId?: string;
-  modelParams?: PretrainedOptions;
+  modelParams?: PretrainedModelOptions;
 };
 
 export type zeroShotModelIOConfig = {

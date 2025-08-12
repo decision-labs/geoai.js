@@ -5,7 +5,7 @@ const cv = require("@techstark/opencv-js");
 
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import { InferenceParams, onnxModel } from "@/core/types";
 import { loadOnnxModel } from "./model_utils";
 import * as ort from "onnxruntime-web";
@@ -37,7 +37,7 @@ export class LandCoverClassification extends BaseModel {
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -45,7 +45,7 @@ export class LandCoverClassification extends BaseModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: LandCoverClassification }> {
     if (
       !LandCoverClassification.instance ||
@@ -161,7 +161,7 @@ export class LandCoverClassification extends BaseModel {
     // Only load the model if not already loaded
     if (this.model) return;
 
-    this.model = await loadOnnxModel(this.model_id);
+    this.model = await loadOnnxModel(this.model_id, this.modelParams);
   }
 
   async inference(params: InferenceParams): Promise<any> {
