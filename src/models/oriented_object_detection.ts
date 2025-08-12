@@ -73,7 +73,8 @@ export class OrientedObjectDetection extends BaseModel {
     ) {
       OrientedObjectDetection.instance = new OrientedObjectDetection(
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       );
       await OrientedObjectDetection.instance.initialize();
     }

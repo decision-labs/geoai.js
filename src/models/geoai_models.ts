@@ -186,8 +186,12 @@ abstract class BaseDetectionModel extends BaseModel {
 export class SolarPanelDetection extends BaseDetectionModel {
   private static instanceRef: SolarPanelDetection | null = null;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    super(model_id, providerParams);
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams: PretrainedModelOptions | undefined
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
@@ -206,7 +210,8 @@ export class SolarPanelDetection extends BaseDetectionModel {
     ) {
       SolarPanelDetection.instanceRef = new SolarPanelDetection(
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       );
       await SolarPanelDetection.instanceRef.initialize();
     }
@@ -217,8 +222,12 @@ export class SolarPanelDetection extends BaseDetectionModel {
 export class ShipDetection extends BaseDetectionModel {
   private static instanceRef: ShipDetection | null = null;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    super(model_id, providerParams);
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams: PretrainedModelOptions | undefined
+  ) {
+    super(model_id, providerParams, modelParams);
     this.zoom = 21; // Set specific zoom level for ship detection
   }
 
@@ -236,7 +245,11 @@ export class ShipDetection extends BaseDetectionModel {
         modelParams
       )
     ) {
-      ShipDetection.instanceRef = new ShipDetection(model_id, providerParams);
+      ShipDetection.instanceRef = new ShipDetection(
+        model_id,
+        providerParams,
+        modelParams
+      );
       await ShipDetection.instanceRef.initialize();
     }
     return { instance: ShipDetection.instanceRef };
@@ -246,8 +259,12 @@ export class ShipDetection extends BaseDetectionModel {
 export class CarDetection extends BaseDetectionModel {
   private static instanceRef: CarDetection | null = null;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    super(model_id, providerParams);
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams: PretrainedModelOptions | undefined
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
@@ -264,7 +281,11 @@ export class CarDetection extends BaseDetectionModel {
         modelParams
       )
     ) {
-      CarDetection.instanceRef = new CarDetection(model_id, providerParams);
+      CarDetection.instanceRef = new CarDetection(
+        model_id,
+        providerParams,
+        modelParams
+      );
       await CarDetection.instanceRef.initialize();
     }
     return { instance: CarDetection.instanceRef };
@@ -274,8 +295,12 @@ export class CarDetection extends BaseDetectionModel {
 export class BuildingDetection extends BaseDetectionModel {
   private static instanceRef: BuildingDetection | null = null;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    super(model_id, providerParams);
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams: PretrainedModelOptions | undefined
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
@@ -294,7 +319,8 @@ export class BuildingDetection extends BaseDetectionModel {
     ) {
       BuildingDetection.instanceRef = new BuildingDetection(
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       );
       await BuildingDetection.instanceRef.initialize();
     }

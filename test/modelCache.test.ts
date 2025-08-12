@@ -15,7 +15,7 @@ describe("ONNX model caching", () => {
     );
 
     const modelId =
-      "https://huggingface.co/geobase/oil-storage-tank-detection/resolve/main/oil_storage_tank_yolox_quantized.onnx";
+      "https://huggingface.co/geobase/oil-storage-tank-detection/resolve/main/model_quantized.onnx";
 
     const cacheDir = getNodeCacheDir();
     const cacheKey = getCacheKey(modelId);
