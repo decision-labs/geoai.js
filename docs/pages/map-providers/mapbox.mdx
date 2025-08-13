@@ -1,0 +1,48 @@
+import { Callout } from "nextra/components";
+
+# Mapbox Map Provider
+
+> Mapbox offers global satellite imagery and customizable maps for geospatial AI tasks.
+
+## Setup
+
+<Callout type="info" emoji="🔑">
+  Get your Mapbox access token at [mapbox.com](https://account.mapbox.com/)
+</Callout>
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Configuration
+const mapboxParams = {
+  provider: "mapbox",
+  apiKey: process.env.MAPBOX_ACCESS_TOKEN,
+  style: "mapbox://styles/mapbox/satellite-v9",
+};
+
+// Initialize pipeline with Mapbox
+const pipeline = await geoai.pipeline(
+  [{ task: "object-detection" }],
+  mapboxParams
+);
+
+// Run inference on polygon
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Parameters
+
+```typescript
+type MapboxParams = {
+  provider: "mapbox";
+  apiKey: string; // Your Mapbox access token
+  style: string; // Mapbox style URL or ID
+};
+```
+
+<Callout type="warning" emoji="🛰️">
+  Only satellite styles are supported for AI tasks.
+</Callout>

@@ -1,5 +1,5 @@
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedOptions, RawImage } from "@huggingface/transformers";
+import { PretrainedModelOptions, RawImage } from "@huggingface/transformers";
 const cv = require("@techstark/opencv-js");
 
 type detection = {
@@ -119,7 +119,7 @@ export const parametersChanged = (
   instance: any,
   model_id: string,
   providerParams: any,
-  modelParams?: PretrainedOptions
+  modelParams?: PretrainedModelOptions
 ): boolean => {
   // Compare model_id
   if (instance.model_id !== model_id) {
@@ -165,7 +165,9 @@ export const parametersChanged = (
     const newModelParams = modelParams || {};
 
     // Compare only the keys that exist in both objects
-    const keys = Object.keys(newModelParams) as Array<keyof PretrainedOptions>;
+    const keys = Object.keys(newModelParams) as Array<
+      keyof PretrainedModelOptions
+    >;
     for (const key of keys) {
       if (instanceModelParams[key] !== newModelParams[key]) {
         return true;
@@ -628,4 +630,33 @@ export const refineMasks = (
   });
 
   return maskGeojson;
+};
+
+/**
+ * Compares two polygons to determine if they are the same
+ * @param polygon1 - First polygon to compare
+ * @param polygon2 - Second polygon to compare
+ * @returns true if polygons are the same, false otherwise
+ */
+export const polygonsEqual = (
+  polygon1: GeoJSON.Feature | null,
+  polygon2: GeoJSON.Feature | null
+): boolean => {
+  if (!polygon1 || !polygon2) return false;
+  if (!polygon1.geometry || !polygon2.geometry) return false;
+  if (polygon1.geometry.type !== polygon2.geometry.type) return false;
+
+  // Only handle Polygon type for now
+  if (
+    polygon1.geometry.type === "Polygon" &&
+    polygon2.geometry.type === "Polygon"
+  ) {
+    const poly1 = polygon1.geometry as GeoJSON.Polygon;
+    const poly2 = polygon2.geometry as GeoJSON.Polygon;
+    return (
+      JSON.stringify(poly1.coordinates) === JSON.stringify(poly2.coordinates)
+    );
+  }
+
+  return false;
 };

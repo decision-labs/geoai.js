@@ -1,22 +1,23 @@
 import { Mapbox } from "@/data_providers/mapbox";
 import { Geobase } from "@/data_providers/geobase";
+import { Esri } from "@/data_providers/esri";
 import { ProviderParams } from "@/geobase-ai";
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { InferenceParams } from "@/core/types";
 
 export abstract class BaseModel {
   protected static instance: BaseModel | null = null;
   protected providerParams: ProviderParams;
-  protected dataProvider: Mapbox | Geobase | undefined;
+  protected dataProvider: Mapbox | Geobase | Esri | undefined;
   protected model_id: string;
   protected initialized: boolean = false;
-  protected modelParams?: PretrainedOptions;
+  protected modelParams?: PretrainedModelOptions;
 
   protected constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     this.model_id = model_id;
     this.providerParams = providerParams;
@@ -54,11 +55,19 @@ export abstract class BaseModel {
           apikey: this.providerParams.apikey,
         });
         break;
+      case "esri":
+        this.dataProvider = new Esri({
+          serviceUrl: this.providerParams.serviceUrl,
+          serviceName: this.providerParams.serviceName,
+          tileSize: this.providerParams.tileSize,
+          attribution: this.providerParams.attribution,
+        });
+        break;
       case "sentinel":
         throw new Error("Sentinel provider not implemented yet");
       default:
         throw new Error(
-          `Unknown provider: ${(this.providerParams as any).provider}`
+          `Unknown provider: ${(this.providerParams as ProviderParams).provider}`
         );
     }
   }
@@ -79,11 +88,12 @@ export abstract class BaseModel {
     zoomLevel?: number,
     bands?: number[],
     expression?: string,
-    requiresSquare: boolean = false
+    requiresSquare: boolean = true
   ): Promise<GeoRawImage> {
     if (!this.dataProvider) {
       throw new Error("Data provider not initialized");
     }
+    console.log("Converting polygon to image...");
     return this.dataProvider.getImage(
       polygon,
       bands,

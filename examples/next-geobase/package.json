@@ -11,11 +11,12 @@
     "build_dev": "pnpm build:geobase-ai && pnpm dev"
   },
   "dependencies": {
-    "@geobase-js/geoai": "^0.0.1",
+    "@geobase-js/geoai": "^0.0.5",
     "@huggingface/transformers": "^3.5.1",
     "@mapbox/mapbox-gl-draw": "^1.5.0",
     "@techstark/opencv-js": "^4.10.0-release.1",
     "@turf/turf": "^7.2.0",
+    "lucide-react": "^0.536.0",
     "maplibre-gl": "^5.5.0",
     "maplibre-gl-draw": "^1.6.9",
     "next": "15.3.2",

@@ -1,0 +1,93 @@
+import { Callout } from "nextra/components";
+
+# Inference Parameters
+
+> Configure AI inference for geospatial analysis
+
+## Structure
+
+```typescript
+interface InferenceParams {
+  inputs: InferenceInputs;
+  postProcessingParams?: PostProcessingParams;
+  mapSourceParams?: MapSourceParams;
+}
+```
+
+<Callout type="info" emoji="📋">
+  **Required:** `inputs.polygon` - Geographic area to analyze **Optional:**
+  Post-processing and map source parameters for fine-tuning
+</Callout>
+
+## Input Parameters
+
+```typescript
+interface InferenceInputs {
+  polygon: GeoJSON.Feature<GeoJSON.Polygon>; // Required
+  classLablel?: string; // For zero-shot models
+  [key: string]: any; // Additional model-specific input parameters as key-value pairs
+}
+```
+
+<Callout type="warning" emoji="⚠️">
+  Zero-shot detection requires the `classLabel` parameter with dot-separated
+  object classes
+</Callout>
+
+## Post-Processing Parameters
+
+Adjusts filtering and refinement of model results.
+
+```typescript
+interface PostProcessingParams {
+  // Object Detection Tasks
+  confidence?: number; // Minimum confidence score (0.0-1.0)
+
+  // Zero-Shot Detection Tasks
+  threshold?: number; // Detection sensitivity (0.0-1.0)
+  topk?: number; // Maximum detections per class
+
+  // Segmentation Tasks
+  maxMasks?: number; // Maximum number of masks
+
+  // Task-specific parameters
+  [key: string]: any;
+}
+```
+
+<Callout type="info" emoji="⚙️">
+  **Task Variation:** Each task uses different post-processing parameters. Check
+  the specific task documentation for available options and recommended values.
+</Callout>
+
+## Map Source Parameters
+
+Controls how satellite imagery is extracted and processed for inference.
+
+```typescript
+interface MapSourceParams {
+  zoomLevel?: number; // Image resolution level
+  bands?: number[]; // Spectral bands to use (e.g., [1,2,3] for RGB)
+  expression?: string; // Custom band calculations (e.g., NDVI)
+}
+```
+
+### Zoom Level
+
+- **Auto-detection**: System automatically selects optimal zoom when not specified
+- **Manual control**: Set specific zoom level for resolution requirements
+
+### Spectral Bands
+
+- **Multispectral**: Include additional bands like `[1, 2, 3, 4]` for RGB + NIR
+- **Model requirements**: Check your task or model documentation for supported band combinations
+
+### Band Expressions
+
+- **NDVI calculation**: `"(B4-B1)/(B4+B1)"` for vegetation analysis
+- **Custom formulas**: Create mathematical expressions using band indices
+
+<Callout type="info" emoji="🛰️">
+  **Auto-Optimization**: When zoom level isn't specified, the system calculates
+  the minimum tiles needed to cover your polygon area efficiently.
+</Callout>

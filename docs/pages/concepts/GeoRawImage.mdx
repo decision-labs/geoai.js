@@ -1,0 +1,193 @@
+import { Callout } from "nextra/components";
+
+# GeoRawImage
+
+> Georeferenced image data structure for geospatial AI processing
+
+<Callout type="info">
+  The `GeoRawImage` class extends the Hugging Face `RawImage` class to provide
+  georeferencing capabilities essential for geospatial AI tasks. It maintains
+  spatial context by storing coordinate reference system (CRS) information and
+  geographic bounds, enabling seamless conversion between pixel and world
+  coordinates.
+</Callout>
+
+## Class Structure
+
+```typescript
+class GeoRawImage extends RawImage {
+  // Core image properties (inherited from RawImage)
+  data: Uint8ClampedArray | Uint8Array;
+  width: number;
+  height: number;
+  channels: 1 | 2 | 3 | 4;
+
+  // Georeferencing properties
+  private bounds: Bounds;
+  private transform: Transform;
+  private crs: string;
+}
+```
+
+## Constructor
+
+```typescript
+new GeoRawImage(
+  data: Uint8ClampedArray | Uint8Array,
+  width: number,
+  height: number,
+  channels: 1 | 2 | 3 | 4,
+  bounds: Bounds,
+  crs?: string
+)
+```
+
+### Parameters
+
+| Parameter  | Type                              | Description                                        |
+| ---------- | --------------------------------- | -------------------------------------------------- |
+| `data`     | `Uint8ClampedArray \| Uint8Array` | Raw image pixel data                               |
+| `width`    | `number`                          | Image width in pixels                              |
+| `height`   | `number`                          | Image height in pixels                             |
+| `channels` | `1 \| 2 \| 3 \| 4`                | Number of color channels                           |
+| `bounds`   | `Bounds`                          | Geographic bounds of the image                     |
+| `crs`      | `string`                          | Coordinate reference system (default: "EPSG:4326") |
+
+### Bounds Interface
+
+```typescript
+interface Bounds {
+  north: number; // max latitude
+  south: number; // min latitude
+  east: number; // max longitude
+  west: number; // min longitude
+}
+```
+
+### Transform Interface
+
+```typescript
+interface Transform {
+  // Affine transformation matrix components
+  a: number; // x scale
+  b: number; // y skew
+  c: number; // x offset
+  d: number; // x skew
+  e: number; // y scale
+  f: number; // y offset
+}
+```
+
+## Methods
+
+### Coordinate Conversion
+
+#### `pixelToWorld(x: number, y: number): [number, number]`
+
+Converts pixel coordinates to geographic coordinates (longitude, latitude).
+
+```typescript
+const geoImage = new GeoRawImage(data, 512, 512, 3, bounds);
+const [longitude, latitude] = geoImage.pixelToWorld(256, 256);
+console.log(`Center coordinates: ${longitude}, ${latitude}`);
+```
+
+#### `worldToPixel(lon: number, lat: number): [number, number]`
+
+Converts geographic coordinates to pixel coordinates.
+
+```typescript
+const [x, y] = geoImage.worldToPixel(-122.4194, 37.7749);
+console.log(`San Francisco pixel coordinates: ${x}, ${y}`);
+```
+
+### Information Retrieval
+
+#### `getBounds(): Bounds`
+
+Returns a copy of the image's geographic bounds.
+
+```typescript
+const bounds = geoImage.getBounds();
+console.log(`Image covers: ${bounds.west} to ${bounds.east} longitude`);
+```
+
+#### `getCRS(): string`
+
+Returns the coordinate reference system identifier.
+
+```typescript
+const crs = geoImage.getCRS();
+console.log(`CRS: ${crs}`); // "EPSG:4326"
+```
+
+### Image Operations
+
+#### `clone(): GeoRawImage`
+
+Creates a deep copy of the GeoRawImage, preserving all georeferencing information.
+
+```typescript
+const originalImage = new GeoRawImage(data, 512, 512, 3, bounds);
+const clonedImage = originalImage.clone();
+
+// Both images have identical properties but separate data
+console.log(clonedImage.getBounds()); // Same bounds as original
+console.log(clonedImage.data !== originalImage.data); // true
+```
+
+## Static Methods
+
+#### `fromRawImage(rawImage: RawImage, bounds: Bounds, crs?: string): GeoRawImage`
+
+Creates a GeoRawImage from an existing RawImage and georeferencing information.
+
+```typescript
+import { RawImage } from "@huggingface/transformers";
+
+const rawImage = new RawImage(data, width, height, channels);
+const bounds = {
+  north: 37.7849,
+  south: 37.7649,
+  east: -122.4094,
+  west: -122.4294,
+};
+
+const geoImage = GeoRawImage.fromRawImage(rawImage, bounds);
+```
+
+## Inherited Methods
+
+As an extension of `RawImage`, GeoRawImage inherits all standard image processing methods:
+
+### Tensor Conversion
+
+```typescript
+// Convert to tensor for AI model input
+const tensor = geoImage.toTensor("CHW"); // Channels-Height-Width format
+```
+
+### Image Saving
+
+```typescript
+// Save image
+await geoImage.save("debug_image.png");
+```
+
+### Image Resizing
+
+```typescript
+// Resize while maintaining georeferencing
+const resized = geoImage.resize(256, 256);
+```
+
+## Integration with AI Tasks
+
+All AI tasks in `@geobase/geoai.js` return results that include a `GeoRawImage`:
+
+```typescript
+interface ObjectDetectionResults {
+  detections: GeoJSON.FeatureCollection;
+  geoRawImage: GeoRawImage;
+}
+```

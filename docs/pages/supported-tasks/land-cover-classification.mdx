@@ -1,0 +1,106 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Land Cover Classification
+
+> Classify land cover types in satellite imagery
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/land-cover-classification.mp4"
+  title="Land Cover Classification Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "land-cover-classification" }],
+  providerParams
+);
+
+// Run classification
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  postProcessingParams: { minArea: 20 },
+});
+
+console.log(
+  `Classified ${result.classifications.features.length} land cover areas`
+);
+```
+
+<Callout type="info" emoji="🌍">
+  Classifies regions into 8 land cover types: forest, agriculture, urban, water,
+  roads, rangeland, bareland, and buildings
+</Callout>
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  minArea: 20; // Minimum area threshold for classification polygons
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 15; // 14-16 recommended for land cover analysis
+}
+```
+
+## Land Cover Classes
+
+| Class              |
+| ------------------ |
+| `tree`             |
+| `agriculture land` |
+| `developed space`  |
+| `water`            |
+| `road`             |
+| `rangeland`        |
+| `bareland`         |
+| `buildings`        |
+
+## Output
+
+Returns a list of GeoJSON FeatureCollections (one for each land cover class):
+
+```typescript
+{
+  geoRawImage : GeoRawImage, // Inference image
+  outPutImage : GeoRawImage, // combined masks
+  binaryMasks : RawImage // binary mask for each class
+  detections: [   // list of FeatureCollection
+    {
+      type: "FeatureCollection",
+      features: [
+        {
+          geometry: { /* tree polygon */ },
+          properties: {
+            class: "tree"
+          }
+        }
+      ]
+    },
+    {
+      type: "FeatureCollection",
+      features: [
+        {
+          geometry: { /* agriculture polygon */ },
+          properties: {
+            class: "agriculture land"
+          }
+        }
+      ]
+    }
+    // ... one FeatureCollection for each detected land cover class
+  ]
+}
+```

@@ -1,0 +1,221 @@
+import { Callout } from "nextra/components";
+
+# Model Pipeline
+
+The Model Pipeline is the core of `@geobase/geoai.js`, enabling you to initialize AI models and chain multiple tasks together for sophisticated geospatial analysis workflows.
+
+## Overview
+
+The pipeline system supports two main execution patterns:
+
+1. **Single Task Execution** - Run individual AI models on your geospatial data
+2. **Task Chaining** - Chain multiple AI models together for complex analysis workflows
+
+## Implementation
+
+### Basic Pipeline Creation
+
+Create a simple pipeline for object detection on geospatial imagery:
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Create a pipeline for object detection
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "geobase",
+  projectRef: "your-project-ref",
+  apikey: "your-api-key",
+  cogImagery: "your-imagery-link",
+});
+
+// Run inference
+const result = await pipeline.inference({
+  inputs: { polygon: yourPolygon },
+  postProcessingParams: { confidence: 0.8 },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Chained Task Pipeline
+
+Chain multiple AI tasks for advanced geospatial analysis workflows:
+
+```typescript
+// Chain zero-shot detection with mask generation
+const chainedPipeline = await geoai.pipeline(
+  [{ task: "zero-shot-object-detection" }, { task: "mask-generation" }],
+  providerConfig
+);
+
+const result = await chainedPipeline.inference({
+  inputs: {
+    polygon: yourPolygon,
+    text: "buildings cars", // for zero-shot detection
+  },
+  postProcessingParams: {
+    threshold: 0.3,
+    maxMasks: 100,
+  },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+<Callout type="info" emoji="ℹ️">
+  Task chaining allows you to connect multiple AI models where the output of one
+  becomes the input of the next, enabling complex analysis workflows.
+</Callout>
+
+## Pipeline
+
+### `geoai.pipeline(tasks, providerParams)`
+
+Creates a new pipeline instance for single or chained AI tasks.
+
+#### Parameters
+
+| Parameter        | Type             | Description                             |
+| ---------------- | ---------------- | --------------------------------------- |
+| `tasks`          | `TaskConfig[]`   | Array of task configurations to execute |
+| `providerParams` | `ProviderParams` | Map provider configuration              |
+
+#### TaskConfig
+
+```typescript
+interface TaskConfig {
+  task: string; // Task name (see Available Tasks)
+  modelId?: string; // Optional custom model ID
+  modelParams?: object; // Optional model parameters for transformers.js tasks
+}
+```
+
+#### ProviderParams
+
+```typescript
+interface ProviderParams {
+  provider: "geobase" | "mapbox";
+
+  // Geobase config
+  projectRef?: string;
+  apikey?: string;
+  cogImagery?: string;
+
+  // Mapbox config
+  apiKey?: string;
+  style?: string;
+}
+```
+
+#### Returns
+
+Returns a `ModelInstance` (single task) or `ChainInstance` (multiple tasks) with an `inference` method.
+
+<Callout type="info" emoji="ℹ️">
+  The pipeline automatically detects whether you're creating a single task or
+  chained task execution based on the array length.
+</Callout>
+
+### `pipeline.inference(params)`
+
+Executes the pipeline with the provided parameters.
+
+#### Parameters
+
+<Callout type="info" emoji="ℹ️">
+  When using task chaining, the `inputs` and `postProcessingParams` are shared
+  accross all the tasks in the pipeline while `mapSourceParams` parameter
+  applies to all the tasks in the chain.
+</Callout>
+
+```typescript
+interface InferenceParams {
+  inputs: {
+    polygon: GeoJSON.Feature<GeoJSON.Polygon>;
+    text?: string; // For zero-shot detection
+    input?: any; // For Mask Generation task
+  };
+  postProcessingParams?: {
+    // Depends on each task
+    confidence?: number; // Detection confidence threshold
+    threshold?: number; // Zero-shot detection threshold
+    topk?: number; // Top-k results for zero-shot
+    maxMasks?: number; // Maximum masks for segmentation
+  };
+  mapSourceParams?: {
+    zoomLevel?: number; // Map zoom level for imagery
+  };
+}
+```
+
+<Callout type="warning" emoji="⚠️">
+  Ensure your polygon coordinates are in the correct format (GeoJSON) and that
+  your API keys have proper permissions for the selected tasks.
+</Callout>
+
+### Task Chaining
+
+Task chaining lets you run multiple AI models one after another.
+
+#### Supported Chains
+
+Currently supported task combinations:
+
+- `zero-shot-object-detection` → `mask-generation`
+- `object-detection` → `mask-generation`
+
+#### Chain Execution Flow
+
+1. **Sequential Execution** - Runs tasks in dependency order
+2. **Data Transformation** - Automatically transforms outputs between tasks
+3. **Result Aggregation** - Returns comprehensive results from the final task
+
+<Callout type="info" emoji="ℹ️">
+  The pipeline automatically handles data transformation between chained tasks,
+  ensuring compatibility and optimal performance.
+</Callout>
+
+### Custom Model Configuration
+
+Customize models with specific parameters for your use case:
+
+```typescript
+// Use custom model IDs and parameters
+const pipeline = await geoai.pipeline(
+  [
+    {
+      task: "object-detection",
+      modelId: "your-custom-model-id",
+      modelParams: {
+        device: "gpu",
+        dtype: "fp16",
+      },
+    },
+  ],
+  providerConfig
+);
+```
+
+## Utility Methods
+
+### Available Tasks and Models
+
+Get information about available AI tasks and models:
+
+```typescript
+// Get all available task names
+const availableTasks = geoai.tasks();
+console.log(availableTasks);
+// ["object-detection", "zero-shot-object-detection", "mask-generation", ...]
+
+// Get detailed model information
+const modelInfo = geoai.models();
+console.log(modelInfo);
+// [{ task: "object-detection", library: "@huggingface/transformers", ... }]
+
+// Validate task chain compatibility
+const validChains = geoai.validateChain(["task1", "task2"]);
+```
+
+<Callout type="info" emoji="ℹ️">
+  Use the `validateChain()` method to ensure your task combinations are
+  supported before creating pipelines.
+</Callout>

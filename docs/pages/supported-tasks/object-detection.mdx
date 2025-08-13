@@ -1,0 +1,93 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Object Detection
+
+> Detect common objects in satellite imagery
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/object-detection.mp4"
+  title="Object Detection Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "object-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Found ${result.detections.features.length} objects`);
+```
+
+<Callout type="info" emoji="🎯">
+  Detects 12+ object classes including vehicles, buildings, boats, and
+  infrastructure in aerial imagery
+</Callout>
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  confidence: 0.8; // confidence range (0.0-1.0)
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 18; // Image resolution (16-20)
+}
+```
+
+See [Map Source Parameters](http://localhost:3000/geoaijs/concepts/InferenceParams#map-source-parameters) for more details.
+
+## Detected Objects
+
+| Object         | Use Cases                            |
+| -------------- | ------------------------------------ |
+| `LightVehicle` | Traffic analysis, parking assessment |
+| `Person`       | Crowd monitoring, activity analysis  |
+| `Building`     | Urban planning, damage assessment    |
+| `Truck`        | Commercial traffic analysis          |
+| `Boat`         | Marine traffic, port activity        |
+| `SolarPanels`  | Renewable energy assessment          |
+| `Container`    | Logistics, port operations           |
+| `Bus`          | Public transit analysis              |
+| `Bike`         | Transportation analysis              |
+| `UPole`        | Infrastructure inventory             |
+| `Gastank`      | Industrial monitoring                |
+| `Digger`       | Construction monitoring              |
+
+## Output
+
+Returns GeoJSON with detected objects and their confidence scores:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* polygon coordinates */ },
+        properties: {
+          class: "LightVehicle",
+          confidence: 0.92
+        }
+      }
+    ]
+  }
+}
+```

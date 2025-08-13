@@ -20,6 +20,32 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Meta Cards & SEO
+
+This example app includes comprehensive meta card implementation for better link sharing:
+
+### Open Graph Meta Tags
+- **Title**: "GeoAI.js - Interactive Examples"
+- **Description**: Detailed description of the app's capabilities
+- **Image**: Uses `geoaijs-meta.png` for social media previews
+- **URL**: Points to the live demo at `https://docs.geobase.app/geoai-live`
+
+### Twitter Card Meta Tags
+- **Card Type**: `summary_large_image`
+- **Title & Description**: Optimized for Twitter sharing
+- **Image**: Same meta image for consistent branding
+
+### JSON-LD Structured Data
+- **Type**: WebApplication schema
+- **Features**: Lists all available AI models and capabilities
+- **Author**: Geobase.app organization
+- **Screenshot**: Links to the meta image
+
+### SEO Features
+- **Keywords**: GeoAI, Geospatial AI, JavaScript, Machine Learning, Computer Vision
+- **Robots**: Optimized for search engine indexing
+- **Canonical URL**: Prevents duplicate content issues
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

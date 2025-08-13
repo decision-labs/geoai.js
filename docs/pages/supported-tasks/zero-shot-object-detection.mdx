@@ -1,0 +1,103 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Zero-Shot Object Detection
+
+> Detect custom objects using text prompts
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/zero-shot-object-detection.mp4"
+  title="Zero-Shot Object Detection Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "zero-shot-object-detection" }],
+  providerParams
+);
+
+// Run detection with custom classes
+const result = await pipeline.inference({
+  inputs: {
+    polygon: myPolygon,
+    classLabel: "trees.",
+  },
+  postProcessingParams: {
+    threshold: 0.2,
+    topk: 10,
+  },
+});
+
+console.log(`Found ${result.detections.features.length} objects`);
+```
+
+<Callout type="info" emoji="🎯">
+  Detect any object by describing it in plain English - no training required!
+</Callout>
+
+## Parameters
+
+### Input
+
+```typescript
+inputs: {
+  polygon: myPolygon,
+  classLabel: "trees."  // Describe objects dot seperated
+}
+```
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  threshold: 0.2,  // Confidence threshold (0.0-1.0)
+  topk: 10        // Maximum detections per class
+}
+```
+
+## Example Objects
+
+**Infrastructure**
+
+- `wind turbine`, `solar panel`, `cell tower`
+- `bridge`, `dam`, `construction crane`
+
+**Vehicles**
+
+- `aircraft`, `helicopter`, `cargo ship`
+- `train`, `yacht`, `fishing boat`
+
+**Facilities**
+
+- `swimming pool`, `tennis court`, `golf course`
+- `baseball field`, `basketball court`
+
+**Natural Features**
+
+- `forest`, `lake`, `river`, `beach`
+
+## Output
+
+Returns GeoJSON with detected custom objects:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* object location */ },
+        properties: {
+          label: "tree",
+          score: 0.76
+        }
+      }
+    ]
+  }
+}
+```

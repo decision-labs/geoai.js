@@ -1,0 +1,201 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../components/video-embed";
+
+# 🚀 Quickstart Guide
+
+Build your first AI-powered React mapping app in under 5 minutes. Create a React application that can detect objects in satellite imagery with just a few lines of code.
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/building-detection.mp4"
+  title="Building Detection Demo"
+/>
+
+<Callout type="info" emoji="ℹ️">
+  This guide uses the latest version of @geobase-js/geoai for optimal
+  performance and compatibility.
+</Callout>
+
+## Prerequisites
+
+Before getting started, ensure you have:
+
+- Basic React/TypeScript knowledge
+- Node.js 16+ installed
+- A map provider API key (Geobase or Mapbox)
+
+<Callout type="warning" emoji="⚠️">
+  Make sure your Node.js version is 16 or higher for compatibility with the
+  latest dependencies.
+</Callout>
+
+## Development
+
+### Step 1: Create React App
+
+#### Option A: Create a new app manually
+
+Create a new React app and install the required dependencies:
+
+```bash
+npx create-react-app my-geoai-app --template typescript
+cd my-geoai-app
+npm install maplibre-gl @geobase-js/geoai maplibre-gl-draw
+```
+
+#### Option B: Clone an Quickstart example
+```bash
+git init
+touch README.md
+git add .
+git commit -m "Initial commit"
+git subtree add --prefix=examples/01-quickstart https://github.com/decision-labs/geobase-ai.js main --squash
+```
+
+### Step 2: Setup Your Map Provider
+
+Choose your preferred map data provider:
+
+#### Option A: Geobase (Recommended)
+
+```javascript
+const config = {
+  provider: "geobase",
+  projectRef: "your-project-ref",
+  apikey: "your-api-key",
+  cogImagery: "your-imagery-url",
+};
+```
+
+#### Option B: Mapbox
+
+```javascript
+const config = {
+  provider: "mapbox",
+  apiKey: "your-mapbox-token",
+  style: "mapbox://styles/mapbox/satellite-v9",
+};
+```
+
+<Callout type="info" emoji="📝">
+  **Getting API Keys:** Visit [Geobase](https://geobase.app) or
+  [Mapbox](https://mapbox.com) to get your free API keys.
+</Callout>
+
+### Step 3: Create Your AI Map Component
+
+Replace the contents of `src/App.tsx` with this React component:
+
+<Callout type="warning" emoji="⚠️">
+  Make sure to replace `your-mapbox-token` with your actual Mapbox API key in
+  the code below.
+</Callout>
+
+```typescript
+import React, { useEffect, useRef, useState } from 'react';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import { geoai, ProviderParams } from '@geobase-js/geoai';
+import MaplibreDraw from 'maplibre-gl-draw';
+import 'maplibre-gl-draw/dist/mapbox-gl-draw.css';
+
+// Your config from Step 2
+const config = {
+  provider: "mapbox",
+  apiKey: "your-mapbox-token",
+  style: "mapbox://styles/mapbox/satellite-v9",
+};
+
+function App() {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<maplibregl.Map | null>(null);
+  const [detections, setDetections] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!mapContainer.current) return;
+
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: {
+        version: 8,
+        sources: {
+          'satellite': {
+            type: 'raster',
+            tiles: [`https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=${config.apiKey}`],
+            tileSize: 256,
+          }
+        },
+        layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }]
+      },
+      center: [-117.59, 47.653],
+      zoom: 18
+    });
+
+    const draw = new MaplibreDraw({
+      displayControlsDefault: false,
+      controls: { polygon: true, trash: true }
+    });
+    // @ts-ignore
+    map.current.addControl(draw);
+
+    map.current.on('draw.create', async (e) => {
+      const polygon = e.features[0];
+
+      const pipeline = await geoai.pipeline([{ task: "building-detection" }], config as ProviderParams);
+      const result = await pipeline.inference({
+        inputs: { polygon },
+        mapSourceParams: { zoomLevel: map.current?.getZoom() || 18 }
+      });
+
+      setDetections(result.detections.features || []);
+
+      if (map.current?.getSource('detections')) {
+        map.current.removeLayer('detections');
+        map.current.removeSource('detections');
+      }
+
+      map.current?.addSource('detections', { type: 'geojson', data: result.detections });
+      map.current?.addLayer({
+        id: 'detections',
+        type: 'fill',
+        source: 'detections',
+        paint: { 'fill-color': '#ff0000', 'fill-opacity': 0.5 }
+      });
+    });
+
+    return () => map.current?.remove();
+  }, []);
+
+  return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div ref={mapContainer} style={{ height: '70%', width: '100%' }} />
+      <div style={{ padding: '20px', height: '30%', backgroundColor: '#f5f5f5' }}>
+        <h2>Building Detection</h2>
+        <p>Draw a polygon to detect buildings</p>
+        {detections.length > 0 && <p>Found {detections.length} buildings!</p>}
+      </div>
+    </div>
+  );
+}
+
+export default App;
+```
+
+### Step 4: Run Your Application
+
+Start your React development server:
+
+```bash
+npm start
+```
+
+Your app will open at `http://localhost:3000`. Draw a polygon on the map and watch the AI detect objects in real-time!
+
+<Callout type="success" emoji="🎉">
+  Congratulations! You now have a working AI-powered mapping application. The AI
+  will analyze satellite imagery within drawn polygons and detect objects like
+  buildings, vehicles, and infrastructure.
+</Callout>
+
+---
+
+For more advanced Web Worker patterns and techniques, see the [Web Worker documentation](./workers.mdx).

@@ -1,0 +1,78 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Oil Storage Tank Detection
+
+> Detect industrial storage tanks in satellite imagery
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/oil-storage-tank-detection.mp4"
+  title="Oil Storage Tank Detection Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "oil-storage-tank-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  postProcessingParams: {
+    confidenceThreshold: 0.5,
+    nmsThreshold: 0.3,
+  },
+});
+
+console.log(`Found ${result.detections.features.length} storage tanks`);
+```
+
+<Callout type="info" emoji="🛢️">
+  Detects cylindrical oil, fuel, and chemical storage tanks in industrial
+  facilities
+</Callout>
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  confidenceThreshold: 0.5,  // Confidence threshold (0.0-1.0)
+  nmsThreshold: 0.3        // Non-Maximum Suppression threshold
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 18; // 18+ recommended for tank detection
+}
+```
+
+## Output
+
+Returns GeoJSON with detected storage tanks:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* tank location */ },
+        properties: {
+          confidence: 0.5,
+        }
+      }
+    ]
+  }
+}
+```

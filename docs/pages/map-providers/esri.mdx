@@ -1,0 +1,56 @@
+import { Callout } from "nextra/components";
+
+# ESRI Map Provider
+
+> ESRI ArcGIS provides access to global satellite imagery and mapping services for geospatial AI analysis.
+
+## Setup
+
+<Callout type="info" emoji="🌐">
+  ESRI ArcGIS services are publicly available. No API key required for basic World Imagery service.
+</Callout>
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Configuration
+const esriParams = {
+  provider: "esri",
+  serviceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services",
+  serviceName: "World_Imagery",
+  tileSize: 256,
+  attribution: "ESRI World Imagery",
+};
+
+// Initialize pipeline with ESRI
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  esriParams
+);
+
+// Run inference on polygon
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Parameters
+
+```typescript
+type EsriParams = {
+  provider: "esri";
+  serviceUrl?: string; // ESRI service URL (defaults to ArcGIS Online)
+  serviceName?: string; // Service name (defaults to "World_Imagery")
+  tileSize?: number; // Tile size in pixels (defaults to 256)
+  attribution?: string; // Attribution text (defaults to "ESRI World Imagery")
+};
+```
+
+<Callout type="warning" emoji="🛰️">
+  Uses ESRI's World Imagery service by default. For custom ESRI services, ensure they support tile-based access.
+</Callout>
+
+<Callout type="info" emoji="📊">
+  ESRI services provide high-resolution satellite imagery suitable for most AI analysis tasks including object detection, segmentation, and classification.
+</Callout> 

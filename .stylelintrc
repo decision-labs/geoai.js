@@ -4,6 +4,7 @@
     "stylelint-config-recommended",
     "stylelint-config-sass-guidelines"
   ],
+  "ignoreFiles": ["examples/**/*"],
   "overrides": [
     {
       "files": ["**/*.scss"],
