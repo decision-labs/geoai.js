@@ -36,4 +36,3 @@ This project is licensed under the MIT License.
 
 - Organize Developer Frameworks into a table
 
-`trigger-deploy:toggle-on`
