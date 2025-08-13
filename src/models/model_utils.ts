@@ -244,7 +244,7 @@ const buildModelUrl = (
   const baseUrl = "https://huggingface.co";
   if (modelId.split("/").length !== 2) {
     throw new Error(
-      "Model ID must be in the format username/reponame, e.g., geobase/car-detection"
+      'Model ID must be in the format "username/repository-name", e.g., "geobase/car-detection"'
     );
   }
   const revision = modelParams?.revision || "main";
