@@ -1,0 +1,109 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Mask Generation
+
+> Generate precise pixel-level masks for objects
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/mask-generation.mp4"
+  title="Mask Generation Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "mask-generation" }],
+  providerParams
+);
+
+// Run with point input
+const result = await pipeline.inference({
+  inputs: {
+    polygon: myPolygon,
+    input: {
+      type: "points",
+      coordinates: [longitude, latitude],
+    },
+  },
+  postProcessingParams: { maxMasks: 3 },
+});
+
+console.log(`Generated ${result.masks.features.length} masks`);
+```
+
+<Callout type="info" emoji="🎯">
+  Generate precise object boundaries using point clicks, bounding boxes, or
+  chained from object detection
+</Callout>
+
+## Input Types
+
+### Point Input
+
+```typescript
+input: {
+  type: "points",
+  coordinates: [longitude, latitude]  // Click on object center
+}
+```
+
+### Box Input
+
+```typescript
+input: {
+  type: "boxes",
+  coordinates: [minLng, minLat, maxLng, maxLat]  // Bounding box around object
+}
+```
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  maxMasks: 1; // Maximum number of masks
+}
+```
+
+## Chained Pipeline
+
+```typescript
+// Use with object detection pipeline
+const pipeline = await geoai.pipeline(
+  [
+    { task: "object-detection" },
+    {
+      task: "mask-generation",
+      modelId: "Xenova/slimsam-77-uniform",
+      modelParams: { revision: "boxes" },
+    },
+  ],
+  providerParams
+);
+```
+
+<Callout type="default" emoji="💡">
+  **Point prompts** work best when clicking object centers **Box prompts** need
+  the "boxes" model revision for box inputs
+</Callout>
+
+## Parameters
+
+| Parameter  | Type                       | Description                           |
+| ---------- | -------------------------- | ------------------------------------- |
+| `polygon`  | `GeoJSON.Feature<Polygon>` | Area of interest                      |
+| `input`    | `SegmentationInput`        | Point, box, or detection results      |
+| `maxMasks` | `number`                   | Maximum masks per prompt (default: 1) |
+
+## Output
+
+```typescript
+{
+  detection: GeoJSON.FeatureCollection,  // Generated mask polygons
+  geoRawImage: GeoRawImage           // Source imagery metadata
+}
+```

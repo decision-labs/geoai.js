@@ -1,0 +1,73 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Building Footprint Segmentation
+
+> Extract buildings from satellite imagery
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/building-footprint-segmentation.mp4"
+  title="Building Footprint Segmentation Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "building-footprint-segmentation" }],
+  providerParams
+);
+
+// Run segmentation
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  postProcessingParams: {
+    confidenceThreshold: 0.5,
+    minArea: 20, // Minimum number of pixels, the unit of area depends on the zoom level.
+  },
+});
+
+console.log(
+  `Extracted ${result.detections.features.length} building footprints`
+);
+```
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  confidenceThreshold: 0.5,  // Confidence range (0.0-1.0)
+  minArea: 20               // Minimum building area
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 20; // 20+ recommended for precise boundaries
+}
+```
+
+## Output
+
+Returns GeoJSON with precise building boundary polygons:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* precise building polygon */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```

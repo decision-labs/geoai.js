@@ -1,13 +1,12 @@
-import { RawImage } from "@huggingface/transformers";
+import { PreTrainedModel, RawImage } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { iouPoly } from "@/utils/gghl/polyiou";
 import { BaseModel } from "./base_model"; // <-- import BaseModel
-import { loadOnnxModel } from "./model_utils";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 interface ConvertPredParams {
@@ -52,7 +51,7 @@ export class OrientedObjectDetection extends BaseModel {
   protected constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -60,7 +59,7 @@ export class OrientedObjectDetection extends BaseModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: OrientedObjectDetection }> {
     if (
       !OrientedObjectDetection.instance ||
@@ -73,7 +72,8 @@ export class OrientedObjectDetection extends BaseModel {
     ) {
       OrientedObjectDetection.instance = new OrientedObjectDetection(
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       );
       await OrientedObjectDetection.instance.initialize();
     }
@@ -124,7 +124,11 @@ export class OrientedObjectDetection extends BaseModel {
   protected async initializeModel(): Promise<void> {
     // Only load the model if not already loaded
     if (this.model) return;
-    this.model = await loadOnnxModel(this.model_id);
+    const pretrainedModel = await PreTrainedModel.from_pretrained(
+      this.model_id,
+      this.modelParams
+    );
+    this.model = pretrainedModel.sessions.model;
   }
 
   /**
@@ -158,17 +162,17 @@ export class OrientedObjectDetection extends BaseModel {
     if (!this.dataProvider) {
       throw new Error("Data provider not initialized");
     }
-
     const geoRawImage = await this.polygonToImage(
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
-      mapSourceParams?.expression,
-      true
+      mapSourceParams?.expression
     );
 
     const inputs = await this.preProcessor(geoRawImage);
     let outputs;
+    const inferenceStartTime = performance.now();
+    console.log("[oriented-object-detection] starting inference...");
     try {
       if (!this.model) {
         throw new Error("Model or processor not initialized");
@@ -183,6 +187,10 @@ export class OrientedObjectDetection extends BaseModel {
       outputs,
       geoRawImage,
       postProcessingParams as NMSOptions
+    );
+    const inferenceEndTime = performance.now();
+    console.log(
+      `[oriented-object-detection] inference completed. Time taken: ${(inferenceEndTime - inferenceStartTime).toFixed(2)}ms`
     );
 
     return {
@@ -486,7 +494,7 @@ export class OrientedObjectDetection extends BaseModel {
       pred_bbox,
       org_img_shape: [geoRawImage.width, geoRawImage.height],
       valid_scale,
-      conf_thresh: options.conf_thres || 0.5,
+      conf_thresh: options.conf_thres || 0.4,
     });
 
     if (predbboxes.length === 0) {

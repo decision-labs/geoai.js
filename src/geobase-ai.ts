@@ -1,4 +1,4 @@
-import { PretrainedOptions } from "@huggingface/transformers";
+import { PretrainedModelOptions } from "@huggingface/transformers";
 import {
   ModelConfig,
   ModelInstance,
@@ -9,7 +9,7 @@ import {
 } from "@/core/types";
 import { modelRegistry } from "./registry";
 import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
-import { GenericSegmentation } from "./models/generic_segmentation";
+import { MaskGeneration } from "./models/mask_generation";
 import { ObjectDetection } from "./models/object_detection";
 import { ErrorType, GeobaseError } from "./errors";
 
@@ -17,6 +17,12 @@ interface ChainInstance {
   inference: (
     inputs: InferenceParams
   ) => Promise<ObjectDetectionResults | SegmentationResults>;
+}
+
+interface TaskConfig {
+  task: string;
+  modelId?: string;
+  modelParams?: PretrainedModelOptions;
 }
 
 class Pipeline {
@@ -112,11 +118,7 @@ class Pipeline {
    * @returns A function that takes inputs and returns the output of the last task in the chain
    */
   static async pipeline(
-    taskOrTasks: {
-      task: string;
-      modelId?: string;
-      modelParams?: PretrainedOptions;
-    }[],
+    taskOrTasks: TaskConfig[],
     providerParams: ProviderParams
   ): Promise<ModelInstance | ChainInstance> {
     // Handle single task case
@@ -217,9 +219,7 @@ class Pipeline {
                 break;
 
               case "mask-generation":
-                currentInput = await (
-                  instance as GenericSegmentation
-                ).inference({
+                currentInput = await (instance as MaskGeneration).inference({
                   inputs: {
                     ...currentInput.inferenceInputs.inputs,
                     input: currentInput,
@@ -276,4 +276,4 @@ const geoai = {
   validateChain: Pipeline.findValidChains,
 };
 
-export { geoai, type ProviderParams };
+export { geoai, type ProviderParams, type InferenceParams };

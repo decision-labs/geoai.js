@@ -1,10 +1,12 @@
 import { BaseModel } from "@/models/base_model";
-import { PretrainedOptions } from "@huggingface/transformers";
+import {
+  PreTrainedModel,
+  PretrainedModelOptions,
+} from "@huggingface/transformers";
 import { parametersChanged, getPolygonFromMask } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import * as ort from "onnxruntime-web";
-import { loadOnnxModel } from "./model_utils";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 const cv = require("@techstark/opencv-js");
 
@@ -15,7 +17,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -23,7 +25,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: BuildingFootPrintSegmentation }> {
     if (
       !BuildingFootPrintSegmentation.instance ||
@@ -48,7 +50,11 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   protected async initializeModel(): Promise<void> {
     // Only load the model if not already loaded
     if (this.model) return;
-    this.model = await loadOnnxModel(this.model_id);
+    const pretrainedModel = await PreTrainedModel.from_pretrained(
+      this.model_id,
+      this.modelParams
+    );
+    this.model = pretrainedModel.sessions.model;
   }
 
   protected async preProcessor(
@@ -116,6 +122,9 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   public async inference(
     params: InferenceParams
   ): Promise<ObjectDetectionResults> {
+    const inferenceStartTime = performance.now();
+    console.log("[building-footprint-segmentation] starting inference...");
+
     const {
       inputs: { polygon },
       postProcessingParams: { confidenceThreshold = 0.5, minArea = 20 } = {},
@@ -263,12 +272,19 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       originalImage.delete();
       paddedImage.delete();
       croppedPrediction.delete();
-      return await this.postProcessor(
+      // Post-processing timing
+      const results = await this.postProcessor(
         finalMat,
         geoRawImage,
         confidenceThreshold as number,
         minArea as number
       );
+      const inferenceEndTime = performance.now();
+      console.log(
+        `[building-footprint-segmentagtion] inference completed. Time taken: ${(inferenceEndTime - inferenceStartTime).toFixed(2)}ms`
+      );
+
+      return results;
     } catch (error) {
       // Clean up resources in case of error
       originalImage.delete();

@@ -1,0 +1,224 @@
+import { Callout } from "nextra/components";
+
+# Web Workers
+
+> Run AI tasks in background threads to keep your UI responsive.
+
+### Quick Setup
+
+
+#### Create React App
+
+#### Option A: Create a new app manually
+
+Create a new React app and install the required dependencies:
+
+```bash
+npx create-react-app my-geoai-app --template typescript
+cd my-geoai-app
+npm install maplibre-gl @geobase-js/geoai maplibre-gl-draw
+```
+
+#### Option B: Clone an Quickstart example
+```bash
+git init
+touch README.md
+git add .
+git commit -m "Initial commit"
+git subtree add --prefix=examples/02-quickstart-with-workers https://github.com/decision-labs/geobase-ai.js main --squash
+```
+
+#### Create Worker File `worker.ts`
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+let modelInstance: any = null;
+
+self.onmessage = async e => {
+  const { type, payload } = e.data;
+
+  try {
+    switch (type) {
+      case "init":
+        modelInstance = await geoai.pipeline(
+          payload.tasks,
+          payload.providerParams
+        );
+        self.postMessage({ type: "ready" });
+        break;
+
+      case "inference":
+        const result = await modelInstance.inference(payload);
+        self.postMessage({ type: "result", payload: result });
+        break;
+    }
+  } catch (error) {
+    self.postMessage({ type: "error", payload: error.message });
+  }
+};
+```
+
+#### Create Hook `useGeoAIWorker.ts`
+
+```typescript
+import { useState, useEffect, useRef } from "react";
+
+export function useGeoAIWorker() {
+  const workerRef = useRef<Worker | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    workerRef.current = new Worker(new URL("./worker.ts", import.meta.url));
+
+    workerRef.current.onmessage = e => {
+      const { type, payload } = e.data;
+
+      switch (type) {
+        case "ready":
+          setIsReady(true);
+          break;
+        case "result":
+          setResult(payload);
+          setIsProcessing(false);
+          break;
+        case "error":
+          console.error("Worker error:", payload);
+          setIsProcessing(false);
+          break;
+      }
+    };
+
+    return () => workerRef.current?.terminate();
+  }, []);
+
+  const initialize = (tasks: any[], providerParams: any) => {
+    workerRef.current?.postMessage({
+      type: "init",
+      payload: { tasks, providerParams },
+    });
+  };
+
+  const runInference = (params: any) => {
+    if (!isReady) return;
+    setIsProcessing(true);
+    workerRef.current?.postMessage({
+      type: "inference",
+      payload: params,
+    });
+  };
+
+  return { isReady, isProcessing, result, initialize, runInference };
+}
+```
+
+#### Use in Component
+
+```tsx
+import React, { useEffect, useRef, useState } from 'react';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import MaplibreDraw from 'maplibre-gl-draw';
+import 'maplibre-gl-draw/dist/mapbox-gl-draw.css';
+import { useGeoAIWorker } from './useGeoAIWorker';
+
+const config = {
+  provider: "mapbox",
+  apiKey: "your-mapbox-token",
+  style: "mapbox://styles/mapbox/satellite-v9",
+};
+
+function App() {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<maplibregl.Map | null>(null);
+  const [detections, setDetections] = useState<any[]>([]);
+  const { isReady, result, initialize, runInference } = useGeoAIWorker();
+
+  useEffect(() => {
+    initialize([{ task: "building-detection" }], {
+      geobase: { accessToken: config.apiKey }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainer.current) return;
+
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: {
+        version: 8,
+        sources: {
+          satellite: {
+            type: 'raster',
+            tiles: [
+              `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=${config.apiKey}`,
+            ],
+            tileSize: 256,
+          },
+        },
+        layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }],
+      },
+      center: [-117.59, 47.653],
+      zoom: 18,
+    });
+
+    const draw = new MaplibreDraw({
+      displayControlsDefault: false,
+      controls: { polygon: true, trash: true },
+    });
+
+    // @ts-ignore
+    map.current.addControl(draw);
+
+    map.current.on('draw.create', (e) => {
+      const polygon = e.features[0];
+      if (!isReady) return;
+
+      runInference({
+        inputs: { polygon },
+        mapSourceParams: { zoomLevel: map.current?.getZoom() || 18 },
+      });
+    });
+  }, [isReady]);
+
+  useEffect(() => {
+    if (!result) return;
+
+    const features = result.detections?.features || [];
+    setDetections(features);
+
+    if (map.current?.getSource('detections')) {
+      map.current.removeLayer('detections');
+      map.current.removeSource('detections');
+    }
+
+    map.current?.addSource('detections', { type: 'geojson', data: result.detections });
+    map.current?.addLayer({
+      id: 'detections',
+      type: 'fill',
+      source: 'detections',
+      paint: { 'fill-color': '#ff0000', 'fill-opacity': 0.5 },
+    });
+  }, [result]);
+
+  return (
+    <div style={{ height: '100vh' }}>
+      <div ref={mapContainer} style={{ height: '70%' }} />
+      <div style={{ padding: '1rem' }}>
+        {detections.length > 0 && <p>Detected {detections.length} buildings.</p>}
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+```
+
+### Benefits
+
+- Non-blocking UI during AI processing
+- Better user experience
+- Parallel task execution

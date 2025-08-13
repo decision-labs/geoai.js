@@ -1,0 +1,58 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Building Detection
+
+> Specialized detection of buildings in satellite imagery
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/building-detection.mp4"
+  title="Building Detection Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Found ${result.detections.features.length} buildings`);
+```
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 20; // 19-22 recommended
+}
+```
+
+## Output
+
+Returns GeoJSON with detected buildings:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* building polygon */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```

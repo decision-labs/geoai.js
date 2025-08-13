@@ -1,0 +1,97 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Oriented Object Detection
+
+> Detect objects with rotational awareness in aerial imagery
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/oriented-object-detection.mp4"
+  title="Oriented Object Detection Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "oriented-object-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  postProcessingParams: {
+    conf_thres: 0.5,
+    iou_thres: 0.45,
+  },
+});
+
+console.log(`Found ${result.detections.features.length} oriented objects`);
+```
+
+<Callout type="info" emoji="🔄">
+  Detects objects with their actual orientation using rotated bounding boxes
+  instead of standard rectangles
+</Callout>
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  conf_thres: 0.5,     // Confidence threshold (0.0-1.0)
+  iou_thres: 0.45,     // Non-Maximum Suppression threshold
+  multi_label: true    // Allow multiple labels per detection
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 22;
+}
+```
+
+## Detected Objects
+
+| Object             |
+| ------------------ |
+| `plane`            |
+| `ship`             |
+| `small-vehicle`    |
+| `large-vehicle`    |
+| `baseball-diamond` |
+| `tennis-court`     |
+| `basketball-court` |
+| `swimming-pool`    |
+| `bridge`           |
+| `storage-tank`     |
+| `harbor`           |
+| `roundabout`       |
+
+## Output
+
+Returns GeoJSON with oriented bounding boxes:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* oriented polygon */ },
+        properties: {
+          class_name: "plane",
+          score: 0.89
+        }
+      }
+    ]
+  }
+}
+```

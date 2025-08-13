@@ -1,0 +1,68 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Wetland Segmentation
+
+> Identify wetland areas in satellite imagery
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/wetland-segmentation.mp4"
+  title="Wetland Segmentation Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "wetland-segmentation" }],
+  providerParams
+);
+
+// Run segmentation
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: {
+    zoomLevel: 16,
+    bands: [1, 2, 3, 4], // RGB + NIR required
+  },
+});
+
+console.log(`Identified ${result.detections.features.length} wetland areas`);
+```
+
+<Callout type="warning" emoji="🌊">
+  **Requires 4-band imagery:** This model needs RGB + NIR bands and will not
+  work with standard 3-band RGB imagery
+</Callout>
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 16,           // 15-17 recommended for wetlands
+  bands: [1, 2, 3, 4]     // Red, Green, Blue, NIR (all required)
+}
+```
+
+## Output
+
+Returns GeoJSON with identified wetland polygons:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* wetland boundary polygon */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```

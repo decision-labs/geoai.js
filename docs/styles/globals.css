@@ -1,0 +1,13 @@
+/* Global CSS to override Nextra theme colors with exact #247c53 */
+
+:root {
+  /* Override Nextra's primary color variables */
+  --nextra-primary-hue: 150deg;
+  --nextra-primary-saturation: 55%;
+  --nextra-primary-lightness: 32%;
+
+  /* Define exact color as CSS custom property */
+  --geobase-primary: #3dcf8d;
+  --geobase-primary-hover: #247c53;
+  --geobase-primary-light: rgba(36, 124, 83, 0.1);
+}

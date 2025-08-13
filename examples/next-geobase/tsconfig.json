@@ -29,8 +29,7 @@
       ]
     },
     "types": [
-      "node",
-      "webpack-env"
+      "node"
     ]
   },
   "include": [

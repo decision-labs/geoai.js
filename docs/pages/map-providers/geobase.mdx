@@ -1,0 +1,52 @@
+import { Callout } from "nextra/components";
+
+# GeoBase Map Provider
+
+> High-performance COG imagery serving platform for advanced AI analysis
+
+## Setup
+
+<Callout type="info" emoji="🔑">
+  Get your project reference and API key from the
+  [GeoBase](https://geobase.app/) under settings.
+</Callout>
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Configuration
+const geobaseParams = {
+  provider: "geobase",
+  projectRef: process.env.GEOBASE_PROJECT_REF,
+  apikey: process.env.GEOBASE_API_KEY,
+  cogImagery: "your-cog-imagery-url",
+};
+
+// Initialize pipeline with GeoBase
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  geobaseParams
+);
+
+// Run inference on polygon
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Parameters
+
+```typescript
+type GeobaseParams = {
+  provider: "geobase";
+  projectRef: string; // Your GeoBase project reference
+  apikey: string; // Your GeoBase API key
+  cogImagery: string; // URL to your COG imagery
+};
+```
+
+<Callout type="warning" emoji="🌍">
+  Serves your own Cloud Optimized GeoTIFF (COG) imagery. Task compatibility
+  depends on your COG specifications (resolution, bands, etc.)
+</Callout>

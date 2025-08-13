@@ -46,6 +46,14 @@ export const geobaseParamsWetLand: ProviderParams = {
     "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip/m_4609932_nw_14_1_20100629.tif",
 };
 
+export const geobaseParamsImageEmbeddings: ProviderParams = {
+  provider: "geobase",
+  projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
+  apikey: process.env.GEOBASE_API_KEY || "test",
+  cogImagery:
+    "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/662aec6d6049ef00013b8085/0/662aec6d6049ef00013b8086.tif",
+};
+
 export const geobaseParamsBuilding: ProviderParams = {
   provider: "geobase",
   projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
@@ -150,6 +158,23 @@ export const polygonSolarPannel = {
         [-121.77421502202081, 38.553215934463736],
         [-121.77421502202081, 38.55347243518358],
         [-121.77483138694643, 38.55347243518358],
+      ],
+    ],
+    type: "Polygon",
+  },
+} as GeoJSON.Feature;
+
+export const polygonImageEmbeddings = {
+  type: "Feature",
+  properties: {},
+  geometry: {
+    coordinates: [
+      [
+        [-13.274105237569302, 8.486797889658092],
+        [-13.274105237569302, 8.486630954630655],
+        [-13.273928015225778, 8.486630954630655],
+        [-13.273928015225778, 8.486797889658092],
+        [-13.274105237569302, 8.486797889658092],
       ],
     ],
     type: "Polygon",

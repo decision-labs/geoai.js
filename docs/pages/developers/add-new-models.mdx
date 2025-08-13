@@ -1,0 +1,83 @@
+# Adding New Models
+
+> **Coming Soon** - This guide will show you how to add new AI models to the GeoBase AI library.
+
+## Overview
+
+This guide will cover:
+
+- Understanding the model registry system
+- Creating new model implementations
+- Adding model configurations
+- Testing new models
+- Contributing models to the library
+
+## What You'll Learn
+
+### Model Registry
+
+- How models are registered in `src/registry.ts`
+- Understanding the `ModelConfig` interface
+- Adding new task types
+
+### Model Implementation
+
+- Creating model classes that extend base models
+- Implementing required methods
+- Handling model initialization and inference
+
+### Configuration
+
+- Setting up model parameters
+- Configuring input/output types
+- Adding model metadata
+
+### Testing
+
+- Writing unit tests for new models
+- Integration testing with real data
+- Performance benchmarking
+
+## Current Status
+
+This documentation is under development. For now, you can:
+
+1. **Explore existing models** in `src/models/` to understand the patterns
+2. **Check the registry** in `src/registry.ts` to see how models are configured
+3. **Review the checklist** in `docs/checklist_model_docs.md` for documentation requirements
+
+## Quick Reference
+
+### Model Files Structure
+
+```
+src/models/
+├── base_model.ts              # Base model class
+├── geoai_models.ts           # GeoAI specific models
+├── object_detection.ts       # Object detection model
+├── land_cover_classification.ts
+├── building_footprint_segmentation.ts
+└── [your-new-model].ts       # Your new model
+```
+
+### Registry Configuration
+
+```typescript
+{
+  task: "your-model-name",
+  library: "@geobase-js/geoai",
+  description: "Your Model Description",
+  ioConfig: {} as YourModelIOConfig,
+  geobase_ai_pipeline: async (params, modelId, modelParams) => {
+    return YourModel.getInstance(modelId, params, modelParams);
+  }
+}
+```
+
+## Stay Tuned
+
+This guide will be updated with complete documentation, examples, and best practices for adding new models to the GeoBase AI library.
+
+---
+
+**Need help now?** Check out the [Local Testing Guide](./local-testing-guide) to understand how to test your changes.

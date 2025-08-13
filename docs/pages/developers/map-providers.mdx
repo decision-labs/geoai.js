@@ -1,0 +1,392 @@
+import { Callout } from "nextra/components";
+
+# Checklist for Adding Map Providers
+
+> Adding new map providers to the library
+
+## Overview
+
+This checklist outlines the steps required to add a new map provider to the GeoBase AI library. The process involves creating a new provider class, updating type definitions, adding tests, and updating documentation.
+
+## Implementation Checklist
+
+### 1. Create Provider Class
+
+Create a new provider class in `src/data_providers/` that extends the `MapSource` abstract class:
+
+```typescript
+// src/data_providers/your-provider.ts
+import { MapSource } from "./mapsource";
+
+interface YourProviderConfig {
+  // Define your provider-specific configuration
+  apiKey: string;
+  serviceUrl?: string;
+  // ... other config options
+}
+
+export class YourProvider extends MapSource {
+  // Provider-specific properties
+  apiKey: string;
+  serviceUrl: string;
+
+  constructor(config: YourProviderConfig) {
+    super();
+    this.apiKey = config.apiKey;
+    this.serviceUrl = config.serviceUrl || "default-url";
+  }
+
+  protected getTileUrlFromTileCoords(
+    tileCoords: [number, number, number],
+    instance: YourProvider,
+    bands?: number[],
+    expression?: string
+  ): string {
+    const [x, y, z] = tileCoords;
+    // Implement your tile URL generation logic
+    return `${instance.serviceUrl}/${z}/${x}/${y}?key=${instance.apiKey}`;
+  }
+}
+```
+
+### 2. Update Type Definitions
+
+Add your provider's parameter type to `src/core/types.ts`:
+
+```typescript
+export type YourProviderParams = {
+  provider: "your-provider";
+  apiKey: string;
+  serviceUrl?: string;
+  // ... other parameters
+};
+
+export type ProviderParams =
+  | MapboxParams
+  | SentinelParams
+  | GeobaseParams
+  | EsriParams
+  | YourProviderParams; // Add your provider here
+```
+
+### 3. Update Base Model
+
+Modify `src/models/base_model.ts` to support your provider:
+
+```typescript
+import { YourProvider } from "@/data_providers/your-provider";
+
+export abstract class BaseModel {
+  // Update the dataProvider type
+  protected dataProvider: Mapbox | Geobase | Esri | YourProvider | undefined;
+
+  // Add your provider case in the initializeDataProvider method
+  private initializeDataProvider(): void {
+    switch (this.providerParams.provider) {
+      // ... existing cases
+      case "your-provider":
+        this.dataProvider = new YourProvider({
+          apiKey: this.providerParams.apiKey,
+          serviceUrl: this.providerParams.serviceUrl,
+        });
+        break;
+      // ... rest of the method
+    }
+  }
+}
+```
+
+### 4. Create Comprehensive Tests
+
+Create a test file in `test/` following the existing pattern:
+
+```typescript
+// test/your-provider.test.ts
+import { describe, expect, it, beforeAll, beforeEach } from "vitest";
+import { YourProvider } from "../src/data_providers/your-provider";
+import { GeoRawImage } from "../src/types/images/GeoRawImage";
+
+describe("YourProvider", () => {
+  let provider: YourProvider;
+  let testPolygon: GeoJSON.Feature;
+  let image: GeoRawImage;
+
+  beforeAll(() => {
+    provider = new YourProvider({
+      apiKey: "test-api-key",
+      serviceUrl: "https://your-service.com",
+    });
+  });
+
+  beforeEach(() => {
+    testPolygon = {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        coordinates: [
+          [
+            [12.482802629103247, 41.885379230564524],
+            [12.481392196198271, 41.885379230564524],
+            [12.481392196198271, 41.884332326712524],
+            [12.482802629103247, 41.884332326712524],
+            [12.482802629103247, 41.885379230564524],
+          ],
+        ],
+        type: "Polygon",
+      },
+    } as GeoJSON.Feature;
+  });
+
+  describe("getImage", () => {
+    beforeEach(async () => {
+      image = await provider.getImage(testPolygon);
+    });
+
+    it("should return a valid GeoRawImage instance", () => {
+      expect(image).toBeDefined();
+      expect(image).not.toBeNull();
+      expect(image).toBeInstanceOf(GeoRawImage);
+    });
+
+    it("should return image with correct dimensions and properties", () => {
+      expect(image.width).toBeGreaterThan(0);
+      expect(image.height).toBeGreaterThan(0);
+      expect(image.channels).toBe(3); // RGB image
+      expect(image.data).toBeDefined();
+      expect(image.data).not.toBeNull();
+      expect(image.data.length).toBeGreaterThan(0);
+    });
+
+    it("should return image with bounds matching input polygon", () => {
+      const bounds = image.getBounds();
+      expect(bounds).toBeDefined();
+      expect(bounds).not.toBeNull();
+      // Add specific bounds validation for your provider
+    });
+
+    it("should handle invalid polygon gracefully", async () => {
+      const invalidPolygon = {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          coordinates: [],
+          type: "Polygon",
+        },
+      } as GeoJSON.Feature;
+
+      await expect(provider.getImage(invalidPolygon)).rejects.toThrow();
+    });
+
+    it("should throw error if tile count exceeds maximum", async () => {
+      // Test with a large polygon that would exceed tile limits
+      const largePolygon = {
+        // Define a large polygon
+      } as GeoJSON.Feature;
+
+      await expect(
+        provider.getImage(largePolygon, undefined, undefined, 21, true)
+      ).rejects.toThrow();
+    });
+  });
+
+  describe("Tile URL generation", () => {
+    it("should generate correct tile URLs", () => {
+      const tileCoords: [number, number, number] = [1, 2, 3];
+      const url = provider.getTileUrlFromTileCoords(tileCoords, provider);
+      
+      expect(url).toContain("your-service.com");
+      expect(url).toContain("test-api-key");
+      expect(url).toContain("1/2/3");
+    });
+  });
+});
+```
+
+### 5. Create Integration Test
+
+Create an integration test to verify the provider works with the pipeline:
+
+```typescript
+// test/your-provider-integration.test.ts
+import { describe, expect, it, beforeAll } from "vitest";
+import { geoai } from "../src/geobase-ai";
+
+describe("YourProvider Integration", () => {
+  beforeAll(() => {
+    // Setup any necessary test environment
+  });
+
+  it("should work with the pipeline", async () => {
+    const providerParams = {
+      provider: "your-provider" as const,
+      apiKey: "test-api-key",
+      serviceUrl: "https://your-service.com",
+    };
+
+    const pipeline = await geoai.pipeline(
+      [{ task: "object-detection" }],
+      providerParams
+    );
+
+    const testPolygon = {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        coordinates: [
+          [
+            [12.482802629103247, 41.885379230564524],
+            [12.481392196198271, 41.885379230564524],
+            [12.481392196198271, 41.884332326712524],
+            [12.482802629103247, 41.884332326712524],
+            [12.482802629103247, 41.885379230564524],
+          ],
+        ],
+        type: "Polygon",
+      },
+    } as GeoJSON.Feature;
+
+    const results = await pipeline.inference({
+      inputs: { polygon: testPolygon },
+      mapSourceParams: { zoomLevel: 18 },
+    });
+
+    expect(results).toBeDefined();
+    expect(results.detections).toBeDefined();
+    expect(results.geoRawImage).toBeDefined();
+  });
+});
+```
+
+### 6. Update Documentation
+
+Create provider documentation in `docs/pages/map-providers/`:
+
+```markdown
+# Your Provider Map Provider
+
+> Brief description of your provider
+
+## Setup
+
+<Callout type="info" emoji="🔑">
+  Get your API key from [your-provider.com](https://your-provider.com/)
+</Callout>
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Configuration
+const yourProviderParams = {
+  provider: "your-provider",
+  apiKey: process.env.YOUR_PROVIDER_API_KEY,
+  serviceUrl: "https://your-service.com",
+};
+
+// Initialize pipeline with Your Provider
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  yourProviderParams
+);
+
+// Run inference on polygon
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Parameters
+
+```typescript
+type YourProviderParams = {
+  provider: "your-provider";
+  apiKey: string; // Your provider API key
+  serviceUrl?: string; // Optional service URL
+};
+```
+
+<Callout type="warning" emoji="⚠️">
+  Important notes about your provider's limitations or requirements.
+</Callout>
+```
+
+### 7. Update Main Documentation
+
+Update `docs/pages/map-providers.mdx` to include your provider:
+
+```markdown
+| Provider                           | Features                                  | Authentication |
+| ---------------------------------- | ----------------------------------------- | -------------- |
+| [GeoBase](./map-providers/geobase) | Your COG imagery, multispectral support   | API Key        |
+| [Mapbox](./map-providers/mapbox)   | Global satellite imagery                  | Access Token   |
+| [Your Provider](./map-providers/your-provider) | Your provider features              | API Key        |
+```
+
+### 8. Update Examples (Optional)
+
+If you want to include your provider in the examples, update the relevant example files:
+
+- `examples/next-geobase/src/components/MapProviderSelector.tsx`
+- `examples/next-geobase/src/components/DetectionControls.tsx`
+- Any task-specific pages that use map providers
+
+### 9. Build and Test
+
+1. Run the build process:
+   ```bash
+   pnpm build
+   ```
+
+2. Run all tests:
+   ```bash
+   pnpm test
+   ```
+
+3. Run your specific provider tests:
+   ```bash
+   pnpm test your-provider.test.ts
+   ```
+
+### 10. Code Quality Checks
+
+- Ensure your code follows the existing patterns and conventions
+- Add proper TypeScript types and interfaces
+- Include comprehensive error handling
+- Follow the existing naming conventions
+- Add appropriate comments and documentation
+
+## Key Requirements
+
+### Provider Class Requirements
+
+1. **Extend MapSource**: Your provider must extend the `MapSource` abstract class
+2. **Implement getTileUrlFromTileCoords**: This method must generate valid tile URLs
+3. **Constructor**: Accept configuration parameters and store them as instance properties
+4. **Error Handling**: Handle invalid configurations and network errors gracefully
+
+### Testing Requirements
+
+1. **Unit Tests**: Test the provider class in isolation
+2. **Integration Tests**: Test the provider with the pipeline
+3. **Error Cases**: Test invalid inputs and error conditions
+4. **Tile URL Generation**: Verify correct URL construction
+5. **Image Retrieval**: Test actual image fetching and processing
+
+### Documentation Requirements
+
+1. **Setup Instructions**: Clear setup and configuration steps
+2. **Parameter Documentation**: Complete parameter type definitions
+3. **Usage Examples**: Working code examples
+4. **Limitations**: Document any provider-specific limitations
+5. **Authentication**: Explain authentication requirements
+
+## Example Implementation
+
+See the ESRI provider implementation for a complete example:
+- `src/data_providers/esri.ts`
+- `test/esri.test.ts`
+- `test/esri-integration.test.ts`
+- `docs/pages/map-providers/esri.mdx`
+
+This implementation follows all the patterns and requirements outlined in this checklist.
+

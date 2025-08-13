@@ -1,10 +1,13 @@
 import { getPolygonFromMask, parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedOptions, RawImage } from "@huggingface/transformers";
+import {
+  PreTrainedModel,
+  PretrainedModelOptions,
+  RawImage,
+} from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
-import { loadOnnxModel } from "./model_utils";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 /**
@@ -17,7 +20,7 @@ abstract class BaseDetectionModel extends BaseModel {
   protected constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -63,7 +66,11 @@ abstract class BaseDetectionModel extends BaseModel {
   }
 
   protected async initializeModel(): Promise<void> {
-    this.model = await loadOnnxModel(this.model_id);
+    const pretrainedModel = await PreTrainedModel.from_pretrained(
+      this.model_id,
+      this.modelParams
+    );
+    this.model = pretrainedModel.sessions.model;
   }
 
   protected async postProcessor(
@@ -152,10 +159,12 @@ abstract class BaseDetectionModel extends BaseModel {
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
-      mapSourceParams?.expression,
-      true // models require square image
+      mapSourceParams?.expression
     );
 
+    const task = this.model_id.split("/").pop()?.split(".")[0].split("_")[0];
+    const inferenceStartTime = performance.now();
+    console.log(`[${task}] starting inference...`);
     const inputs = await this.preProcessor(geoRawImage);
     let outputs;
     try {
@@ -169,6 +178,10 @@ abstract class BaseDetectionModel extends BaseModel {
     }
 
     outputs = await this.postProcessor(outputs, geoRawImage);
+    const inferenceEndTime = performance.now();
+    console.log(
+      `[${task}] inference completed. Time taken: ${(inferenceEndTime - inferenceStartTime).toFixed(2)}ms`
+    );
 
     return {
       detections: outputs,
@@ -180,14 +193,18 @@ abstract class BaseDetectionModel extends BaseModel {
 export class SolarPanelDetection extends BaseDetectionModel {
   private static instanceRef: SolarPanelDetection | null = null;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    super(model_id, providerParams);
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams: PretrainedModelOptions | undefined
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: SolarPanelDetection }> {
     if (
       !SolarPanelDetection.instanceRef ||
@@ -200,7 +217,8 @@ export class SolarPanelDetection extends BaseDetectionModel {
     ) {
       SolarPanelDetection.instanceRef = new SolarPanelDetection(
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       );
       await SolarPanelDetection.instanceRef.initialize();
     }
@@ -211,15 +229,19 @@ export class SolarPanelDetection extends BaseDetectionModel {
 export class ShipDetection extends BaseDetectionModel {
   private static instanceRef: ShipDetection | null = null;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    super(model_id, providerParams);
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams: PretrainedModelOptions | undefined
+  ) {
+    super(model_id, providerParams, modelParams);
     this.zoom = 21; // Set specific zoom level for ship detection
   }
 
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: ShipDetection }> {
     if (
       !ShipDetection.instanceRef ||
@@ -230,7 +252,11 @@ export class ShipDetection extends BaseDetectionModel {
         modelParams
       )
     ) {
-      ShipDetection.instanceRef = new ShipDetection(model_id, providerParams);
+      ShipDetection.instanceRef = new ShipDetection(
+        model_id,
+        providerParams,
+        modelParams
+      );
       await ShipDetection.instanceRef.initialize();
     }
     return { instance: ShipDetection.instanceRef };
@@ -240,14 +266,18 @@ export class ShipDetection extends BaseDetectionModel {
 export class CarDetection extends BaseDetectionModel {
   private static instanceRef: CarDetection | null = null;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    super(model_id, providerParams);
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams: PretrainedModelOptions | undefined
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: CarDetection }> {
     if (
       !CarDetection.instanceRef ||
@@ -258,7 +288,11 @@ export class CarDetection extends BaseDetectionModel {
         modelParams
       )
     ) {
-      CarDetection.instanceRef = new CarDetection(model_id, providerParams);
+      CarDetection.instanceRef = new CarDetection(
+        model_id,
+        providerParams,
+        modelParams
+      );
       await CarDetection.instanceRef.initialize();
     }
     return { instance: CarDetection.instanceRef };
@@ -268,14 +302,18 @@ export class CarDetection extends BaseDetectionModel {
 export class BuildingDetection extends BaseDetectionModel {
   private static instanceRef: BuildingDetection | null = null;
 
-  private constructor(model_id: string, providerParams: ProviderParams) {
-    super(model_id, providerParams);
+  private constructor(
+    model_id: string,
+    providerParams: ProviderParams,
+    modelParams: PretrainedModelOptions | undefined
+  ) {
+    super(model_id, providerParams, modelParams);
   }
 
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: BuildingDetection }> {
     if (
       !BuildingDetection.instanceRef ||
@@ -288,7 +326,8 @@ export class BuildingDetection extends BaseDetectionModel {
     ) {
       BuildingDetection.instanceRef = new BuildingDetection(
         model_id,
-        providerParams
+        providerParams,
+        modelParams
       );
       await BuildingDetection.instanceRef.initialize();
     }
@@ -304,7 +343,7 @@ export class WetLandSegmentation extends BaseModel {
   private constructor(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ) {
     super(model_id, providerParams, modelParams);
   }
@@ -312,7 +351,7 @@ export class WetLandSegmentation extends BaseModel {
   static async getInstance(
     model_id: string,
     providerParams: ProviderParams,
-    modelParams?: PretrainedOptions
+    modelParams?: PretrainedModelOptions
   ): Promise<{ instance: WetLandSegmentation }> {
     if (
       !WetLandSegmentation.instance ||
@@ -334,7 +373,11 @@ export class WetLandSegmentation extends BaseModel {
   }
 
   protected async initializeModel(): Promise<void> {
-    this.model = await loadOnnxModel(this.model_id);
+    const pretrainedModel = await PreTrainedModel.from_pretrained(
+      this.model_id,
+      this.modelParams
+    );
+    this.model = pretrainedModel.sessions.model;
   }
 
   protected async preProcessor(
@@ -389,6 +432,8 @@ export class WetLandSegmentation extends BaseModel {
       mapSourceParams?.bands,
       mapSourceParams?.expression
     );
+    const inferenceStartTime = performance.now();
+    console.log("[wetland-segmentation] starting inference...");
 
     const inputs = await this.preProcessor(geoRawImage);
     let outputs;
@@ -403,6 +448,10 @@ export class WetLandSegmentation extends BaseModel {
     }
 
     outputs = await this.postProcessor(outputs, geoRawImage);
+    const inferenceEndTime = performance.now();
+    console.log(
+      `[wetland-segmentation] inference completed. Time taken: ${(inferenceEndTime - inferenceStartTime).toFixed(2)}ms`
+    );
 
     return {
       detections: outputs,
@@ -416,7 +465,6 @@ export class WetLandSegmentation extends BaseModel {
   ): Promise<GeoJSON.FeatureCollection> {
     outputs = Object.values(outputs);
     const masks = outputs[1];
-    const labels = outputs[3];
     const scores = outputs[0].data as Float32Array;
     const threshold = 0.5;
 
@@ -460,7 +508,6 @@ export class WetLandSegmentation extends BaseModel {
             },
             properties: {
               score: scores[idx],
-              label: labels ? labels.data[idx] : undefined,
             },
           });
         }

@@ -1,0 +1,58 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Solar Panel Detection
+
+> Detect solar installations in satellite imagery
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/solar-panel-detection.mp4"
+  title="Solar Panel Detection Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "solar-panel-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Found ${result.detections.features.length} solar installations`);
+```
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 19; // 18-20 recommended for solar detection
+}
+```
+
+## Output
+
+Returns GeoJSON with detected solar installations:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* solar panel location */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```

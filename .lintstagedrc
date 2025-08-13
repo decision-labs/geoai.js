@@ -1,4 +1,7 @@
 {
-  "./**/*.{ts,html,json}": "npm run format:scripts",
-  "./**/*.{css,scss}": "npm run format:styles"
+  "src/**/*.{ts,html,json}": "prettier --write",
+  "docs/**/*.{ts,html,json}": "prettier --write",
+  "test/**/*.{ts,html,json}": "prettier --write",
+  "src/**/*.{css,scss}": "stylelint --fix",
+  "docs/**/*.{css,scss}": "stylelint --fix"
 }

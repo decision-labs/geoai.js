@@ -1,0 +1,62 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Car Detection
+
+> Detect vehicles in high-resolution imagery
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/car-detection-model.mp4"
+  title="Car Detection Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase-js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "car-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Found ${result.detections.features.length} vehicles`);
+```
+
+<Callout type="info" emoji="🚗">
+  Specialized for detecting cars, SUVs, and light trucks in urban environments
+</Callout>
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 20; // 20+ recommended for vehicle detection
+}
+```
+
+## Output
+
+Returns GeoJSON with detected vehicles:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* vehicle location */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```
