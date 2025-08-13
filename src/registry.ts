@@ -79,7 +79,7 @@ export const modelRegistry: ModelConfig[] = [
       params: ProviderParams,
       modelId: string = "geobase/gghl-oriented-object-detection",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "model_quantized",
+        dtype: "q8",
       }
     ): Promise<{
       instance: OrientedObjectDetection;
@@ -101,7 +101,9 @@ export const modelRegistry: ModelConfig[] = [
     geobase_ai_pipeline: (
       params: ProviderParams,
       modelId: string = "geobase/sparsemask",
-      modelParams?: PretrainedModelOptions
+      modelParams: PretrainedModelOptions = {
+        dtype: "fp32",
+      }
     ): Promise<{
       instance: LandCoverClassification;
     }> => {
@@ -117,7 +119,8 @@ export const modelRegistry: ModelConfig[] = [
       params: ProviderParams,
       modelId: string = "geobase/geoai-models",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "solarPanelDetection_quantized",
+        model_file_name: "solarPanelDetection",
+        dtype: "q8",
       }
     ): Promise<{
       instance: SolarPanelDetection;
@@ -134,7 +137,8 @@ export const modelRegistry: ModelConfig[] = [
       params: ProviderParams,
       modelId: string = "geobase/geoai-models",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "shipDetection_quantized",
+        model_file_name: "shipDetection",
+        dtype: "q8",
       }
     ): Promise<{
       instance: ShipDetection;
@@ -151,7 +155,8 @@ export const modelRegistry: ModelConfig[] = [
       params: ProviderParams,
       modelId: string = "geobase/geoai-models",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "carDetectionUSA_quantized",
+        model_file_name: "carDetectionUSA",
+        dtype: "q8",
       }
     ): Promise<{
       instance: CarDetection;
@@ -168,7 +173,8 @@ export const modelRegistry: ModelConfig[] = [
       params: ProviderParams,
       modelId: string = "geobase/geoai-models",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "wetlandDetection_quantized",
+        model_file_name: "wetlandDetection",
+        dtype: "q8",
       }
     ): Promise<{
       instance: WetLandSegmentation;
@@ -185,7 +191,8 @@ export const modelRegistry: ModelConfig[] = [
       params: ProviderParams,
       modelId: string = "geobase/geoai-models",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "buildingDetection_quantized",
+        model_file_name: "buildingDetection",
+        dtype: "q8",
       }
     ): Promise<{
       instance: BuildingDetection;
@@ -209,7 +216,7 @@ export const modelRegistry: ModelConfig[] = [
       params: ProviderParams,
       modelId: string = "geobase/oil-storage-tank-detection",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "model_quantized",
+        dtype: "q8",
       }
     ): Promise<{
       instance: OilStorageTankDetection;

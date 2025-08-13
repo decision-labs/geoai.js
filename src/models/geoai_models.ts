@@ -1,10 +1,13 @@
 import { getPolygonFromMask, parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
-import { PretrainedModelOptions, RawImage } from "@huggingface/transformers";
+import {
+  PreTrainedModel,
+  PretrainedModelOptions,
+  RawImage,
+} from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
-import { loadOnnxModel } from "./model_utils";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 /**
@@ -63,7 +66,11 @@ abstract class BaseDetectionModel extends BaseModel {
   }
 
   protected async initializeModel(): Promise<void> {
-    this.model = await loadOnnxModel(this.model_id, this.modelParams);
+    const pretrainedModel = await PreTrainedModel.from_pretrained(
+      this.model_id,
+      this.modelParams
+    );
+    this.model = pretrainedModel.sessions.model;
   }
 
   protected async postProcessor(
@@ -366,7 +373,11 @@ export class WetLandSegmentation extends BaseModel {
   }
 
   protected async initializeModel(): Promise<void> {
-    this.model = await loadOnnxModel(this.model_id, this.modelParams);
+    const pretrainedModel = await PreTrainedModel.from_pretrained(
+      this.model_id,
+      this.modelParams
+    );
+    this.model = pretrainedModel.sessions.model;
   }
 
   protected async preProcessor(

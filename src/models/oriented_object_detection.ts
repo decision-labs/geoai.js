@@ -1,4 +1,4 @@
-import { RawImage } from "@huggingface/transformers";
+import { PreTrainedModel, RawImage } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 
 import { ProviderParams } from "@/geobase-ai";
@@ -7,7 +7,6 @@ import { PretrainedModelOptions } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { iouPoly } from "@/utils/gghl/polyiou";
 import { BaseModel } from "./base_model"; // <-- import BaseModel
-import { loadOnnxModel } from "./model_utils";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 
 interface ConvertPredParams {
@@ -125,7 +124,11 @@ export class OrientedObjectDetection extends BaseModel {
   protected async initializeModel(): Promise<void> {
     // Only load the model if not already loaded
     if (this.model) return;
-    this.model = await loadOnnxModel(this.model_id, this.modelParams);
+    const pretrainedModel = await PreTrainedModel.from_pretrained(
+      this.model_id,
+      this.modelParams
+    );
+    this.model = pretrainedModel.sessions.model;
   }
 
   /**

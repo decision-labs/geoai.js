@@ -1,10 +1,13 @@
 import { BaseModel } from "@/models/base_model";
-import { PretrainedModelOptions, RawImage } from "@huggingface/transformers";
+import {
+  PreTrainedModel,
+  PretrainedModelOptions,
+  RawImage,
+} from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import * as ort from "onnxruntime-web";
-import { loadOnnxModel } from "./model_utils";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 const cv = require("@techstark/opencv-js");
 
@@ -47,7 +50,11 @@ export class OilStorageTankDetection extends BaseModel {
   protected async initializeModel(): Promise<void> {
     // Only load the model if not already loaded
     if (this.model) return;
-    this.model = await loadOnnxModel(this.model_id, this.modelParams);
+    const pretrainedModel = await PreTrainedModel.from_pretrained(
+      this.model_id,
+      this.modelParams
+    );
+    this.model = pretrainedModel.sessions.model;
   }
 
   protected async preProcessor(
