@@ -47,6 +47,15 @@ export type EsriParams = {
   attribution?: string;
 };
 
+export type TmsParams = {
+  provider: "tms";
+  baseUrl: string;
+  extension?: string;
+  attribution?: string;
+  headers?: Record<string, string>;
+  apiKey?: string;
+};
+
 export interface InferenceInputs {
   polygon: GeoJSON.Feature;
   classLabel?: string;
@@ -80,7 +89,8 @@ export type ProviderParams =
   | MapboxParams
   | SentinelParams
   | GeobaseParams
-  | EsriParams;
+  | EsriParams
+  | TmsParams;
 
 export type HuggingFaceModelTask =
   | "mask-generation"

@@ -1,6 +1,7 @@
 import { Mapbox } from "@/data_providers/mapbox";
 import { Geobase } from "@/data_providers/geobase";
 import { Esri } from "@/data_providers/esri";
+import { Tms } from "@/data_providers/tms";
 import { ProviderParams } from "@/geobase-ai";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
@@ -9,7 +10,7 @@ import { InferenceParams } from "@/core/types";
 export abstract class BaseModel {
   protected static instance: BaseModel | null = null;
   protected providerParams: ProviderParams;
-  protected dataProvider: Mapbox | Geobase | Esri | undefined;
+  protected dataProvider: Mapbox | Geobase | Esri | Tms | undefined;
   protected model_id: string;
   protected initialized: boolean = false;
   protected modelParams?: PretrainedModelOptions;
@@ -61,6 +62,15 @@ export abstract class BaseModel {
           serviceName: this.providerParams.serviceName,
           tileSize: this.providerParams.tileSize,
           attribution: this.providerParams.attribution,
+        });
+        break;
+      case "tms":
+        this.dataProvider = new Tms({
+          baseUrl: this.providerParams.baseUrl,
+          extension: this.providerParams.extension,
+          attribution: this.providerParams.attribution,
+          headers: this.providerParams.headers,
+          apiKey: this.providerParams.apiKey,
         });
         break;
       case "sentinel":

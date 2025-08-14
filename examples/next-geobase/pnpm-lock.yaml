@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@geobase-js/geoai':
-        specifier: ^0.0.5
-        version: 0.0.5(@huggingface/transformers@3.6.3)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)
+        specifier: file:../../build
+        version: file:../../build(@huggingface/transformers@3.6.3)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)
       '@huggingface/transformers':
         specifier: ^3.5.1
         version: 3.6.3
@@ -146,8 +146,8 @@ packages:
     resolution: {integrity: sha512-Ul5l+lHEcw3L5+k8POx6r74mxEYKG5kOb6Xpy2gCRW6zweT6TEhAf8vhxGgjhqrd/VO/Dirhsb+1hNpD1ue9hw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@geobase-js/geoai@0.0.5':
-    resolution: {integrity: sha512-KtIoODtG2BG8FhjVTmoFsbM7748/wNM0fNU+Q/L0MIIhMkrZF+i46Ii4FrAk/hALSqBhRd0a6zi0DlfWjf2JsA==}
+  '@geobase-js/geoai@file:../../build':
+    resolution: {directory: ../../build, type: directory}
     peerDependencies:
       '@huggingface/transformers': ^3.3.3
       '@techstark/opencv-js': ^4.10.0-release.1
@@ -3472,7 +3472,7 @@ snapshots:
       '@eslint/core': 0.15.1
       levn: 0.4.1
 
-  '@geobase-js/geoai@0.0.5(@huggingface/transformers@3.6.3)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)':
+  '@geobase-js/geoai@file:../../build(@huggingface/transformers@3.6.3)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)':
     dependencies:
       '@huggingface/transformers': 3.6.3
       '@techstark/opencv-js': 4.10.0-release.1

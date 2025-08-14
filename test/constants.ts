@@ -1,9 +1,17 @@
-import { ProviderParams } from "@/geobase-ai";
+import { ProviderParams } from "../src/core/types";
 
 export const mapboxParams: ProviderParams = {
   provider: "mapbox",
   apiKey: process.env.MAPBOX_API_KEY || "test",
   style: "mapbox://styles/mapbox/satellite-v9",
+};
+
+export const tmsParams: ProviderParams = {
+  provider: "tms",
+  baseUrl: "https://tile.sentinelmap.eu/2016/summer/rgb",
+  extension: "jpg",
+  attribution: "Sentinel Maps",
+  apiKey: process.env.TMS_API_KEY || "875e6b1c0ef7a112d1267ec91353809d",
 };
 
 export const geobaseParams: ProviderParams = {

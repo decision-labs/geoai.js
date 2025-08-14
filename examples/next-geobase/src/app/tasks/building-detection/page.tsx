@@ -11,13 +11,15 @@ import {
   ExportButton
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
-import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG, TMS_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types"
 
 GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip_train.tif"
 
 const mapInitConfig = {
-  center: [-117.59159209938863, 47.65325850830081] as [number, number],
+  // center: [-117.59159209938863, 47.65325850830081] as [number, number],
+  // berlin:
+  center: [13.38, 52.51] as [number, number],
   zoom: 18,
 }
 
@@ -131,6 +133,14 @@ export default function BuildingDetection() {
           tileSize: 256,
           attribution: "ESRI World Imagery",
         },
+        "tms-tiles": {
+          type: "raster",
+          tiles: [
+            `${TMS_CONFIG.baseUrl}/{z}/{x}/{y}.${TMS_CONFIG.extension}?key=${TMS_CONFIG.apiKey}`,
+          ],
+          tileSize: 256,
+          attribution: TMS_CONFIG.attribution,
+        },
       },
       layers: [
         {
@@ -171,6 +181,16 @@ export default function BuildingDetection() {
           maxzoom: 23,
           layout: {
             visibility: mapProvider === "esri" ? "visible" : "none",
+          },
+        },
+        {
+          id: "tms-layer",
+          type: "raster",
+          source: "tms-tiles",
+          minzoom: 0,
+          maxzoom: 23,
+          layout: {
+            visibility: mapProvider === "tms" ? "visible" : "none",
           },
         },
       ],
@@ -232,6 +252,8 @@ export default function BuildingDetection() {
       providerParams = GEOBASE_CONFIG;
     } else if (mapProvider === "esri") {
       providerParams = ESRI_CONFIG;
+    } else if (mapProvider === "tms") {
+      providerParams = TMS_CONFIG;
     } else {
       providerParams = MAPBOX_CONFIG;
     }

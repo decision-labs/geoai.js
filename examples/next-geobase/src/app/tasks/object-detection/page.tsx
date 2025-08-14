@@ -5,13 +5,14 @@ import maplibregl from "maplibre-gl";
 import MaplibreDraw from "maplibre-gl-draw";
 import type { StyleSpecification } from "maplibre-gl";
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
+import { geoai } from "@geobase-js/geoai";
 import { 
   DetectionControls, 
   BackgroundEffects,
   ExportButton
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
-import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG, TMS_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types"
 
 GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif"
@@ -132,6 +133,14 @@ export default function ObjectDetection() {
           tileSize: 256,
           attribution: "ESRI World Imagery",
         },
+        "tms-tiles": {
+          type: "raster",
+          tiles: [
+            `${TMS_CONFIG.baseUrl}/{z}/{x}/{y}.${TMS_CONFIG.extension}?key=${TMS_CONFIG.apiKey}`,
+          ],
+          tileSize: 256,
+          attribution: TMS_CONFIG.attribution,
+        },
       },
       layers: [
         {
@@ -172,6 +181,16 @@ export default function ObjectDetection() {
           maxzoom: 23,
           layout: {
             visibility: mapProvider === "esri" ? "visible" : "none",
+          },
+        },
+        {
+          id: "tms-layer",
+          type: "raster",
+          source: "tms-tiles",
+          minzoom: 0,
+          maxzoom: 23,
+          layout: {
+            visibility: mapProvider === "tms" ? "visible" : "none",
           },
         },
       ],
@@ -233,6 +252,8 @@ export default function ObjectDetection() {
       providerParams = GEOBASE_CONFIG;
     } else if (mapProvider === "esri") {
       providerParams = ESRI_CONFIG;
+    } else if (mapProvider === "tms") {
+      providerParams = TMS_CONFIG;
     } else {
       providerParams = MAPBOX_CONFIG;
     }
