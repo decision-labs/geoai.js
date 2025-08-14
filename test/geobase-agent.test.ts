@@ -43,7 +43,7 @@ describe("queryAgent", () => {
         expected: "building-detection",
       },
       {
-        query: "identify the wind turbines in this region.",
+        query: "Identify the wind turbines in this region.",
         expected: "zero-shot-object-detection",
       },
       // object-detection
