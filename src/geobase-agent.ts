@@ -48,7 +48,6 @@ const tokenizer = await AutoTokenizer.from_pretrained(SELECTED_CROSS_ENCODER);
  * Parses user queries and determines which geospatial AI task(s) to run.
  */
 async function parseQuery(userQuery: string) {
-  // console.log(userQuery);
   const inputs = tokenizer(new Array(tasks.length).fill(userQuery), {
     text_pair: model_descriptions,
     padding: true,
