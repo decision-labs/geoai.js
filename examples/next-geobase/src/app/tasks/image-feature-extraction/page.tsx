@@ -6,7 +6,7 @@ import MaplibreDraw from "maplibre-gl-draw";
 
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
 import { useDebounce } from "../../../hooks/useDebounce";
-import { Pencil, Target, Trash2, Loader2, X, Info } from "lucide-react";
+import { Pencil, Target, Trash2, Loader2, X } from "lucide-react";
 import { 
   BackgroundEffects,
   ImageFeatureExtractionDemoHint,
@@ -54,10 +54,8 @@ export default function ImageFeatureExtraction() {
   } = useGeoAIWorker();
 
   const [polygon, setPolygon] = useState<GeoJSON.Feature | null>(null);
-  const [features, setFeatures] = useState<any>();
   const [zoomLevel, setZoomLevel] = useState<number>(22);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
-  const [similarityThreshold, setSimilarityThreshold] = useState<number>(0.5);
   const [isDrawingMode, setIsDrawingMode] = useState<boolean>(false);
   const [isResetting, setIsResetting] = useState<boolean>(false);
   const [isExtractingFeatures, setIsExtractingFeatures] = useState<boolean>(false);
@@ -78,9 +76,7 @@ export default function ImageFeatureExtraction() {
     }
   }, 150);
 
-  const debouncedSimilarityThresholdChange = useDebounce((threshold: number) => {
-    setSimilarityThreshold(threshold);
-  }, 300);
+
 
   const debouncedMapProviderChange = useDebounce((provider: MapProvider) => {
     setMapProvider(provider);
@@ -194,9 +190,9 @@ export default function ImageFeatureExtraction() {
     const y = Math.max(20, Math.min(rect.height - 200, point.y));
     
     setContextMenuPosition({ x, y });
-    setContextMenuThreshold(similarityThreshold);
+    setContextMenuThreshold(0.5); // Default threshold
     setShowContextMenu(true);
-  }, [similarityThreshold]);
+  }, []);
 
   // Function to hide contextual menu
   const hideContextMenu = () => {
@@ -211,9 +207,6 @@ export default function ImageFeatureExtraction() {
   // Function to handle contextual menu feature extraction
   const handleContextMenuExtractFeatures = () => {
     if (!polygon) return;
-    
-    // Update the main similarity threshold
-    setSimilarityThreshold(contextMenuThreshold);
     
     // Run inference with the contextual menu threshold
     extractFeaturesDirectly(polygon);
@@ -256,7 +249,6 @@ export default function ImageFeatureExtraction() {
 
       // Reset states
       setPolygon(null);
-      setFeatures(undefined);
       setIsExtractingFeatures(false);
       clearError();
       
@@ -282,12 +274,7 @@ export default function ImageFeatureExtraction() {
     debouncedZoomChange(newZoom);
   };
 
-  const handleExtractFeatures = () => {
-    if (!polygon) return;
-    
-    // Use debounced feature extraction to prevent rapid successive calls
-    debouncedExtractFeatures();
-  };
+
 
   const handleStartDrawing = () => {
     if (draw.current) {
@@ -425,9 +412,6 @@ export default function ImageFeatureExtraction() {
   // Handle results from the worker
   useEffect(() => {
     if (lastResult?.features && map.current) {
-      // Display feature extraction results
-      setFeatures(lastResult.features);
-      
       // Set extracting features to false when results are available
       if (lastResult.similarityMatrix) {
         setIsExtractingFeatures(false);
