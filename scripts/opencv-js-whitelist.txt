@@ -1,0 +1,59 @@
+# OpenCV.js Function Whitelist
+# This file specifies which OpenCV functions to include in the custom build
+
+# Core Mat Operations
+Mat
+matFromArray
+MatVector
+Mat.zeros
+Mat.ones
+Scalar
+Size
+Rect
+Point
+
+# Image Processing
+cvtColor
+resize
+copyMakeBorder
+threshold
+Canny
+
+# Contour Operations
+findContours
+contourArea
+arcLength
+approxPolyDP
+drawContours
+
+# Morphological Operations
+getStructuringElement
+morphologyEx
+
+# Matrix Operations
+hconcat
+vconcat
+convertTo
+roi
+copyTo
+data
+floatPtr
+ucharPtr
+
+# Constants
+CV_8UC1
+CV_8UC3
+CV_8UC4
+CV_32F
+CV_8U
+COLOR_BGR2RGB
+COLOR_RGB2GRAY
+BORDER_CONSTANT
+INTER_LINEAR
+INTER_NEAREST
+THRESH_BINARY
+RETR_EXTERNAL
+CHAIN_APPROX_SIMPLE
+FILLED
+MORPH_RECT
+MORPH_CLOSE

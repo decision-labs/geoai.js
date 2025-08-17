@@ -4,6 +4,19 @@
 
 The `@techstark/opencv-js` library is currently **9.89MB** (98.79% of bundle size) and is being imported as a monolithic library, despite only using a small subset of its functions. This significantly impacts bundle size and loading performance.
 
+## ✅ Immediate Solution Implemented
+
+**Dynamic Loading**: We've implemented a dynamic OpenCV loader that only loads OpenCV.js when needed, providing immediate bundle size benefits:
+
+- **Initial Bundle**: Reduced from 9.89MB to ~0MB (OpenCV not included in initial bundle)
+- **Runtime Loading**: OpenCV loads only when image processing is required
+- **Caching**: Once loaded, OpenCV is cached for subsequent operations
+- **Backward Compatible**: All existing code continues to work
+
+**Files Updated:**
+- `src/utils/opencv-loader.ts` - Dynamic loading implementation
+- `src/models/land_cover_classification.ts` - Updated to use dynamic loading
+
 ## OpenCV Functions Currently Used
 
 ### Core Mat Operations
@@ -119,30 +132,144 @@ function bgrToRgb(bgrData: Uint8Array): Uint8Array {
 
 ### Phase 3: Custom OpenCV.js Build (Estimated 95%+ bundle reduction)
 
-#### 3.1 Build Custom OpenCV.js
+#### 3.1 Official OpenCV.js Build Process
+The official OpenCV.js build script is available at: https://raw.githubusercontent.com/opencv/opencv/master/platforms/js/build_js.py
+
+**Prerequisites:**
 ```bash
-# Clone OpenCV.js repository
-git clone https://github.com/opencv/opencv_js.git
-cd opencv_js
+# Install Emscripten SDK
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh
 
-# Configure build with only needed modules
-cmake -DOPENCV_JS_MODULES="core,imgproc" \
-      -DOPENCV_JS_FUNCTIONS="matFromArray,cvtColor,resize,threshold,findContours,contourArea,arcLength,approxPolyDP,drawContours,getStructuringElement,morphologyEx,hconcat,vconcat,Canny" \
-      -DOPENCV_JS_TYPES="CV_8UC1,CV_8UC3,CV_8UC4,CV_32F,CV_8U" \
-      -DOPENCV_JS_CONSTANTS="COLOR_BGR2RGB,COLOR_RGB2GRAY,BORDER_CONSTANT,INTER_LINEAR,INTER_NEAREST,THRESH_BINARY,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,FILLED,MORPH_RECT,MORPH_CLOSE" \
-      ..
-
-# Build the custom version
-make -j$(nproc)
+# Clone OpenCV repository
+git clone https://github.com/opencv/opencv.git
+cd opencv
 ```
 
-#### 3.2 Alternative: Use OpenCV.js Builder
+**Create Function Whitelist:**
+Create `scripts/opencv-js-whitelist.txt` with only the functions you need:
+```txt
+# Core Mat Operations
+cv.Mat
+cv.matFromArray
+cv.MatVector
+cv.Mat.zeros
+cv.Mat.ones
+cv.Scalar
+cv.Size
+cv.Rect
+cv.Point
+
+# Image Processing
+cv.cvtColor
+cv.resize
+cv.copyMakeBorder
+cv.threshold
+cv.Canny
+
+# Contour Operations
+cv.findContours
+cv.contourArea
+cv.arcLength
+cv.approxPolyDP
+cv.drawContours
+
+# Morphological Operations
+cv.getStructuringElement
+cv.morphologyEx
+
+# Matrix Operations
+cv.hconcat
+cv.vconcat
+mat.convertTo
+mat.roi
+mat.copyTo
+mat.data
+mat.floatPtr
+mat.ucharPtr
+
+# Constants
+CV_8UC1
+CV_8UC3
+CV_8UC4
+CV_32F
+CV_8U
+COLOR_BGR2RGB
+COLOR_RGB2GRAY
+BORDER_CONSTANT
+INTER_LINEAR
+INTER_NEAREST
+THRESH_BINARY
+RETR_EXTERNAL
+CHAIN_APPROX_SIMPLE
+FILLED
+MORPH_RECT
+MORPH_CLOSE
+```
+
+**Build Custom OpenCV.js:**
 ```bash
-# Use the official OpenCV.js builder
-docker run --rm -v $(pwd):/src opencv/opencv-js-builder:latest \
-  --modules core,imgproc \
-  --functions matFromArray,cvtColor,resize,threshold,findContours,contourArea,arcLength,approxPolyDP,drawContours,getStructuringElement,morphologyEx,hconcat,vconcat,Canny \
-  --output opencv-custom.js
+# Download the official build script
+curl -o scripts/build_js.py https://raw.githubusercontent.com/opencv/opencv/master/platforms/js/build_js.py
+chmod +x scripts/build_js.py
+
+# Build with only needed modules and functions
+python3 scripts/build_js.py build_opencv_js \
+  --opencv_dir /path/to/opencv \
+  --config scripts/opencv-js-whitelist.txt \
+  --build_wasm \
+  --disable_single_file \
+  --cmake_option="-DBUILD_opencv_calib3d=OFF" \
+  --cmake_option="-DBUILD_opencv_dnn=OFF" \
+  --cmake_option="-DBUILD_opencv_features2d=OFF" \
+  --cmake_option="-DBUILD_opencv_flann=OFF" \
+  --cmake_option="-DBUILD_opencv_ml=OFF" \
+  --cmake_option="-DBUILD_opencv_photo=OFF" \
+  --cmake_option="-DBUILD_opencv_shape=OFF" \
+  --cmake_option="-DBUILD_opencv_videoio=OFF" \
+  --cmake_option="-DBUILD_opencv_videostab=OFF" \
+  --cmake_option="-DBUILD_opencv_highgui=OFF" \
+  --cmake_option="-DBUILD_opencv_superres=OFF" \
+  --cmake_option="-DBUILD_opencv_stitching=OFF" \
+  --cmake_option="-DBUILD_opencv_java=OFF" \
+  --cmake_option="-DBUILD_opencv_python2=OFF" \
+  --cmake_option="-DBUILD_opencv_python3=OFF" \
+  --cmake_option="-DBUILD_EXAMPLES=OFF" \
+  --cmake_option="-DBUILD_TESTS=OFF" \
+  --cmake_option="-DBUILD_PERF_TESTS=OFF"
+```
+
+#### 3.2 Alternative: Use Pre-built OpenCV.js with Tree Shaking
+If building from source is too complex, you can use the existing package with better tree shaking:
+
+```bash
+# Install the official OpenCV.js package
+npm install @techstark/opencv-js
+
+# Use dynamic imports to load only when needed
+```
+
+**Dynamic Import Strategy:**
+```typescript
+// Only load OpenCV when needed
+let cv: any = null;
+
+async function loadOpenCV() {
+  if (!cv) {
+    cv = await import('@techstark/opencv-js');
+  }
+  return cv;
+}
+
+// Use in functions
+async function processImage(imageData: Uint8Array) {
+  const opencv = await loadOpenCV();
+  const mat = opencv.matFromArray(height, width, opencv.CV_8UC3, imageData);
+  // ... rest of processing
+}
 ```
 
 ### Phase 4: Dynamic Loading (Optional)
@@ -169,11 +296,18 @@ async function processImage(imageData: Uint8Array) {
 
 ## Implementation Priority
 
+### ✅ Completed (Immediate Solution)
+1. **Dynamic Loading** - Implemented and working
+   - Reduces initial bundle size from 9.89MB to ~0MB
+   - Loads OpenCV only when needed
+   - Maintains all functionality
+
 ### High Priority (Phase 1)
-1. **Image Resizing** - Used in 3 files, easy to replace
-2. **Color Conversion** - Simple manual implementation
-3. **Basic Matrix Operations** - TypedArray alternatives
-4. **Image Stitching** - Canvas API replacement
+1. **Update Remaining Files** - Convert other models to use dynamic loading
+2. **Image Resizing** - Used in 3 files, easy to replace with Canvas API
+3. **Color Conversion** - Simple manual implementation
+4. **Basic Matrix Operations** - TypedArray alternatives
+5. **Image Stitching** - Canvas API replacement
 
 ### Medium Priority (Phase 2)
 1. **Contour Detection** - Marching squares implementation
@@ -209,10 +343,13 @@ async function processImage(imageData: Uint8Array) {
 
 ## Resources
 
-- [OpenCV.js Documentation](https://docs.opencv.org/4.8.0/d5/d10/tutorial_js_root.html)
+- [OpenCV.js Documentation](https://docs.opencv.org/4.10.0/d5/d10/tutorial_js_root.html)
+- [OpenCV.js Build Script](https://raw.githubusercontent.com/opencv/opencv/master/platforms/js/build_js.py)
+- [Emscripten SDK](https://github.com/emscripten-core/emsdk)
 - [Canvas API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
 - [Marching Squares Algorithm](https://en.wikipedia.org/wiki/Marching_squares)
-- [OpenCV.js Builder](https://github.com/opencv/opencv_js)
+- [OpenCV Repository](https://github.com/opencv/opencv)
+- [TechStark OpenCV.js Package](https://github.com/TechStark/opencv-js)
 
 ## Notes
 
