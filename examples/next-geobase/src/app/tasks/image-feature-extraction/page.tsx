@@ -11,6 +11,7 @@ import {
   BackgroundEffects,
   ExportButton,
   FeatureVisualization,
+  MVTLayer,
   MapProviderSelector,
   InfoTooltip
 } from "../../../components";
@@ -628,6 +629,11 @@ export default function ImageFeatureExtraction() {
             return null;
           }
         })()}
+
+        {/* MVT Layer - Show when no features are extracted */}
+        {!lastResult?.features && (
+          <MVTLayer map={map.current} />
+        )}
         
 
         

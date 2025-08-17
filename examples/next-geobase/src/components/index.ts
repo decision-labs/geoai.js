@@ -13,5 +13,6 @@ export { ZeroShotControls } from './ZeroShotControls';
 export { ZeroShotSegmentationControls } from './ZeroShotSegmentationControls';
 export { ImageFeatureExtractionControls } from './ImageFeatureExtractionControls';
 export { FeatureVisualization } from './FeatureVisualization';
+export { MVTLayer } from './MVTLayer';
 export { GeoAIMap } from './GeoAIMap';
 export { BackgroundEffects } from './BackgroundEffects';
