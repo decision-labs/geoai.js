@@ -4,3 +4,4 @@ export { ImageFeatureExtractionVisualization } from './ImageFeatureExtractionVis
 export { ImageFeatureExtractionSimilarityLayer } from './ImageFeatureExtractionSimilarityLayer';
 export { ImageFeatureExtractionDemoHint } from './ImageFeatureExtractionDemoHint';
 export { ImageFeatureExtractionContextualMenu } from './ContextualMenu';
+export { ModelStatusMessage } from './ModelStatusMessage';

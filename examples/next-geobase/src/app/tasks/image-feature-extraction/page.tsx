@@ -14,7 +14,8 @@ import {
   ImageFeatureExtractionSimilarityLayer,
   MapProviderSelector,
   InfoTooltip,
-  ImageFeatureExtractionContextualMenu
+  ImageFeatureExtractionContextualMenu,
+  ModelStatusMessage
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createImageFeatureExtractionMapStyle } from "../../../utils/mapStyleUtils";
@@ -563,19 +564,13 @@ export default function ImageFeatureExtraction() {
 
         
         {/* Status Message - Bottom Left */}
-        <div className="absolute bottom-6 left-6 z-10 bg-white/90 text-gray-800 px-3 py-2 rounded-md shadow-md backdrop-blur-sm border border-gray-200">
-          <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${isInitialized ? 'bg-green-500' : 'bg-yellow-500'} ${isProcessing ? 'animate-pulse' : ''}`}></div>
-            <span className="text-sm font-medium">
-              {isProcessing ? 'Processing...' : isInitialized ? 'Model Ready' : 'Initializing...'}
-            </span>
-          </div>
-          {isDrawingMode && (
-            <p className="text-xs text-gray-600 mt-1">Draw a polygon to extract features</p>
-          )}
-          {error && (
-            <p className="text-xs text-red-600 mt-1">{error}</p>
-          )}
+        <div className="absolute bottom-6 left-6 z-10">
+          <ModelStatusMessage
+            isInitialized={isInitialized}
+            isProcessing={isProcessing}
+            isDrawingMode={isDrawingMode}
+            error={error}
+          />
         </div>
 
         {/* Precomputed Embeddings Loading/Completion Message - Center */}
