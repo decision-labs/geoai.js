@@ -43,13 +43,11 @@ export function getOptimalColorScheme(gpuInfo: GPUInfo) {
 /**
  * Creates MapLibre color expression based on GPU capabilities
  * @param gpuInfo - GPU information from detectGPU()
- * @param similarityProperty - Property name for similarity value (e.g., 'sim_0')
  * @param hoveredPatchIndex - Index of currently hovered patch
  * @returns MapLibre color expression array
  */
 export function createColorExpression(
   gpuInfo: GPUInfo,
-  similarityProperty: string,
   hoveredPatchIndex: number
 ) {
   if (gpuInfo.hasWebGPU) {
@@ -58,7 +56,7 @@ export function createColorExpression(
       'case',
       ['==', ['get', 'patchIndex'], hoveredPatchIndex], '#fcfdbf', // Bright yellow-white
       ['interpolate', ['linear'], 
-        ['get', similarityProperty],
+        ['at', hoveredPatchIndex, ['get', 'similarities']], // Array indexing
         0, '#000004',   // Black
         0.2, '#3b0f70', // Dark purple
         0.4, '#8c2981', // Purple
@@ -73,7 +71,7 @@ export function createColorExpression(
       'case',
       ['==', ['get', 'patchIndex'], hoveredPatchIndex], '#fcfdbf', // Bright yellow-white
       ['interpolate', ['linear'], 
-        ['get', similarityProperty],
+        ['at', hoveredPatchIndex, ['get', 'similarities']], // Array indexing
         0, '#000004',   // Black
         0.5, '#8c2981', // Purple
         1, '#fcfdbf'    // Bright yellow-white
@@ -85,7 +83,7 @@ export function createColorExpression(
       'case',
       ['==', ['get', 'patchIndex'], hoveredPatchIndex], '#ffffff', // White
       ['interpolate', ['linear'], 
-        ['get', similarityProperty],
+        ['at', hoveredPatchIndex, ['get', 'similarities']], // Array indexing
         0, '#000000',   // Black
         1, '#ffffff'    // White
       ]
@@ -95,19 +93,17 @@ export function createColorExpression(
 
 /**
  * Creates MapLibre opacity expression for similarity visualization
- * @param similarityProperty - Property name for similarity value (e.g., 'sim_0')
  * @param hoveredPatchIndex - Index of currently hovered patch
  * @returns MapLibre opacity expression array
  */
 export function createOpacityExpression(
-  similarityProperty: string,
   hoveredPatchIndex: number
 ) {
   return [
     'case',
     ['==', ['get', 'patchIndex'], hoveredPatchIndex], 1, // Hovered patch = fully opaque
     ['interpolate', ['linear'], 
-      ['get', similarityProperty], // Use pre-computed similarity
+      ['at', hoveredPatchIndex, ['get', 'similarities']], // Array indexing
       0, 0.3,  // Lower opacity for low similarity
       1, 0.8   // Higher opacity for high similarity
     ]

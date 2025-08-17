@@ -48,14 +48,12 @@ export const FeatureVisualization: React.FC<FeatureVisualizationProps> = ({
         // Use utility function to create optimal color expression based on GPU capabilities
         const colorExpression = createColorExpression(
           gpuInfo.current,
-          `sim_${hoveredPatchIndex}`,
           hoveredPatchIndex
         );
         
         map.setPaintProperty(layerRef.current, 'fill-color', colorExpression);
         
         const opacityExpression = createOpacityExpression(
-          `sim_${hoveredPatchIndex}`,
           hoveredPatchIndex
         );
         map.setPaintProperty(layerRef.current, 'fill-opacity', opacityExpression);
@@ -141,12 +139,8 @@ export const FeatureVisualization: React.FC<FeatureVisualizationProps> = ({
               // Consider adding them back with a flag to avoid visualization performance hit
               // featureVector: features[patchIndex], // Raw feature vector for export
               // similarities: similarityMatrix[patchIndex], // Full similarity array for export
-              // Pre-compute similarity values for all other patches (used for visualization)
-              ...Object.fromEntries(
-                similarityMatrix[patchIndex].map((similarity, targetIndex) => [
-                  `sim_${targetIndex}`, similarity
-                ])
-              ),
+              // Store similarity array for efficient styling
+              similarities: similarityMatrix[patchIndex],
             },
             geometry: {
               type: "Polygon",
