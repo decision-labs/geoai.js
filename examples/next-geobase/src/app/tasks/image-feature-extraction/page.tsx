@@ -23,7 +23,7 @@ GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/
 
 const mapInitConfig = {
   center: [114.84857638295142, -3.449805712621256] as [number, number],
-  zoom: 20,
+  zoom: 18,
 };
 
 // Add validation for required environment variables
@@ -60,6 +60,7 @@ export default function ImageFeatureExtraction() {
   const [isResetting, setIsResetting] = useState<boolean>(false);
   const [isExtractingFeatures, setIsExtractingFeatures] = useState<boolean>(false);
   const [allPatches, setAllPatches] = useState<GeoJSON.Feature<GeoJSON.Polygon>[]>([]);
+  const [isLoadingDemoLayer, setIsLoadingDemoLayer] = useState<boolean>(false);
   
   // Contextual menu state
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
@@ -632,7 +633,10 @@ export default function ImageFeatureExtraction() {
 
         {/* Cached Feature Similarity Layer - Show when no features are extracted */}
         {!lastResult?.features && (
-          <MVTCachedFeatureSimilarityLayer map={map.current} />
+          <MVTCachedFeatureSimilarityLayer 
+            map={map.current} 
+            onLoadingChange={setIsLoadingDemoLayer}
+          />
         )}
         
 
@@ -652,6 +656,16 @@ export default function ImageFeatureExtraction() {
             <p className="text-xs text-red-600 mt-1">{error}</p>
           )}
         </div>
+
+        {/* Demo Layer Loading Message - Center */}
+        {isLoadingDemoLayer && isInitialized && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl px-6 py-4">
+            <div className="flex items-center space-x-3">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+              <span className="text-sm font-medium text-gray-800">Loading demo layer...</span>
+            </div>
+          </div>
+        )}
 
         {/* Task Info - Bottom Right */}
         <div className="absolute bottom-6 right-6 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-md shadow-md p-3">

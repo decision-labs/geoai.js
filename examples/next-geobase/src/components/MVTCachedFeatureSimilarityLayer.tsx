@@ -5,6 +5,7 @@ import { getOptimalColorScheme } from '../utils/maplibreUtils';
 
 interface MVTCachedFeatureSimilarityLayerProps {
   map: maplibregl.Map | null;
+  onLoadingChange?: (isLoading: boolean) => void;
 }
 
 // robust PG numeric array parser: "{1,2,3,}" -> [1,2,3]
@@ -27,6 +28,7 @@ const parsePgNumArray = (s?: string | null): number[] | null => {
 
 export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarityLayerProps> = ({
   map,
+  onLoadingChange,
 }) => {
   const sourceRef = useRef<string | null>(null);
   const layerRef = useRef<string | null>(null);
@@ -130,6 +132,9 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
     const startTime = Date.now();
     console.log("MVTCachedFeatureSimilarityLayer - Loading cached similarity layer");
     
+    // Notify parent that loading has started
+    onLoadingChange?.(true);
+    
     // Cleanup existing layers
     cleanupLayers();
 
@@ -157,10 +162,28 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
       source: sourceId,
       'source-layer': 'public.array_embeddings_compressed',
       paint: {
-        "fill-color": "rgba(123, 168, 234, 0.5)",
-        "fill-outline-color": "rgba(255, 255, 255, 1)"
+        "fill-color": "rgba(123, 168, 234, 0.1)",
+        "fill-outline-color": "rgba(255, 255, 255, 0.3)"
       },
       filter: ["==", "$type", "Polygon"],
+    });
+
+    // Listen for tile loading completion
+    map.on('idle', () => {
+      // Check if our layer is loaded and has data
+      if (map.isSourceLoaded(sourceId)) {
+        const features = map.querySourceFeatures(sourceId, {
+          sourceLayer: 'public.array_embeddings_compressed'
+        });
+        
+        if (features.length > 0) {
+          const endTime = Date.now();
+          console.log(`MVTCachedFeatureSimilarityLayer - Tiles fully loaded in ${endTime - startTime}ms`);
+          
+          // Notify parent that loading has completed
+          onLoadingChange?.(false);
+        }
+      }
     });
 
     // Set feature-state for similarities data
@@ -169,6 +192,8 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
         const features = map.querySourceFeatures(sourceId, {
           sourceLayer: 'public.array_embeddings_compressed'
         });
+        
+
         
         features.forEach((feature) => {
           if (feature.properties && feature.properties.similarities) {
@@ -207,7 +232,7 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
     });
 
     const endTime = Date.now();
-    console.log(`MVTCachedFeatureSimilarityLayer - Cached similarity layer loaded in ${endTime - startTime}ms`);
+    console.log(`MVTCachedFeatureSimilarityLayer - Layer added to map in ${endTime - startTime}ms`);
 
     return () => {
       cleanupLayers();
