@@ -24,8 +24,8 @@ import { MapProvider } from "../../../types";
 GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif";
 
 const mapInitConfig = {
-  center: [114.84857638295142, -3.449805712621256] as [number, number],
-  zoom: 18.5,
+  center: [114.84901, -3.449806] as [number, number],
+  zoom: 18.2,
 };
 
 // Add validation for required environment variables
