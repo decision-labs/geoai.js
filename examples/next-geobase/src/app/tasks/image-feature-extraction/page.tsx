@@ -78,6 +78,10 @@ export default function ImageFeatureExtraction() {
   const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [contextMenuThreshold, setContextMenuThreshold] = useState<number>(0.5);
 
+  // Computed values for button states
+  const isButtonDisabled = isResetting || isExtractingFeatures || (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings);
+  const isButtonLoading = isResetting || (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings);
+
   // Debounced handlers for performance optimization
   const debouncedZoomChange = useDebounce((newZoom: number) => {
     if (map.current) {
@@ -733,9 +737,9 @@ export default function ImageFeatureExtraction() {
             <>
               <button
                 onClick={isDrawingMode ? handleStartDrawing : (polygon ? handleReset : handleStartDrawing)}
-                disabled={isResetting || isExtractingFeatures || (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings)}
+                disabled={isButtonDisabled}
                 className={`px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border ${
-                  isResetting || (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings) ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading precomputed embeddings
+                  isButtonLoading ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading precomputed embeddings
                   isExtractingFeatures ? 'bg-gray-400 text-white border-gray-300' : // Extracting features
                   isDrawingMode ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500' : // Drawing active
                   polygon ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-500' : // Polygon drawn (Reset)
@@ -779,7 +783,7 @@ export default function ImageFeatureExtraction() {
               {lastResult?.features && (
                 <button
                   onClick={handleResetToDemo}
-                  disabled={isResetting || isExtractingFeatures || (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings)}
+                  disabled={isButtonDisabled}
                   className="px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border bg-purple-600 text-white hover:bg-purple-700 border-purple-500"
                   title="Reset current work and return to precomputed embeddings demo"
                 >
