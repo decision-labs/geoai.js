@@ -77,6 +77,7 @@ export default function ImageFeatureExtraction() {
   const [precomputedEmbeddingsRef, setPrecomputedEmbeddingsRef] = useState<{ cleanup: () => void } | null>(null);
   const [showPrecomputedEmbeddingsMessage, setShowPrecomputedEmbeddingsMessage] = useState<boolean>(false);
   const [showPrecomputedEmbeddings, setShowPrecomputedEmbeddings] = useState<boolean>(true);
+  const [isPrecomputedMessageDismissed, setIsPrecomputedMessageDismissed] = useState<boolean>(false);
   
   // Contextual menu state
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
@@ -281,6 +282,7 @@ export default function ImageFeatureExtraction() {
     
     // Hide precomputed embeddings when resetting
     setShowPrecomputedEmbeddings(false);
+    setIsPrecomputedMessageDismissed(false);
   };
 
   const handleReset = async () => {
@@ -314,6 +316,11 @@ export default function ImageFeatureExtraction() {
     } finally {
       setIsResetting(false);
     }
+  };
+
+  // Handler to dismiss precomputed embeddings message
+  const handleDismissPrecomputedMessage = () => {
+    setIsPrecomputedMessageDismissed(true);
   };
 
   const handleZoomChange = (newZoom: number) => {
@@ -577,8 +584,12 @@ export default function ImageFeatureExtraction() {
         </div>
 
         {/* Precomputed Embeddings Loading/Completion Message - Center */}
-        {showPrecomputedEmbeddingsMessage && isInitialized && showPrecomputedEmbeddings && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl px-6 py-4">
+        {showPrecomputedEmbeddingsMessage && isInitialized && showPrecomputedEmbeddings && !isPrecomputedMessageDismissed && (
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl px-6 py-4 cursor-pointer hover:bg-white/98 transition-colors duration-200"
+            onClick={handleDismissPrecomputedMessage}
+            title="Click to dismiss"
+          >
             <div className="flex items-center space-x-3">
               {isLoadingPrecomputedEmbeddings ? (
                 <>
