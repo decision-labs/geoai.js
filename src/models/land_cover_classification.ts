@@ -58,17 +58,14 @@ export class LandCoverClassification extends BaseModel {
       this.modelParams
     );
     this.model = pretrainedModel.sessions.model;
-    const config = pretrainedModel.config;
-    if (
-      (config as any).classes === undefined ||
-      (config as any).colors === undefined
-    ) {
+    const config = pretrainedModel.config as any;
+    if (config.classes === undefined || config.colors === undefined) {
       throw new Error(
         "Model config must include both 'classes' and 'colors' properties for land cover classification."
       );
     }
-    this.classes = (pretrainedModel.config as any).classes;
-    this.colors = (pretrainedModel.config as any).colors;
+    this.classes = config.classes;
+    this.colors = config.colors;
   }
 
   async inference(params: InferenceParams): Promise<any> {
