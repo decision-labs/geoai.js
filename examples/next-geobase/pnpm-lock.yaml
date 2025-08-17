@@ -11,6 +11,9 @@ importers:
       '@geobase.js/geoai':
         specifier: file:../../build
         version: file:../../build(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)
+      '@huggingface/transformers':
+        specifier: ^3.7.2
+        version: 3.7.2
       '@mapbox/mapbox-gl-draw':
         specifier: ^1.5.0
         version: 1.5.0

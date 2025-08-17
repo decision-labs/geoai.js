@@ -80,7 +80,19 @@ export function getButtonClasses(type: keyof typeof colorTheme, disabled = false
   }
 
   const theme = colorTheme[type];
-  return `${colorTheme.buttonBase} ${theme.bg} ${theme.hover} ${theme.border} ${theme.text} ${theme.disabled}`;
+  
+  // Check if theme is an object with bg property (button themes)
+  if (typeof theme === 'object' && 'bg' in theme && 'hover' in theme) {
+    return `${colorTheme.buttonBase} ${theme.bg} ${theme.hover} ${theme.border} ${theme.text} ${theme.disabled}`;
+  }
+  
+  // If theme is a string (like status indicators), return it as is
+  if (typeof theme === 'string') {
+    return theme;
+  }
+  
+  // Fallback
+  return '';
 }
 
 /**
