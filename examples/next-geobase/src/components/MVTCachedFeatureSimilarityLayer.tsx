@@ -169,9 +169,10 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
     });
 
     // Listen for tile loading completion
+    let hasNotifiedCompletion = false;
     map.on('idle', () => {
       // Check if our layer is loaded and has data
-      if (map.isSourceLoaded(sourceId)) {
+      if (map.isSourceLoaded(sourceId) && !hasNotifiedCompletion) {
         const features = map.querySourceFeatures(sourceId, {
           sourceLayer: 'public.array_embeddings_compressed'
         });
@@ -180,7 +181,8 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
           const endTime = Date.now();
           console.log(`MVTCachedFeatureSimilarityLayer - Tiles fully loaded in ${endTime - startTime}ms`);
           
-          // Notify parent that loading has completed
+          // Notify parent that loading has completed (only once)
+          hasNotifiedCompletion = true;
           onLoadingChange?.(false);
         }
       }

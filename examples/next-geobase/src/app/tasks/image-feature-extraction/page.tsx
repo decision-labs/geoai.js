@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import MaplibreDraw from "maplibre-gl-draw";
-import type { StyleSpecification } from "maplibre-gl";
+
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { Pencil, Target, Trash2, Loader2, X, Info } from "lucide-react";
 import { 
   BackgroundEffects,
+  FeatureExtractionDemoLayerHint,
   ExportButton,
   FeatureVisualization,
   MVTCachedFeatureSimilarityLayer,
@@ -16,6 +17,7 @@ import {
   InfoTooltip
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
+import { createImageFeatureExtractionMapStyle } from "../../../utils/mapStyleUtils";
 import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types";
 
@@ -62,8 +64,7 @@ export default function ImageFeatureExtraction() {
   const [allPatches, setAllPatches] = useState<GeoJSON.Feature<GeoJSON.Polygon>[]>([]);
   const [isLoadingDemoLayer, setIsLoadingDemoLayer] = useState<boolean>(false);
   const [showDemoLayerHint, setShowDemoLayerHint] = useState<boolean>(false);
-  const [hintTimeout, setHintTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [hintProgress, setHintProgress] = useState<number>(100);
+  const [hasShownDemoHint, setHasShownDemoHint] = useState<boolean>(false);
   
   // Contextual menu state
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
@@ -205,11 +206,6 @@ export default function ImageFeatureExtraction() {
 
   const closeDemoLayerHint = () => {
     setShowDemoLayerHint(false);
-    setHintProgress(100);
-    if (hintTimeout) {
-      clearTimeout(hintTimeout);
-      setHintTimeout(null);
-    }
   };
 
   // Function to handle contextual menu feature extraction
@@ -270,27 +266,11 @@ export default function ImageFeatureExtraction() {
       // Hide contextual menu
       hideContextMenu();
       
-      // Show demo layer hint again after reset
-      setShowDemoLayerHint(true);
-      setHintProgress(100);
-      
-      // Start progress animation for reset hint
-      const startTime = Date.now();
-      const duration = 3000; // 3 seconds
-      
-      const progressInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
-        setHintProgress(remaining);
-      }, 50);
-      
-      const timeout = setTimeout(() => {
-        setShowDemoLayerHint(false);
-        setHintProgress(100);
-        clearInterval(progressInterval);
-      }, 3000);
-      
-      setHintTimeout(timeout);
+      // Show demo layer hint again after reset (but only if not shown before)
+      if (!hasShownDemoHint) {
+        setShowDemoLayerHint(true);
+        setHasShownDemoHint(true);
+      }
     } finally {
       setIsResetting(false);
     }
@@ -326,82 +306,11 @@ export default function ImageFeatureExtraction() {
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    const mapStyle: StyleSpecification = {
-      version: 8 as const,
-      sources: {
-        "mapbox-base": {
-          type: "raster",
-          tiles: [
-            `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${MAPBOX_CONFIG.apiKey}`,
-          ],
-          tileSize: 512,
-        },
-        "geobase-tiles": {
-          type: "raster",
-          tiles: [
-            `https://${GEOBASE_CONFIG.projectRef}.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/{z}/{x}/{y}?url=${GEOBASE_CONFIG.cogImagery}&apikey=${GEOBASE_CONFIG.apikey}`,
-          ],
-          tileSize: 256,
-        },
-        "mapbox-tiles": {
-          type: "raster",
-          tiles: [
-            `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${MAPBOX_CONFIG.apiKey}`,
-          ],
-          tileSize: 512,
-        },
-        "esri-tiles": {
-          type: "raster",
-          tiles: [
-            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          ],
-          tileSize: 256,
-          attribution: "ESRI World Imagery",
-        },
-      },
-      layers: [
-        {
-          id: "mapbox-base-layer",
-          type: "raster",
-          source: "mapbox-base",
-          minzoom: 0,
-          maxzoom: 23,
-          layout: {
-            visibility: mapProvider === "geobase" ? "visible" : "none",
-          },
-        },
-        {
-          id: "geobase-layer",
-          type: "raster",
-          source: "geobase-tiles",
-          minzoom: 0,
-          maxzoom: 23,
-          layout: {
-            visibility: mapProvider === "geobase" ? "visible" : "none",
-          },
-        },
-        {
-          id: "mapbox-layer",
-          type: "raster",
-          source: "mapbox-tiles",
-          minzoom: 0,
-          maxzoom: 23,
-          layout: {
-            visibility: mapProvider === "mapbox" ? "visible" : "none",
-          },
-        },
-        {
-          id: "esri-layer",
-          type: "raster",
-          source: "esri-tiles",
-          minzoom: 0,
-          maxzoom: 23,
-          layout: {
-            visibility: mapProvider === "esri" ? "visible" : "none",
-          },
-        },
-      ],
-    };
+    const mapStyle = createImageFeatureExtractionMapStyle({
+      mapProvider,
+      geobaseConfig: GEOBASE_CONFIG,
+      mapboxConfig: MAPBOX_CONFIG,
+    });
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
@@ -673,29 +582,10 @@ export default function ImageFeatureExtraction() {
             map={map.current} 
             onLoadingChange={(isLoading) => {
               setIsLoadingDemoLayer(isLoading);
-              if (!isLoading) {
-                // Show hint after loading completes
+              if (!isLoading && !hasShownDemoHint) {
+                // Show hint after loading completes, but only once
                 setShowDemoLayerHint(true);
-                setHintProgress(100);
-                
-                // Start progress animation
-                const startTime = Date.now();
-                const duration = 3000; // 3 seconds
-                
-                const progressInterval = setInterval(() => {
-                  const elapsed = Date.now() - startTime;
-                  const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
-                  setHintProgress(remaining);
-                }, 50); // Update every 50ms for smooth animation
-                
-                // Hide hint after 3 seconds
-                const timeout = setTimeout(() => {
-                  setShowDemoLayerHint(false);
-                  setHintProgress(100);
-                  clearInterval(progressInterval);
-                }, 3000);
-                
-                setHintTimeout(timeout);
+                setHasShownDemoHint(true);
               }
             }}
           />
@@ -729,41 +619,13 @@ export default function ImageFeatureExtraction() {
           </div>
         )}
 
-        {/* Demo Layer Hint Message - Center */}
+        {/* Feature Extraction Demo Layer Hint */}
         {showDemoLayerHint && !lastResult?.features && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl px-6 py-4">
-            <div className="relative">
-              {/* Close button */}
-              <button
-                onClick={closeDemoLayerHint}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
-              >
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              
-              <div className="flex items-center space-x-3">
-                <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div className="text-sm">
-                  <div className="font-medium text-gray-800">Demo layer loaded!</div>
-                  <div className="text-gray-600">Hover over patches to see similarity heatmap</div>
-                </div>
-              </div>
-              
-              {/* Progress bar */}
-              <div className="mt-3 w-full bg-gray-200 rounded-full h-1">
-                <div 
-                  className="bg-blue-600 h-1 rounded-full transition-all duration-50 ease-linear"
-                  style={{ width: `${hintProgress}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
+          <FeatureExtractionDemoLayerHint
+            isVisible={showDemoLayerHint}
+            onClose={closeDemoLayerHint}
+            duration={3000}
+          />
         )}
 
         {/* Task Info - Bottom Right */}

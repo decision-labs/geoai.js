@@ -14,5 +14,6 @@ export { ZeroShotSegmentationControls } from './ZeroShotSegmentationControls';
 export { ImageFeatureExtractionControls } from './ImageFeatureExtractionControls';
 export { FeatureVisualization } from './FeatureVisualization';
 export { MVTCachedFeatureSimilarityLayer } from './MVTCachedFeatureSimilarityLayer';
+export { FeatureExtractionDemoLayerHint } from './FeatureExtractionDemoLayerHint';
 export { GeoAIMap } from './GeoAIMap';
 export { BackgroundEffects } from './BackgroundEffects';
