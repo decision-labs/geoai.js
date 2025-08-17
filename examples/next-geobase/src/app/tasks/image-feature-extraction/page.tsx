@@ -19,6 +19,7 @@ import { MapUtils } from "../../../utils/mapUtils";
 import { createImageFeatureExtractionMapStyle } from "../../../utils/mapStyleUtils";
 import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types";
+import styles from "./page.module.css";
 
 GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif";
 
@@ -55,16 +56,22 @@ export default function ImageFeatureExtraction() {
     clearResult,
   } = useGeoAIWorker();
 
+  // Map and drawing state
   const [polygon, setPolygon] = useState<GeoJSON.Feature | null>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(22);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
   const [isDrawingMode, setIsDrawingMode] = useState<boolean>(false);
+  
+  // Processing state
   const [isResetting, setIsResetting] = useState<boolean>(false);
   const [isExtractingFeatures, setIsExtractingFeatures] = useState<boolean>(false);
   const [allPatches, setAllPatches] = useState<GeoJSON.Feature<GeoJSON.Polygon>[]>([]);
+  
+  // Precomputed embeddings state
   const [isLoadingPrecomputedEmbeddings, setIsLoadingPrecomputedEmbeddings] = useState<boolean>(false);
   const [precomputedEmbeddingsRef, setPrecomputedEmbeddingsRef] = useState<{ cleanup: () => void } | null>(null);
   const [showPrecomputedEmbeddingsMessage, setShowPrecomputedEmbeddingsMessage] = useState<boolean>(false);
+  const [showPrecomputedEmbeddings, setShowPrecomputedEmbeddings] = useState<boolean>(true);
   
   // Contextual menu state
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
@@ -237,34 +244,41 @@ export default function ImageFeatureExtraction() {
     }
   }, 200);
 
+  // Common reset logic
+  const clearCurrentState = () => {
+    // Clear all drawn features
+    if (draw.current) {
+      draw.current.deleteAll();
+    }
+
+    // Clear map layers using utility function
+    if (map.current) {
+      MapUtils.clearAllLayers(map.current);
+    }
+
+    // Reset states
+    setPolygon(null);
+    setIsExtractingFeatures(false);
+    clearError();
+    
+    // Clear result to remove ImageFeatureExtractionVisualization without resetting model
+    clearResult();
+    
+    // Hide contextual menu
+    hideContextMenu();
+    
+    // Reset drawing mode
+    setIsDrawingMode(false);
+    
+    // Hide precomputed embeddings when resetting
+    setShowPrecomputedEmbeddings(false);
+  };
+
   const handleReset = async () => {
     setIsResetting(true);
     
     try {
-      // Clear all drawn features
-      if (draw.current) {
-        draw.current.deleteAll();
-      }
-
-      // Clear map layers using utility function
-      if (map.current) {
-        MapUtils.clearAllLayers(map.current);
-      }
-
-      // Reset states
-      setPolygon(null);
-      setIsExtractingFeatures(false);
-      clearError();
-      
-      // Clear result to remove ImageFeatureExtractionVisualization without resetting model
-      clearResult();
-      
-      // Hide contextual menu
-      hideContextMenu();
-      
-      // Reset drawing mode
-      setIsDrawingMode(false);
-
+      clearCurrentState();
     } finally {
       setIsResetting(false);
     }
@@ -274,16 +288,8 @@ export default function ImageFeatureExtraction() {
     setIsResetting(true);
     
     try {
-      // Clear all drawn features
-      if (draw.current) {
-        draw.current.deleteAll();
-      }
-
-      // Clear map layers using utility function
-      if (map.current) {
-        MapUtils.clearAllLayers(map.current);
-      }
-
+      clearCurrentState();
+      
       // Reset to initial demo location
       if (map.current) {
         map.current.flyTo({
@@ -293,21 +299,9 @@ export default function ImageFeatureExtraction() {
         });
         setZoomLevel(INITIAL_DEMO_LOCATION.zoom);
       }
-
-      // Reset states
-      setPolygon(null);
-      setIsExtractingFeatures(false);
-      clearError();
       
-      // Clear result to remove ImageFeatureExtractionVisualization without resetting model
-      clearResult();
-      
-      // Hide contextual menu
-      hideContextMenu();
-      
-      // Reset drawing mode
-      setIsDrawingMode(false);
-
+      // Show precomputed embeddings when resetting to demo
+      setShowPrecomputedEmbeddings(true);
     } finally {
       setIsResetting(false);
     }
@@ -500,49 +494,7 @@ export default function ImageFeatureExtraction() {
     <main className="w-full h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 relative">
       <BackgroundEffects />
       
-      {/* Global styles for draw controls */}
-      <style jsx global>{`
-        .maplibregl-draw {
-          z-index: 1000 !important;
-          position: relative !important;
-        }
-        .maplibregl-draw .maplibregl-draw-polygon {
-          background: #fff !important;
-          border: 2px solid #007cbf !important;
-          border-radius: 4px !important;
-          color: #007cbf !important;
-          font-weight: bold !important;
-          padding: 8px 12px !important;
-          margin: 4px !important;
-          cursor: pointer !important;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-        }
-        .maplibregl-draw .maplibregl-draw-polygon:hover {
-          background: #007cbf !important;
-          color: #fff !important;
-        }
-        .maplibregl-draw .maplibregl-draw-trash {
-          background: #fff !important;
-          border: 2px solid #dc3545 !important;
-          border-radius: 4px !important;
-          color: #dc3545 !important;
-          font-weight: bold !important;
-          padding: 8px 12px !important;
-          margin: 4px !important;
-          cursor: pointer !important;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-        }
-        .maplibregl-draw .maplibregl-draw-trash:hover {
-          background: #dc3545 !important;
-          color: #fff !important;
-        }
-        
-        /* Style for unfilled polygons */
-        .maplibregl-draw .maplibregl-draw-polygon-fill-inactive[data-unfilled="true"],
-        .maplibregl-draw .maplibregl-draw-polygon-fill-active[data-unfilled="true"] {
-          fill-opacity: 0 !important;
-        }
-      `}</style>
+
 
       {/* Map Container */}
       <div className="w-full h-full relative">
@@ -586,7 +538,7 @@ export default function ImageFeatureExtraction() {
                 step="0.1"
                 value={contextMenuThreshold}
                 onChange={(e) => setContextMenuThreshold(parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer ${styles.slider}`}
               />
               <p className="text-xs text-gray-500 mt-1">
                 Higher values filter out less similar features
@@ -626,8 +578,8 @@ export default function ImageFeatureExtraction() {
           />
         )}
 
-        {/* Precomputed Embeddings Layer - Show when no features are extracted */}
-        {!lastResult?.features && (
+        {/* Precomputed Embeddings Layer - Show when no features are extracted and embeddings should be shown */}
+        {!lastResult?.features && showPrecomputedEmbeddings && (
           <>
             <ImageFeatureExtractionSimilarityLayer 
               map={map.current} 
@@ -670,7 +622,7 @@ export default function ImageFeatureExtraction() {
         </div>
 
         {/* Precomputed Embeddings Loading/Completion Message - Center */}
-        {showPrecomputedEmbeddingsMessage && isInitialized && (
+        {showPrecomputedEmbeddingsMessage && isInitialized && showPrecomputedEmbeddings && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl px-6 py-4">
             <div className="flex items-center space-x-3">
               {isLoadingPrecomputedEmbeddings ? (
@@ -781,9 +733,9 @@ export default function ImageFeatureExtraction() {
             <>
               <button
                 onClick={isDrawingMode ? handleStartDrawing : (polygon ? handleReset : handleStartDrawing)}
-                disabled={isResetting || isExtractingFeatures || isLoadingPrecomputedEmbeddings}
+                disabled={isResetting || isExtractingFeatures || (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings)}
                 className={`px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border ${
-                  isResetting || isLoadingPrecomputedEmbeddings ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading precomputed embeddings
+                  isResetting || (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings) ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading precomputed embeddings
                   isExtractingFeatures ? 'bg-gray-400 text-white border-gray-300' : // Extracting features
                   isDrawingMode ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500' : // Drawing active
                   polygon ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-500' : // Polygon drawn (Reset)
@@ -795,7 +747,7 @@ export default function ImageFeatureExtraction() {
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Resetting...</span>
                   </>
-                ) : isLoadingPrecomputedEmbeddings ? (
+                ) : (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings) ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Loading Precomputed Embeddings...</span>
@@ -827,7 +779,7 @@ export default function ImageFeatureExtraction() {
               {lastResult?.features && (
                 <button
                   onClick={handleResetToDemo}
-                  disabled={isResetting || isExtractingFeatures || isLoadingPrecomputedEmbeddings}
+                  disabled={isResetting || isExtractingFeatures || (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings)}
                   className="px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border bg-purple-600 text-white hover:bg-purple-700 border-purple-500"
                   title="Reset current work and return to precomputed embeddings demo"
                 >
