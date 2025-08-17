@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapProvider } from '../types';
+import { MapProvider } from '../../../types';
 
 interface ImageFeatureExtractionControlsProps {
   polygon: GeoJSON.Feature | null;

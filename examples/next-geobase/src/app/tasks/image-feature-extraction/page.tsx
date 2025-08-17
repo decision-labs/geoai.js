@@ -9,10 +9,10 @@ import { useDebounce } from "../../../hooks/useDebounce";
 import { Pencil, Target, Trash2, Loader2, X, Info } from "lucide-react";
 import { 
   BackgroundEffects,
-  FeatureExtractionDemoLayerHint,
+  ImageFeatureExtractionDemoHint,
   ExportButton,
-  FeatureVisualization,
-  MVTCachedFeatureSimilarityLayer,
+  ImageFeatureExtractionVisualization,
+  ImageFeatureExtractionSimilarityLayer,
   MapProviderSelector,
   InfoTooltip
 } from "../../../components";
@@ -25,7 +25,7 @@ GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/
 
 const mapInitConfig = {
   center: [114.84857638295142, -3.449805712621256] as [number, number],
-  zoom: 18,
+  zoom: 18.5,
 };
 
 // Add validation for required environment variables
@@ -103,7 +103,7 @@ export default function ImageFeatureExtraction() {
     });
   }, 500);
 
-  // Callback to receive patches from FeatureVisualization
+  // Callback to receive patches from ImageFeatureExtractionVisualization
   const handlePatchesReady = useCallback((patches: GeoJSON.Feature<GeoJSON.Polygon>[]) => {
     setAllPatches(patches);
     
@@ -260,7 +260,7 @@ export default function ImageFeatureExtraction() {
       setIsExtractingFeatures(false);
       clearError();
       
-      // Clear result to remove FeatureVisualization without resetting model
+      // Clear result to remove ImageFeatureExtractionVisualization without resetting model
       clearResult();
       
       // Hide contextual menu
@@ -562,7 +562,7 @@ export default function ImageFeatureExtraction() {
         {(() => {
           if (lastResult?.features && lastResult?.similarityMatrix) {
             return (
-              <FeatureVisualization
+              <ImageFeatureExtractionVisualization
                 map={map.current}
                 features={lastResult.features}
                 similarityMatrix={lastResult.similarityMatrix}
@@ -578,7 +578,7 @@ export default function ImageFeatureExtraction() {
 
         {/* Cached Feature Similarity Layer - Show when no features are extracted */}
         {!lastResult?.features && (
-          <MVTCachedFeatureSimilarityLayer 
+          <ImageFeatureExtractionSimilarityLayer 
             map={map.current} 
             onLoadingChange={(isLoading) => {
               setIsLoadingDemoLayer(isLoading);
@@ -621,7 +621,7 @@ export default function ImageFeatureExtraction() {
 
         {/* Feature Extraction Demo Layer Hint */}
         {showDemoLayerHint && !lastResult?.features && (
-          <FeatureExtractionDemoLayerHint
+          <ImageFeatureExtractionDemoHint
             isVisible={showDemoLayerHint}
             onClose={closeDemoLayerHint}
             duration={3000}

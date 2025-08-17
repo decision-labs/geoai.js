@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
-interface FeatureExtractionDemoLayerHintProps {
+interface ImageFeatureExtractionDemoHintProps {
   isVisible: boolean;
   onClose: () => void;
   duration?: number; // in milliseconds
 }
 
-export const FeatureExtractionDemoLayerHint: React.FC<FeatureExtractionDemoLayerHintProps> = ({
+export const ImageFeatureExtractionDemoHint: React.FC<ImageFeatureExtractionDemoHintProps> = ({
   isVisible,
   onClose,
   duration = 3000,

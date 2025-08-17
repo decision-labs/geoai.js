@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
-import { detectGPU, type GPUInfo } from '../utils/gpuUtils';
-import { getOptimalColorScheme } from '../utils/maplibreUtils';
+import { detectGPU, type GPUInfo } from '../../../utils/gpuUtils';
+import { getOptimalColorScheme } from '../../../utils/maplibreUtils';
 
-interface MVTCachedFeatureSimilarityLayerProps {
+interface ImageFeatureExtractionSimilarityLayerProps {
   map: maplibregl.Map | null;
   onLoadingChange?: (isLoading: boolean) => void;
 }
@@ -26,7 +26,7 @@ const parsePgNumArray = (s?: string | null): number[] | null => {
   return out;
 };
 
-export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarityLayerProps> = ({
+export const ImageFeatureExtractionSimilarityLayer: React.FC<ImageFeatureExtractionSimilarityLayerProps> = ({
   map,
   onLoadingChange,
 }) => {
@@ -97,7 +97,7 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
       }
     } else {
       try {
-        // Reset to default styling - same as FeatureVisualization
+        // Reset to default styling - same as ImageFeatureExtractionVisualization
         map.setPaintProperty(layerRef.current, 'fill-color', "#8c2981"); // Magma purple
         map.setPaintProperty(layerRef.current, 'fill-opacity', 0.4); // Slightly higher opacity
       } catch (error) {
@@ -130,7 +130,7 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
     }
 
     const startTime = Date.now();
-    console.log("MVTCachedFeatureSimilarityLayer - Loading cached similarity layer");
+          console.log("ImageFeatureExtractionSimilarityLayer - Loading cached similarity layer");
     
     // Notify parent that loading has started
     onLoadingChange?.(true);
@@ -179,7 +179,7 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
         
         if (features.length > 0) {
           const endTime = Date.now();
-          console.log(`MVTCachedFeatureSimilarityLayer - Tiles fully loaded in ${endTime - startTime}ms`);
+          console.log(`ImageFeatureExtractionSimilarityLayer - Tiles fully loaded in ${endTime - startTime}ms`);
           
           // Notify parent that loading has completed (only once)
           hasNotifiedCompletion = true;
@@ -234,7 +234,7 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
     });
 
     const endTime = Date.now();
-    console.log(`MVTCachedFeatureSimilarityLayer - Layer added to map in ${endTime - startTime}ms`);
+          console.log(`ImageFeatureExtractionSimilarityLayer - Layer added to map in ${endTime - startTime}ms`);
 
     return () => {
       cleanupLayers();

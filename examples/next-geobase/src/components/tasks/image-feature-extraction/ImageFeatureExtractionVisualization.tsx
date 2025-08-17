@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
-import { detectGPU, type GPUInfo } from '../utils/gpuUtils';
-import { createColorExpression, createOpacityExpression } from '../utils/maplibreUtils';
+import { detectGPU, type GPUInfo } from '../../../utils/gpuUtils';
+import { createColorExpression, createOpacityExpression } from '../../../utils/maplibreUtils';
 
-interface FeatureVisualizationProps {
+interface ImageFeatureExtractionVisualizationProps {
   map: maplibregl.Map | null;
   features: number[][] | null;
   similarityMatrix: number[][] | null;
@@ -12,7 +12,7 @@ interface FeatureVisualizationProps {
   onPatchesReady?: (patches: GeoJSON.Feature<GeoJSON.Polygon>[]) => void;
 }
 
-export const FeatureVisualization: React.FC<FeatureVisualizationProps> = ({
+export const ImageFeatureExtractionVisualization: React.FC<ImageFeatureExtractionVisualizationProps> = ({
   map,
   features,
   similarityMatrix,
@@ -95,7 +95,7 @@ export const FeatureVisualization: React.FC<FeatureVisualizationProps> = ({
     }
 
     const startTime = Date.now();
-    console.log("FeatureVisualization - Update hook started");
+    console.log("ImageFeatureExtractionVisualization - Update hook started");
     
     // Cleanup existing layers
     cleanupLayers();
@@ -211,7 +211,7 @@ export const FeatureVisualization: React.FC<FeatureVisualizationProps> = ({
     });
 
     const endTime = Date.now();
-    console.log(`FeatureVisualization - Update hook completed in ${endTime - startTime}ms`);
+    console.log(`ImageFeatureExtractionVisualization - Update hook completed in ${endTime - startTime}ms`);
 
     return () => {
       cleanupLayers();
