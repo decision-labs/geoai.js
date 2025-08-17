@@ -149,7 +149,7 @@ export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarit
     map.addSource(sourceId, {
       type: 'vector',
       tiles: [
-        `https://nvptbsqezvuphqqgsjgr.geobase.app/tileserver/v1/cached/public.array_embeddings_compressed/{z}/{x}/{y}.pbf?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE5MDc2MTYxMTMsImlhdCI6MTc0OTgzMTcxMywiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.9RusmwQyyMmuNyfclx-dHeiu4VbJCKlA1SZWbdsnZKM`,
+        `https://${process.env.NEXT_PUBLIC_GEOBASE_EMBEDDINGS_PROJECT_REF}.geobase.app/tileserver/v1/cached/public.array_embeddings_compressed/{z}/{x}/{y}.pbf?apikey=${process.env.NEXT_PUBLIC_GEOBASE_EMBEDDINGS_CACHE_ANON_KEY}`,
       ],
       // Promote ogc_fid as the unique identifier for the layer
       promoteId: { 'public.array_embeddings_compressed': 'ogc_fid' }
