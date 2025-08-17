@@ -6,3 +6,4 @@ export { ImageFeatureExtractionDemoHint } from './ImageFeatureExtractionDemoHint
 export { ImageFeatureExtractionContextualMenu } from './ContextualMenu';
 export { ModelStatusMessage } from './ModelStatusMessage';
 export { TaskInfo } from './TaskInfo';
+export { ZoomControl } from './ZoomControl';
