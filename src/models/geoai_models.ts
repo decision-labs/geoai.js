@@ -4,7 +4,7 @@ import { GeoRawImage } from "@/types/images/GeoRawImage";
 import {
   PreTrainedModel,
   PretrainedModelOptions,
-  RawImage,
+  ImageProcessor,
 } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
@@ -16,6 +16,7 @@ import { InferenceParams, ObjectDetectionResults } from "@/core/types";
 abstract class BaseDetectionModel extends BaseModel {
   protected model: ort.InferenceSession | undefined;
   protected zoom?: number;
+  protected processor: ImageProcessor | undefined;
 
   protected constructor(
     model_id: string,
@@ -25,47 +26,8 @@ abstract class BaseDetectionModel extends BaseModel {
     super(model_id, providerParams, modelParams);
   }
 
-  protected async preProcessor(
-    image: GeoRawImage
-  ): Promise<{ input: ort.Tensor }> {
-    let rawImage = new RawImage(
-      image.data,
-      image.height,
-      image.width,
-      image.channels
-    );
-
-    // If image has 4 channels, remove the alpha channel
-    if (image.channels > 3) {
-      const newData = new Uint8Array(image.width * image.height * 3);
-      for (let i = 0, j = 0; i < image.data.length; i += 4, j += 3) {
-        newData[j] = image.data[i]; // R
-        newData[j + 1] = image.data[i + 1]; // G
-        newData[j + 2] = image.data[i + 2]; // B
-      }
-      rawImage = new RawImage(newData, image.height, image.width, 3);
-    }
-    const tensor = rawImage.toTensor("CHW"); // Transpose to CHW format (equivalent to Python's transpose(2, 0, 1))
-    // const tensor = image.toTensor("CHW"); // Transpose to CHW format (equivalent to Python's transpose(2, 0, 1))
-
-    // Convert tensor data to Float32Array and normalize
-    const floatData = new Float32Array(tensor.data.length);
-    for (let i = 0; i < tensor.data.length; i++) {
-      floatData[i] = tensor.data[i] / 255.0; // Normalize to [0, 1]
-    }
-
-    // Create the ONNX Runtime tensor
-    return {
-      input: new ort.Tensor(floatData, [
-        1,
-        tensor.dims[0],
-        tensor.dims[1],
-        tensor.dims[2],
-      ]),
-    };
-  }
-
   protected async initializeModel(): Promise<void> {
+    this.processor = await ImageProcessor.from_pretrained(this.model_id);
     const pretrainedModel = await PreTrainedModel.from_pretrained(
       this.model_id,
       this.modelParams
@@ -165,13 +127,16 @@ abstract class BaseDetectionModel extends BaseModel {
     const task = this.model_id.split("/").pop()?.split(".")[0].split("_")[0];
     const inferenceStartTime = performance.now();
     console.log(`[${task}] starting inference...`);
-    const inputs = await this.preProcessor(geoRawImage);
+    if (!this.processor) {
+      throw new Error("Processor not initialized");
+    }
+    const inputs = await this.processor(geoRawImage);
     let outputs;
     try {
       if (!this.model) {
         throw new Error("Model not initialized");
       }
-      outputs = await this.model.run({ image: inputs.input });
+      outputs = await this.model.run({ image: inputs.pixel_values });
     } catch (error) {
       console.debug("error", error);
       throw error;
@@ -339,6 +304,7 @@ export class BuildingDetection extends BaseDetectionModel {
 export class WetLandSegmentation extends BaseModel {
   protected static instance: WetLandSegmentation | null = null;
   protected model: ort.InferenceSession | undefined;
+  protected processor: ImageProcessor | undefined;
 
   private constructor(
     model_id: string,
@@ -373,34 +339,12 @@ export class WetLandSegmentation extends BaseModel {
   }
 
   protected async initializeModel(): Promise<void> {
+    this.processor = await ImageProcessor.from_pretrained(this.model_id);
     const pretrainedModel = await PreTrainedModel.from_pretrained(
       this.model_id,
       this.modelParams
     );
     this.model = pretrainedModel.sessions.model;
-  }
-
-  protected async preProcessor(
-    image: GeoRawImage
-  ): Promise<{ input: ort.Tensor }> {
-    // Convert RawImage to a tensor in CHW format
-    const tensor = image.toTensor("CHW"); // Transpose to CHW format, it is equal in python transpose(2, 0, 1)
-
-    // Convert tensor data to Float32Array
-    const floatData = new Float32Array(tensor.data.length);
-    for (let i = 0; i < tensor.data.length; i++) {
-      floatData[i] = tensor.data[i] / 255.0; // Normalize to [0, 1] if needed
-    }
-
-    // Create the ONNX Runtime tensor
-    return {
-      input: new ort.Tensor(floatData, [
-        1,
-        tensor.dims[0],
-        tensor.dims[1],
-        tensor.dims[2],
-      ]),
-    };
   }
 
   async inference(params: InferenceParams): Promise<ObjectDetectionResults> {
@@ -435,13 +379,16 @@ export class WetLandSegmentation extends BaseModel {
     const inferenceStartTime = performance.now();
     console.log("[wetland-segmentation] starting inference...");
 
-    const inputs = await this.preProcessor(geoRawImage);
+    if (!this.processor) {
+      throw new Error("Processor not initialized");
+    }
+    const inputs = await this.processor(geoRawImage);
     let outputs;
     try {
       if (!this.model) {
         throw new Error("Model or processor not initialized");
       }
-      outputs = await this.model.run({ input: inputs.input });
+      outputs = await this.model.run({ input: inputs.pixel_values });
     } catch (error) {
       console.debug("error", error);
       throw error;
