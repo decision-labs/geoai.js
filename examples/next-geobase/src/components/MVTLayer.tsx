@@ -53,6 +53,8 @@ export const MVTLayer: React.FC<MVTLayerProps> = ({
       tiles: [
         `https://nvptbsqezvuphqqgsjgr.geobase.app/tileserver/v1/public.array_embeddings_compressed/{z}/{x}/{y}.pbf?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE5MDc2MTYxMTMsImlhdCI6MTc0OTgzMTcxMywiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.9RusmwQyyMmuNyfclx-dHeiu4VbJCKlA1SZWbdsnZKM`,
       ],
+      // Promote ogc_fid as the unique identifier for the layer
+      promoteId: { 'public.array_embeddings_compressed': 'ogc_fid' }
     });
 
     // Add MVT layer
