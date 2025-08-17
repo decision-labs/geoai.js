@@ -8,7 +8,7 @@ importers:
 
   .:
     dependencies:
-      '@geobase-js/geoai':
+      '@geobase.js/geoai':
         specifier: file:../../build
         version: file:../../build(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)
       '@mapbox/mapbox-gl-draw':
@@ -139,7 +139,7 @@ packages:
     resolution: {integrity: sha512-Z5kJ+wU3oA7MMIqVR9tyZRtjYPr4OC004Q4Rw7pgOKUOKkJfZ3O24nz3WYfGRpMDNmcOi3TwQOmgm7B7Tpii0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@geobase-js/geoai@file:../../build':
+  '@geobase.js/geoai@file:../../build':
     resolution: {directory: ../../build, type: directory}
     peerDependencies:
       '@huggingface/transformers': ^3.7.2
@@ -3457,7 +3457,7 @@ snapshots:
       '@eslint/core': 0.15.2
       levn: 0.4.1
 
-  '@geobase-js/geoai@file:../../build(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)':
+  '@geobase.js/geoai@file:../../build(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)':
     dependencies:
       '@huggingface/transformers': 3.7.2
       '@techstark/opencv-js': 4.10.0-release.1
