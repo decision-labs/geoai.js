@@ -11,7 +11,7 @@ import {
   BackgroundEffects,
   ExportButton,
   FeatureVisualization,
-  MVTLayer,
+  MVTCachedFeatureSimilarityLayer,
   MapProviderSelector,
   InfoTooltip
 } from "../../../components";
@@ -630,9 +630,9 @@ export default function ImageFeatureExtraction() {
           }
         })()}
 
-        {/* MVT Layer - Show when no features are extracted */}
+        {/* Cached Feature Similarity Layer - Show when no features are extracted */}
         {!lastResult?.features && (
-          <MVTLayer map={map.current} />
+          <MVTCachedFeatureSimilarityLayer map={map.current} />
         )}
         
 

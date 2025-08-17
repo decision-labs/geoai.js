@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
+import { detectGPU, type GPUInfo } from '../utils/gpuUtils';
+import { getOptimalColorScheme } from '../utils/maplibreUtils';
 
-interface MVTLayerProps {
+interface MVTCachedFeatureSimilarityLayerProps {
   map: maplibregl.Map | null;
 }
 
@@ -23,12 +25,25 @@ const parsePgNumArray = (s?: string | null): number[] | null => {
   return out;
 };
 
-export const MVTLayer: React.FC<MVTLayerProps> = ({
+export const MVTCachedFeatureSimilarityLayer: React.FC<MVTCachedFeatureSimilarityLayerProps> = ({
   map,
 }) => {
   const sourceRef = useRef<string | null>(null);
   const layerRef = useRef<string | null>(null);
   const hoveredPatchRef = useRef<number | null>(null);
+  
+  // GPU capabilities for performance optimization
+  const gpuInfo = useRef<GPUInfo>({
+    hasWebGPU: false,
+    isHighPerformance: false,
+  });
+  
+  // Initialize GPU detection on mount
+  useEffect(() => {
+    detectGPU().then((info) => {
+      gpuInfo.current = info;
+    });
+  }, []);
 
   // Helper function to update layer styling based on hovered patch
   const updateLayerStyling = (hoveredPatchIndex: number | null) => {
@@ -38,6 +53,9 @@ export const MVTLayer: React.FC<MVTLayerProps> = ({
     
     if (hoveredPatchIndex !== null) {
       try {
+        // Get optimal color scheme based on GPU capabilities
+        const colorScheme = getOptimalColorScheme(gpuInfo.current);
+        
         // Create heatmap styling based on similarities with the hovered patch
         const colorExpression = [
           "case",
@@ -46,11 +64,14 @@ export const MVTLayer: React.FC<MVTLayerProps> = ({
             "interpolate",
             ["linear"],
             ["at", hoveredPatchIndex, ["feature-state", "similarities"]],
-            0, ["rgba", 255, 255, 255, 0.1],  // Low similarity - transparent
-            0.5, ["rgba", 255, 165, 0, 0.3],   // Medium similarity - orange
-            1, ["rgba", 255, 0, 0, 0.8]        // High similarity - red
+            0, colorScheme.low,      // Black
+            0.2, colorScheme.lowMedium || colorScheme.medium, // Dark purple
+            0.4, colorScheme.medium, // Purple
+            0.6, colorScheme.mediumHigh || colorScheme.high, // Pink-red
+            0.8, colorScheme.high,   // Orange
+            1, colorScheme.highest || colorScheme.high // Bright yellow-white
           ],
-          "rgba(123, 168, 234, 0.5)"  // Default color
+          "#8c2981"  // Default color (magma purple)
         ];
         
         map.setPaintProperty(layerRef.current, 'fill-color', colorExpression);
@@ -62,11 +83,10 @@ export const MVTLayer: React.FC<MVTLayerProps> = ({
             "interpolate",
             ["linear"],
             ["at", hoveredPatchIndex, ["feature-state", "similarities"]],
-            0, 0.1,   // Low similarity - low opacity
-            0.5, 0.4, // Medium similarity - medium opacity
-            1, 0.8    // High similarity - high opacity
+            0, 0.3,   // Lower opacity for low similarity
+            1, 0.8    // Higher opacity for high similarity
           ],
-          0.5  // Default opacity
+          0.4  // Default opacity
         ];
         
         map.setPaintProperty(layerRef.current, 'fill-opacity', opacityExpression);
@@ -75,9 +95,9 @@ export const MVTLayer: React.FC<MVTLayerProps> = ({
       }
     } else {
       try {
-        // Reset to default styling
-        map.setPaintProperty(layerRef.current, 'fill-color', "rgba(123, 168, 234, 0.5)");
-        map.setPaintProperty(layerRef.current, 'fill-opacity', 0.5);
+        // Reset to default styling - same as FeatureVisualization
+        map.setPaintProperty(layerRef.current, 'fill-color', "#8c2981"); // Magma purple
+        map.setPaintProperty(layerRef.current, 'fill-opacity', 0.4); // Slightly higher opacity
       } catch (error) {
         console.warn('Error resetting layer styling:', error);
       }
@@ -97,7 +117,7 @@ export const MVTLayer: React.FC<MVTLayerProps> = ({
           map.removeSource(sourceRef.current);
         }
       } catch (error) {
-        console.warn('Error during MVT layer cleanup:', error);
+        console.warn('Error during cached similarity layer cleanup:', error);
       }
     }
   };
@@ -108,7 +128,7 @@ export const MVTLayer: React.FC<MVTLayerProps> = ({
     }
 
     const startTime = Date.now();
-    console.log("MVTLayer - Loading MVT layer");
+    console.log("MVTCachedFeatureSimilarityLayer - Loading cached similarity layer");
     
     // Cleanup existing layers
     cleanupLayers();
@@ -124,7 +144,7 @@ export const MVTLayer: React.FC<MVTLayerProps> = ({
     map.addSource(sourceId, {
       type: 'vector',
       tiles: [
-        `https://nvptbsqezvuphqqgsjgr.geobase.app/tileserver/v1/public.array_embeddings_compressed/{z}/{x}/{y}.pbf?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE5MDc2MTYxMTMsImlhdCI6MTc0OTgzMTcxMywiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.9RusmwQyyMmuNyfclx-dHeiu4VbJCKlA1SZWbdsnZKM`,
+        `https://nvptbsqezvuphqqgsjgr.geobase.app/tileserver/v1/cached/public.array_embeddings_compressed/{z}/{x}/{y}.pbf?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE5MDc2MTYxMTMsImlhdCI6MTc0OTgzMTcxMywiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.9RusmwQyyMmuNyfclx-dHeiu4VbJCKlA1SZWbdsnZKM`,
       ],
       // Promote ogc_fid as the unique identifier for the layer
       promoteId: { 'public.array_embeddings_compressed': 'ogc_fid' }
@@ -187,7 +207,7 @@ export const MVTLayer: React.FC<MVTLayerProps> = ({
     });
 
     const endTime = Date.now();
-    console.log(`MVTLayer - MVT layer loaded in ${endTime - startTime}ms`);
+    console.log(`MVTCachedFeatureSimilarityLayer - Cached similarity layer loaded in ${endTime - startTime}ms`);
 
     return () => {
       cleanupLayers();
