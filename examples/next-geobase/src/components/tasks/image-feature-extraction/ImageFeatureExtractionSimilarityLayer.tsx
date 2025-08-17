@@ -35,6 +35,7 @@ export const ImageFeatureExtractionSimilarityLayer: React.FC<ImageFeatureExtract
   const sourceRef = useRef<string | null>(null);
   const layerRef = useRef<string | null>(null);
   const hoveredPatchRef = useRef<number | null>(null);
+  const hasNotifiedCompletion = useRef(false);
   
   // GPU capabilities for performance optimization
   const gpuInfo = useRef<GPUInfo>({
@@ -114,6 +115,11 @@ export const ImageFeatureExtractionSimilarityLayer: React.FC<ImageFeatureExtract
 
     if (sourceRef.current && layerRef.current) {
       try {
+        // Remove event listeners first
+        map.off('idle', idleHandler);
+        map.off('sourcedata', sourcedataHandler);
+        map.off('mousemove', layerRef.current, mousemoveHandler);
+        
         if (map.getLayer(layerRef.current)) {
           map.removeLayer(layerRef.current);
         }
@@ -125,6 +131,73 @@ export const ImageFeatureExtractionSimilarityLayer: React.FC<ImageFeatureExtract
       }
     }
   }, [map]);
+
+  // Event handler functions
+  const idleHandler = useCallback(() => {
+    if (!map || !sourceRef.current) return;
+    
+    // Check if our source still exists and is loaded
+    if (map.getSource(sourceRef.current) && map.isSourceLoaded(sourceRef.current) && !hasNotifiedCompletion.current) {
+      const features = map.querySourceFeatures(sourceRef.current, {
+        sourceLayer: 'public.array_embeddings_compressed'
+      });
+      
+      if (features.length > 0) {
+        console.log(`ImageFeatureExtractionSimilarityLayer - Tiles fully loaded`);
+        
+        // Notify parent that loading has completed (only once)
+        hasNotifiedCompletion.current = true;
+        onLoadingChange?.(false);
+      }
+    }
+  }, [map, onLoadingChange]);
+
+  const sourcedataHandler = useCallback((e: any) => {
+    if (!map || !sourceRef.current) return;
+    
+    if (e.sourceId === sourceRef.current && e.isSourceLoaded && map.getSource(sourceRef.current)) {
+      const features = map.querySourceFeatures(sourceRef.current, {
+        sourceLayer: 'public.array_embeddings_compressed'
+      });
+      
+      features.forEach((feature) => {
+        if (feature.properties && feature.properties.similarities) {
+          const similarities = parsePgNumArray(feature.properties.similarities);
+          if (similarities && feature.id) {
+            map.setFeatureState({
+              source: sourceRef.current!,
+              sourceLayer: 'public.array_embeddings_compressed',
+              id: feature.id,
+            }, {
+              similarities: similarities
+            });
+          }
+        }
+      });
+    }
+  }, [map]);
+
+  const mousemoveHandler = useCallback((e: any) => {
+    if (!map) return;
+    
+    if (e.features && e.features.length > 0) {
+      const feature = e.features[0];
+      const patchIndex = feature.properties?.patchindex;
+  
+      if (patchIndex !== undefined && patchIndex !== hoveredPatchRef.current) {
+        map.getCanvas().style.cursor = 'crosshair';
+        updateLayerStyling(patchIndex);
+      }
+    } else {
+      // Cursor not on any patch
+      if (hoveredPatchRef.current !== null) {
+        map.getCanvas().style.cursor = '';
+        updateLayerStyling(null);
+      }
+    }
+  }, [map]);
+
+
 
   // Expose cleanup function to parent component
   useEffect(() => {
@@ -139,7 +212,10 @@ export const ImageFeatureExtractionSimilarityLayer: React.FC<ImageFeatureExtract
     }
 
     const startTime = Date.now();
-          console.log("ImageFeatureExtractionSimilarityLayer - Loading cached similarity layer");
+    console.log("ImageFeatureExtractionSimilarityLayer - Loading cached similarity layer");
+    
+    // Reset completion state
+    hasNotifiedCompletion.current = false;
     
     // Notify parent that loading has started
     onLoadingChange?.(true);
@@ -177,70 +253,10 @@ export const ImageFeatureExtractionSimilarityLayer: React.FC<ImageFeatureExtract
       filter: ["==", "$type", "Polygon"],
     });
 
-    // Listen for tile loading completion
-    let hasNotifiedCompletion = false;
-    map.on('idle', () => {
-      // Check if our layer is loaded and has data
-      if (map.isSourceLoaded(sourceId) && !hasNotifiedCompletion) {
-        const features = map.querySourceFeatures(sourceId, {
-          sourceLayer: 'public.array_embeddings_compressed'
-        });
-        
-        if (features.length > 0) {
-          const endTime = Date.now();
-          console.log(`ImageFeatureExtractionSimilarityLayer - Tiles fully loaded in ${endTime - startTime}ms`);
-          
-          // Notify parent that loading has completed (only once)
-          hasNotifiedCompletion = true;
-          onLoadingChange?.(false);
-        }
-      }
-    });
-
-    // Set feature-state for similarities data
-    map.on('sourcedata', (e) => {
-      if (e.sourceId === sourceId && e.isSourceLoaded) {
-        const features = map.querySourceFeatures(sourceId, {
-          sourceLayer: 'public.array_embeddings_compressed'
-        });
-        
-
-        
-        features.forEach((feature) => {
-          if (feature.properties && feature.properties.similarities) {
-            const similarities = parsePgNumArray(feature.properties.similarities);
-            if (similarities && feature.id) {
-              map.setFeatureState({
-                source: sourceId,
-                sourceLayer: 'public.array_embeddings_compressed',
-                id: feature.id,
-              }, {
-                similarities: similarities
-              });
-            }
-          }
-        });
-      }
-    });
-
-    // Add hover events for heatmap styling
-    map.on('mousemove', layerId, (e) => {
-      if (e.features && e.features.length > 0) {
-        const feature = e.features[0];
-        const patchIndex = feature.properties?.patchindex;
-    
-        if (patchIndex !== undefined && patchIndex !== hoveredPatchRef.current) {
-          map.getCanvas().style.cursor = 'crosshair';
-          updateLayerStyling(patchIndex);
-        }
-      } else {
-        // Cursor not on any patch
-        if (hoveredPatchRef.current !== null) {
-          map.getCanvas().style.cursor = '';
-          updateLayerStyling(null);
-        }
-      }
-    });
+    // Add event listeners
+    map.on('idle', idleHandler);
+    map.on('sourcedata', sourcedataHandler);
+    map.on('mousemove', layerId, mousemoveHandler);
 
     const endTime = Date.now();
           console.log(`ImageFeatureExtractionSimilarityLayer - Layer added to map in ${endTime - startTime}ms`);

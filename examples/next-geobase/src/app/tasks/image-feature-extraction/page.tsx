@@ -9,7 +9,6 @@ import { useDebounce } from "../../../hooks/useDebounce";
 import { Pencil, Target, Trash2, Loader2, X } from "lucide-react";
 import { 
   BackgroundEffects,
-  ImageFeatureExtractionDemoHint,
   ExportButton,
   ImageFeatureExtractionVisualization,
   ImageFeatureExtractionSimilarityLayer,
@@ -61,9 +60,8 @@ export default function ImageFeatureExtraction() {
   const [isExtractingFeatures, setIsExtractingFeatures] = useState<boolean>(false);
   const [allPatches, setAllPatches] = useState<GeoJSON.Feature<GeoJSON.Polygon>[]>([]);
   const [isLoadingDemoLayer, setIsLoadingDemoLayer] = useState<boolean>(false);
-  const [showDemoLayerHint, setShowDemoLayerHint] = useState<boolean>(false);
-  const [hasShownDemoHint, setHasShownDemoHint] = useState<boolean>(false);
   const [demoLayerRef, setDemoLayerRef] = useState<{ cleanup: () => void } | null>(null);
+  const [showDemoLayerMessage, setShowDemoLayerMessage] = useState<boolean>(false);
   
   // Contextual menu state
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
@@ -201,9 +199,7 @@ export default function ImageFeatureExtraction() {
     setContextMenuPosition(null);
   };
 
-  const closeDemoLayerHint = useCallback(() => {
-    setShowDemoLayerHint(false);
-  }, []);
+
 
   const handleCleanupReady = useCallback((cleanup: () => void) => {
     setDemoLayerRef({ cleanup });
@@ -263,14 +259,7 @@ export default function ImageFeatureExtraction() {
       // Hide contextual menu
       hideContextMenu();
       
-      // Show demo layer hint again after reset (but only if not shown before)
-      if (!hasShownDemoHint) {
-        setShowDemoLayerHint(true);
-        setHasShownDemoHint(true);
-      } else {
-        // If hint was already shown, don't show it again
-        setShowDemoLayerHint(false);
-      }
+
     } finally {
       setIsResetting(false);
     }
@@ -297,9 +286,6 @@ export default function ImageFeatureExtraction() {
       
       // Hide contextual menu when starting to draw
       hideContextMenu();
-      // Hide demo layer hint when starting to draw
-      setShowDemoLayerHint(false);
-      setHasShownDemoHint(true); // Prevent hint from showing again
     } else {
       console.error('❌ Draw control not initialized');
     }
@@ -581,22 +567,16 @@ export default function ImageFeatureExtraction() {
         )}
         
         {/* Feature Visualization */}
-        {(() => {
-          if (lastResult?.features && lastResult?.similarityMatrix) {
-            return (
-              <ImageFeatureExtractionVisualization
-                map={map.current}
-                features={lastResult.features}
-                similarityMatrix={lastResult.similarityMatrix}
-                patchSize={lastResult.patchSize}
-                geoRawImage={lastResult.geoRawImage}
-                onPatchesReady={handlePatchesReady}
-              />
-            );
-          } else {
-            return null;
-          }
-        })()}
+        {lastResult?.features && lastResult?.similarityMatrix && (
+          <ImageFeatureExtractionVisualization
+            map={map.current}
+            features={lastResult.features}
+            similarityMatrix={lastResult.similarityMatrix}
+            patchSize={lastResult.patchSize}
+            geoRawImage={lastResult.geoRawImage}
+            onPatchesReady={handlePatchesReady}
+          />
+        )}
 
         {/* Cached Feature Similarity Layer - Show when no features are extracted */}
         {!lastResult?.features && (
@@ -604,15 +584,16 @@ export default function ImageFeatureExtraction() {
             map={map.current} 
             onLoadingChange={(isLoading) => {
               setIsLoadingDemoLayer(isLoading);
-              if (!isLoading && !hasShownDemoHint) {
-                // Show hint after loading completes, but only once
-                setShowDemoLayerHint(true);
-                setHasShownDemoHint(true);
+              setShowDemoLayerMessage(true);
+              
+              if (!isLoading) {
+                // Show completion message briefly, then hide
+                setTimeout(() => {
+                  setShowDemoLayerMessage(false);
+                }, 2000); // Show for 2 seconds
               }
             }}
-            onCleanupReady={useCallback((cleanup: () => void) => {
-              setDemoLayerRef({ cleanup });
-            }, [])}
+            onCleanupReady={handleCleanupReady}
           />
         )}
         
@@ -634,24 +615,30 @@ export default function ImageFeatureExtraction() {
           )}
         </div>
 
-        {/* Demo Layer Loading Message - Center */}
-        {isLoadingDemoLayer && isInitialized && (
+        {/* Demo Layer Loading/Completion Message - Center */}
+        {showDemoLayerMessage && isInitialized && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl px-6 py-4">
             <div className="flex items-center space-x-3">
-              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-              <span className="text-sm font-medium text-gray-800">Loading demo layer...</span>
+              {isLoadingDemoLayer ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <span className="text-sm font-medium text-gray-800">Loading demo layer...</span>
+                </>
+              ) : (
+                <>
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium text-gray-800">Demo layer loaded!</span>
+                </>
+              )}
             </div>
           </div>
         )}
 
-        {/* Feature Extraction Demo Layer Hint */}
-        {showDemoLayerHint && !lastResult?.features && (
-          <ImageFeatureExtractionDemoHint
-            isVisible={showDemoLayerHint}
-            onClose={closeDemoLayerHint}
-            duration={3000}
-          />
-        )}
+
 
         {/* Task Info - Bottom Right */}
         <div className="absolute bottom-6 right-6 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-md shadow-md p-3">
