@@ -251,6 +251,39 @@ export default function ImageFeatureExtraction() {
         MapUtils.clearAllLayers(map.current);
       }
 
+      // Reset states
+      setPolygon(null);
+      setIsExtractingFeatures(false);
+      clearError();
+      
+      // Clear result to remove ImageFeatureExtractionVisualization without resetting model
+      clearResult();
+      
+      // Hide contextual menu
+      hideContextMenu();
+      
+      // Reset drawing mode
+      setIsDrawingMode(false);
+
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleResetToDemo = async () => {
+    setIsResetting(true);
+    
+    try {
+      // Clear all drawn features
+      if (draw.current) {
+        draw.current.deleteAll();
+      }
+
+      // Clear map layers using utility function
+      if (map.current) {
+        MapUtils.clearAllLayers(map.current);
+      }
+
       // Reset to initial demo location
       if (map.current) {
         map.current.flyTo({
@@ -595,21 +628,27 @@ export default function ImageFeatureExtraction() {
 
         {/* Precomputed Embeddings Layer - Show when no features are extracted */}
         {!lastResult?.features && (
-          <ImageFeatureExtractionSimilarityLayer 
-            map={map.current} 
-            onLoadingChange={(isLoading) => {
-              setIsLoadingPrecomputedEmbeddings(isLoading);
-              setShowPrecomputedEmbeddingsMessage(true);
-              
-              if (!isLoading) {
-                // Show completion message briefly, then hide
-                setTimeout(() => {
-                  setShowPrecomputedEmbeddingsMessage(false);
-                }, 2000); // Show for 2 seconds
-              }
-            }}
-            onCleanupReady={handleCleanupReady}
-          />
+          <>
+            <ImageFeatureExtractionSimilarityLayer 
+              map={map.current} 
+              onLoadingChange={(isLoading) => {
+                setIsLoadingPrecomputedEmbeddings(isLoading);
+                setShowPrecomputedEmbeddingsMessage(true);
+                
+                if (!isLoading) {
+                  // Show completion message briefly, then hide
+                  setTimeout(() => {
+                    setShowPrecomputedEmbeddingsMessage(false);
+                  }, 2000); // Show for 2 seconds
+                }
+              }}
+              onCleanupReady={handleCleanupReady}
+            />
+            
+
+            
+
+          </>
         )}
         
 
@@ -646,7 +685,15 @@ export default function ImageFeatureExtraction() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-sm font-medium text-gray-800">Precomputed embeddings loaded!</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-800">Precomputed embeddings loaded!</span>
+                    <div className="flex items-center space-x-1 mt-1">
+                      <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.122 2.122" />
+                      </svg>
+                      <span className="text-xs text-gray-600">Hover over areas to see similar embeddings</span>
+                    </div>
+                  </div>
                 </>
               )}
             </div>
@@ -731,49 +778,66 @@ export default function ImageFeatureExtraction() {
               <span>Loading Model...</span>
             </div>
           ) : (
-            <button
-              onClick={isDrawingMode ? handleStartDrawing : (polygon ? handleReset : handleStartDrawing)}
-              disabled={isResetting || isExtractingFeatures || isLoadingPrecomputedEmbeddings}
-              className={`px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border ${
-                isResetting || isLoadingPrecomputedEmbeddings ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading precomputed embeddings
-                isExtractingFeatures ? 'bg-gray-400 text-white border-gray-300' : // Extracting features
-                isDrawingMode ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500' : // Drawing active
-                polygon ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-500' : // Polygon drawn (Reset)
-                'bg-blue-600 text-white hover:bg-blue-700 border-blue-500' // Initial (Start Drawing)
-              }`}
-            >
-              {isResetting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Resetting...</span>
-                </>
-              ) : isLoadingPrecomputedEmbeddings ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Loading Precomputed Embeddings...</span>
-                </>
-              ) : isExtractingFeatures ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Extracting Features...</span>
-                </>
-              ) : isDrawingMode ? (
-                <>
-                  <Target className="w-4 h-4" />
-                  <span>Drawing Active</span>
-                </>
-              ) : polygon ? (
-                <>
-                  <Trash2 className="w-4 h-4" />
-                  <span>Reset</span>
-                </>
-              ) : (
-                <>
-                  <Pencil className="w-4 h-4" />
-                  <span>Draw & Extract</span>
-                </>
+            <>
+              <button
+                onClick={isDrawingMode ? handleStartDrawing : (polygon ? handleReset : handleStartDrawing)}
+                disabled={isResetting || isExtractingFeatures || isLoadingPrecomputedEmbeddings}
+                className={`px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border ${
+                  isResetting || isLoadingPrecomputedEmbeddings ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading precomputed embeddings
+                  isExtractingFeatures ? 'bg-gray-400 text-white border-gray-300' : // Extracting features
+                  isDrawingMode ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500' : // Drawing active
+                  polygon ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-500' : // Polygon drawn (Reset)
+                  'bg-blue-600 text-white hover:bg-blue-700 border-blue-500' // Initial (Start Drawing)
+                }`}
+              >
+                {isResetting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Resetting...</span>
+                  </>
+                ) : isLoadingPrecomputedEmbeddings ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Loading Precomputed Embeddings...</span>
+                  </>
+                ) : isExtractingFeatures ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Extracting Features...</span>
+                  </>
+                ) : isDrawingMode ? (
+                  <>
+                    <Target className="w-4 h-4" />
+                    <span>Drawing Active</span>
+                  </>
+                ) : polygon ? (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Reset & Draw Another</span>
+                  </>
+                ) : (
+                  <>
+                    <Pencil className="w-4 h-4" />
+                    <span>Draw & Extract</span>
+                  </>
+                )}
+              </button>
+
+              {/* Reset to Demo Button - Show when features have been extracted */}
+              {lastResult?.features && (
+                <button
+                  onClick={handleResetToDemo}
+                  disabled={isResetting || isExtractingFeatures || isLoadingPrecomputedEmbeddings}
+                  className="px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border bg-purple-600 text-white hover:bg-purple-700 border-purple-500"
+                  title="Reset current work and return to precomputed embeddings demo"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.122 2.122" />
+                  </svg>
+                  <span>Reset & Load Demo</span>
+                </button>
               )}
-            </button>
+            </>
           )}
 
           {/* Export Button */}
