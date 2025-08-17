@@ -15,7 +15,8 @@ import {
   MapProviderSelector,
   InfoTooltip,
   ImageFeatureExtractionContextualMenu,
-  ModelStatusMessage
+  ModelStatusMessage,
+  TaskInfo
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createImageFeatureExtractionMapStyle } from "../../../utils/mapStyleUtils";
@@ -607,22 +608,12 @@ export default function ImageFeatureExtraction() {
 
 
         {/* Task Info - Bottom Right */}
-        <div className="absolute bottom-6 right-6 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-md shadow-md p-3">
-          <div className="text-right">
-            <h3 className="text-sm font-semibold text-gray-800 mb-1">
-              Image Feature Extraction
-            </h3>
-            {lastResult?.metadata?.modelId && (
-              <p className="text-xs text-gray-600 font-mono">
-                {lastResult.metadata.modelId}
-              </p>
-            )}
-            {!lastResult?.metadata?.modelId && isInitialized && (
-              <p className="text-xs text-gray-500 italic">
-                DINOv3 Model
-              </p>
-            )}
-          </div>
+        <div className="absolute bottom-6 right-6 z-10">
+          <TaskInfo
+            taskName="Image Feature Extraction"
+            modelId={lastResult?.metadata?.modelId}
+            isInitialized={isInitialized}
+          />
         </div>
 
         {/* Map Provider Selector - Top Left */}

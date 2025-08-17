@@ -5,3 +5,4 @@ export { ImageFeatureExtractionSimilarityLayer } from './ImageFeatureExtractionS
 export { ImageFeatureExtractionDemoHint } from './ImageFeatureExtractionDemoHint';
 export { ImageFeatureExtractionContextualMenu } from './ContextualMenu';
 export { ModelStatusMessage } from './ModelStatusMessage';
+export { TaskInfo } from './TaskInfo';
