@@ -7,3 +7,4 @@ export { ImageFeatureExtractionContextualMenu } from './ContextualMenu';
 export { ModelStatusMessage } from './ModelStatusMessage';
 export { TaskInfo } from './TaskInfo';
 export { ZoomControl } from './ZoomControl';
+export { ActionButtons } from './ActionButtons';
