@@ -1,19 +1,19 @@
 import { BaseModel } from "@/models/base_model";
 import {
+  ImageProcessor,
   PreTrainedModel,
   PretrainedModelOptions,
-  RawImage,
 } from "@huggingface/transformers";
 import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geobase-ai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import * as ort from "onnxruntime-web";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
-const cv = require("@techstark/opencv-js");
 
 export class OilStorageTankDetection extends BaseModel {
   protected static instance: OilStorageTankDetection | null = null;
   protected model: ort.InferenceSession | undefined;
+  protected processor: ImageProcessor | undefined;
 
   private constructor(
     model_id: string,
@@ -50,71 +50,12 @@ export class OilStorageTankDetection extends BaseModel {
   protected async initializeModel(): Promise<void> {
     // Only load the model if not already loaded
     if (this.model) return;
+    this.processor = await ImageProcessor.from_pretrained(this.model_id);
     const pretrainedModel = await PreTrainedModel.from_pretrained(
       this.model_id,
       this.modelParams
     );
     this.model = pretrainedModel.sessions.model;
-  }
-
-  protected async preProcessor(
-    image: GeoRawImage
-  ): Promise<{ input: ort.Tensor }> {
-    let rawImage = new RawImage(
-      image.data,
-      image.height,
-      image.width,
-      image.channels
-    );
-
-    // If image has 4 channels, remove the alpha channel
-    if (rawImage.channels > 3) {
-      const newData = new Uint8Array(rawImage.width * rawImage.height * 3);
-      for (let i = 0, j = 0; i < rawImage.data.length; i += 4, j += 3) {
-        newData[j] = rawImage.data[i]; // R
-        newData[j + 1] = rawImage.data[i + 1]; // G
-        newData[j + 2] = rawImage.data[i + 2]; // B
-      }
-      rawImage = new RawImage(newData, rawImage.height, rawImage.width, 3);
-    }
-
-    const mat = cv.matFromArray(
-      rawImage.height,
-      rawImage.width,
-      rawImage.channels === 4 ? cv.CV_8UC4 : cv.CV_8UC3,
-      rawImage.data
-    );
-
-    // Resize the image to 1024x1024
-    const resizedMat = new cv.Mat();
-    const newSize = new cv.Size(1024, 1024);
-    cv.resize(mat, resizedMat, newSize, 0, 0, cv.INTER_LINEAR);
-
-    // Convert the resized Mat back to a Uint8Array
-    const resizedImageData = new Uint8Array(resizedMat.data);
-
-    // Create a new RawImage object with resized data
-    const resizedRawImage = new RawImage(resizedImageData, 1024, 1024, 3);
-
-    // Clean up OpenCV Mats
-    mat.delete();
-    resizedMat.delete();
-
-    let tensor = resizedRawImage.toTensor("CHW");
-    const data = tensor.data as Uint8Array;
-    const float32Data = new Float32Array(data.length);
-    for (let i = 0; i < data.length; i++) {
-      float32Data[i] = data[i];
-    }
-    // Create the ONNX Runtime tensor
-    return {
-      input: new ort.Tensor(float32Data, [
-        1,
-        tensor.dims[0],
-        tensor.dims[1],
-        tensor.dims[2],
-      ]),
-    };
   }
 
   async inference(params: InferenceParams): Promise<ObjectDetectionResults> {
@@ -149,15 +90,18 @@ export class OilStorageTankDetection extends BaseModel {
       mapSourceParams?.expression
     );
 
-    const inputs = await this.preProcessor(geoRawImage);
+    if (!this.processor) {
+      throw new Error("Processor not initialized");
+    }
+    const inputs = await this.processor(geoRawImage);
     const inferenceStartTime = performance.now();
-    console.log("[oriented-object-detection] starting inference...");
+    console.log("[oil-storage-tank-detection] starting inference...");
     let outputs;
     try {
       if (!this.model) {
         throw new Error("Model not initialized");
       }
-      outputs = await this.model.run({ images: inputs.input });
+      outputs = await this.model.run({ images: inputs.pixel_values });
     } catch (error) {
       console.debug("error", error);
       throw error;
@@ -171,7 +115,7 @@ export class OilStorageTankDetection extends BaseModel {
     );
     const inferenceEndTime = performance.now();
     console.log(
-      `[oriented-object-detection] inference completed. Time taken: ${(inferenceEndTime - inferenceStartTime).toFixed(2)}ms`
+      `[oil-storage-tank-detection] inference completed. Time taken: ${(inferenceEndTime - inferenceStartTime).toFixed(2)}ms`
     );
 
     return {
