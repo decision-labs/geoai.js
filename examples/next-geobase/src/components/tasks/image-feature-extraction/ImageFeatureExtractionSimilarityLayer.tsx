@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { detectGPU, type GPUInfo } from '../../../utils/gpuUtils';
 import { getOptimalColorScheme } from '../../../utils/maplibreUtils';
@@ -6,6 +6,7 @@ import { getOptimalColorScheme } from '../../../utils/maplibreUtils';
 interface ImageFeatureExtractionSimilarityLayerProps {
   map: maplibregl.Map | null;
   onLoadingChange?: (isLoading: boolean) => void;
+  onCleanupReady?: (cleanup: () => void) => void;
 }
 
 // robust PG numeric array parser: "{1,2,3,}" -> [1,2,3]
@@ -29,6 +30,7 @@ const parsePgNumArray = (s?: string | null): number[] | null => {
 export const ImageFeatureExtractionSimilarityLayer: React.FC<ImageFeatureExtractionSimilarityLayerProps> = ({
   map,
   onLoadingChange,
+  onCleanupReady,
 }) => {
   const sourceRef = useRef<string | null>(null);
   const layerRef = useRef<string | null>(null);
@@ -107,7 +109,7 @@ export const ImageFeatureExtractionSimilarityLayer: React.FC<ImageFeatureExtract
   };
 
   // Helper function to cleanup layers
-  const cleanupLayers = () => {
+  const cleanupLayers = useCallback(() => {
     if (!map || !map.getStyle) return;
 
     if (sourceRef.current && layerRef.current) {
@@ -122,7 +124,14 @@ export const ImageFeatureExtractionSimilarityLayer: React.FC<ImageFeatureExtract
         console.warn('Error during cached similarity layer cleanup:', error);
       }
     }
-  };
+  }, [map]);
+
+  // Expose cleanup function to parent component
+  useEffect(() => {
+    if (onCleanupReady) {
+      onCleanupReady(cleanupLayers);
+    }
+  }, [onCleanupReady, cleanupLayers]);
 
   useEffect(() => {
     if (!map) {

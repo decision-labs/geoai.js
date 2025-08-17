@@ -63,6 +63,7 @@ export default function ImageFeatureExtraction() {
   const [isLoadingDemoLayer, setIsLoadingDemoLayer] = useState<boolean>(false);
   const [showDemoLayerHint, setShowDemoLayerHint] = useState<boolean>(false);
   const [hasShownDemoHint, setHasShownDemoHint] = useState<boolean>(false);
+  const [demoLayerRef, setDemoLayerRef] = useState<{ cleanup: () => void } | null>(null);
   
   // Contextual menu state
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
@@ -200,9 +201,13 @@ export default function ImageFeatureExtraction() {
     setContextMenuPosition(null);
   };
 
-  const closeDemoLayerHint = () => {
+  const closeDemoLayerHint = useCallback(() => {
     setShowDemoLayerHint(false);
-  };
+  }, []);
+
+  const handleCleanupReady = useCallback((cleanup: () => void) => {
+    setDemoLayerRef({ cleanup });
+  }, []);
 
   // Function to handle contextual menu feature extraction
   const handleContextMenuExtractFeatures = () => {
@@ -262,6 +267,9 @@ export default function ImageFeatureExtraction() {
       if (!hasShownDemoHint) {
         setShowDemoLayerHint(true);
         setHasShownDemoHint(true);
+      } else {
+        // If hint was already shown, don't show it again
+        setShowDemoLayerHint(false);
       }
     } finally {
       setIsResetting(false);
@@ -278,6 +286,12 @@ export default function ImageFeatureExtraction() {
 
   const handleStartDrawing = () => {
     if (draw.current) {
+      // Clear demo layer when starting to draw
+      if (demoLayerRef) {
+        demoLayerRef.cleanup();
+        setDemoLayerRef(null);
+      }
+      
       draw.current.changeMode("draw_polygon");
       setIsDrawingMode(true);
       
@@ -285,6 +299,7 @@ export default function ImageFeatureExtraction() {
       hideContextMenu();
       // Hide demo layer hint when starting to draw
       setShowDemoLayerHint(false);
+      setHasShownDemoHint(true); // Prevent hint from showing again
     } else {
       console.error('❌ Draw control not initialized');
     }
@@ -408,6 +423,29 @@ export default function ImageFeatureExtraction() {
       providerParams,
     });
   }, [mapProvider, initializeModel]);
+
+  // Disable/enable draw controls based on demo layer loading state
+  useEffect(() => {
+    if (draw.current) {
+      const drawControls = map.current?.getContainer().querySelector('.maplibregl-draw');
+      if (drawControls) {
+        const polygonButton = drawControls.querySelector('.maplibregl-draw-polygon') as HTMLElement;
+        const trashButton = drawControls.querySelector('.maplibregl-draw-trash') as HTMLElement;
+        
+        if (polygonButton) {
+          polygonButton.style.opacity = isLoadingDemoLayer ? '0.5' : '1';
+          polygonButton.style.pointerEvents = isLoadingDemoLayer ? 'none' : 'auto';
+          polygonButton.style.cursor = isLoadingDemoLayer ? 'not-allowed' : 'pointer';
+        }
+        
+        if (trashButton) {
+          trashButton.style.opacity = isLoadingDemoLayer ? '0.5' : '1';
+          trashButton.style.pointerEvents = isLoadingDemoLayer ? 'none' : 'auto';
+          trashButton.style.cursor = isLoadingDemoLayer ? 'not-allowed' : 'pointer';
+        }
+      }
+    }
+  }, [isLoadingDemoLayer]);
 
   // Handle results from the worker
   useEffect(() => {
@@ -572,6 +610,9 @@ export default function ImageFeatureExtraction() {
                 setHasShownDemoHint(true);
               }
             }}
+            onCleanupReady={useCallback((cleanup: () => void) => {
+              setDemoLayerRef({ cleanup });
+            }, [])}
           />
         )}
         
@@ -690,9 +731,9 @@ export default function ImageFeatureExtraction() {
           ) : (
             <button
               onClick={isDrawingMode ? handleStartDrawing : (polygon ? handleReset : handleStartDrawing)}
-              disabled={isResetting || isExtractingFeatures}
+              disabled={isResetting || isExtractingFeatures || isLoadingDemoLayer}
               className={`px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border ${
-                isResetting ? 'bg-gray-400 text-white border-gray-300' : // Resetting state
+                isResetting || isLoadingDemoLayer ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading demo
                 isExtractingFeatures ? 'bg-gray-400 text-white border-gray-300' : // Extracting features
                 isDrawingMode ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500' : // Drawing active
                 polygon ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-500' : // Polygon drawn (Reset)
@@ -703,6 +744,11 @@ export default function ImageFeatureExtraction() {
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Resetting...</span>
+                </>
+              ) : isLoadingDemoLayer ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Loading Demo...</span>
                 </>
               ) : isExtractingFeatures ? (
                 <>
