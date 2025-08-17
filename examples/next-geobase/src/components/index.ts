@@ -11,7 +11,6 @@ export { MapProviderSelector } from './MapProviderSelector';
 export { DetectionControls } from './DetectionControls';
 export { ZeroShotControls } from './ZeroShotControls';
 export { ZeroShotSegmentationControls } from './ZeroShotSegmentationControls';
-export { GeoAIMap } from './GeoAIMap';
 export { BackgroundEffects } from './BackgroundEffects';
 
 // Task-specific Components
