@@ -16,7 +16,7 @@ Create a new React app and install the required dependencies:
 ```bash
 npx create-react-app my-geoai-app --template typescript
 cd my-geoai-app
-npm install maplibre-gl @geobase-js/geoai maplibre-gl-draw
+npm install maplibre-gl @geobase.js/geoai maplibre-gl-draw
 ```
 
 #### Option B: Clone an Quickstart example
@@ -25,13 +25,13 @@ git init
 touch README.md
 git add .
 git commit -m "Initial commit"
-git subtree add --prefix=examples/02-quickstart-with-workers https://github.com/decision-labs/geobase-ai.js main --squash
+git subtree add --prefix=examples/02-quickstart-with-workers https://github.com/decision-labs/geobase.js main --squash
 ```
 
 #### Create Worker File `worker.ts`
 
 ```typescript
-import { geoai } from "@geobase-js/geoai";
+import { geoai } from "@geobase.js/geoai";
 
 let modelInstance: any = null;
 

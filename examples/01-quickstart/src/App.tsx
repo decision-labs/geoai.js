@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { geoai, ProviderParams } from '@geobase-js/geoai';
+import { geoai, ProviderParams } from '@geobase.js/geoai';
 import MaplibreDraw from 'maplibre-gl-draw';
 import 'maplibre-gl-draw/dist/mapbox-gl-draw.css';
 

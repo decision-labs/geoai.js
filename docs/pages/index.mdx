@@ -11,7 +11,7 @@ Build your first AI-powered React mapping app in under 5 minutes. Create a React
 />
 
 <Callout type="info" emoji="ℹ️">
-  This guide uses the latest version of @geobase-js/geoai for optimal
+  This guide uses the latest version of @geobase.js/geoai for optimal
   performance and compatibility.
 </Callout>
 
@@ -39,7 +39,7 @@ Create a new React app and install the required dependencies:
 ```bash
 npx create-react-app my-geoai-app --template typescript
 cd my-geoai-app
-npm install maplibre-gl @geobase-js/geoai maplibre-gl-draw
+npm install maplibre-gl @geobase.js/geoai maplibre-gl-draw
 ```
 
 #### Option B: Clone an Quickstart example
@@ -48,7 +48,7 @@ git init
 touch README.md
 git add .
 git commit -m "Initial commit"
-git subtree add --prefix=examples/01-quickstart https://github.com/decision-labs/geobase-ai.js main --squash
+git subtree add --prefix=examples/01-quickstart https://github.com/decision-labs/geobase.js main --squash
 ```
 
 ### Step 2: Setup Your Map Provider
@@ -94,7 +94,7 @@ Replace the contents of `src/App.tsx` with this React component:
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { geoai, ProviderParams } from '@geobase-js/geoai';
+import { geoai, ProviderParams } from '@geobase.js/geoai';
 import MaplibreDraw from 'maplibre-gl-draw';
 import 'maplibre-gl-draw/dist/mapbox-gl-draw.css';
 

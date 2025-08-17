@@ -2,7 +2,7 @@ import { Callout } from "nextra/components";
 
 # Model Pipeline
 
-The Model Pipeline is the core of `@geobase-js/geoai.js`, enabling you to initialize AI models and chain multiple tasks together for sophisticated geospatial analysis workflows.
+The Model Pipeline is the core of `@geobase.js/geoai.js`, enabling you to initialize AI models and chain multiple tasks together for sophisticated geospatial analysis workflows.
 
 ## Overview
 
@@ -18,7 +18,7 @@ The pipeline system supports two main execution patterns:
 Create a simple pipeline for object detection on geospatial imagery:
 
 ```typescript
-import { geoai } from "@geobase-js/geoai";
+import { geoai } from "@geobase.js/geoai";
 
 // Create a pipeline for object detection
 const pipeline = await geoai.pipeline([{ task: "object-detection" }], {

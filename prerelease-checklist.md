@@ -18,7 +18,7 @@
 
 - [x] **Update README.md**
 
-  - [x] Replace template content with actual @geobase-js/geoai documentation
+  - [x] Replace template content with actual @geobase.js/geoai documentation
   - [x] Add installation instructions
   - [x] Add usage examples
   - [x] Add API documentation
@@ -26,7 +26,7 @@
   - [x] Add license information
 
 - [x] **Update CHANGELOG.md**
-  - [x] Replace template content with actual @geobase-js/geoai changelog
+  - [x] Replace template content with actual @geobase.js/geoai changelog
   - [x] Document v0.0.1 as initial release
   - [x] List key features and breaking changes
 
@@ -75,26 +75,26 @@
 
   - [x] Create npm account if you don't have one
   - [x] Login to npm: `npm login` (logged in as `saburq`)
-  - [x] Verify you have access to publish `@geobase-js/geoai` scope
+  - [x] Verify you have access to publish `@geobase.js/geoai` scope
   - [x] Check if the package name is available
-  - [x] **Resolved:** Successfully published with `@geobase-js/geoai` scope
+  - [x] **Resolved:** Successfully published with `@geobase.js/geoai` scope
 
 - [x] **Publishing**
   - [x] Run `npm publish --access public` (for scoped packages)
   - [x] Verify package appears on npm registry
-  - [x] Test installation: `npm install @geobase-js/geoai`
-  - [x] **Success:** Package published as `@geobase-js/geoai@0.0.1` (10.6MB unpacked size)
+  - [x] Test installation: `npm install @geobase.js/geoai`
+  - [x] **Success:** Package published as `@geobase.js/geoai@0.0.1` (10.6MB unpacked size)
 
 ## 🌐 **CDN Setup**
 
 - [ ] **Unpkg CDN**
 
   - [ ] Verify package works on unpkg.com
-  - [ ] Test direct import: `https://unpkg.com/@geobase-js/geoai@0.0.1/build/dist/@geobase-js/geoai.js`
+  - [ ] Test direct import: `https://unpkg.com/@geobase.js/geoai@0.0.1/build/dist/@geobase.js/geoai.js`
 
 - [ ] **jsDelivr CDN**
   - [ ] Verify package works on cdn.jsdelivr.net
-  - [ ] Test direct import: `https://cdn.jsdelivr.net/npm/@geobase-js/geoai@0.0.1/build/dist/@geobase-js/geoai.js`
+  - [ ] Test direct import: `https://cdn.jsdelivr.net/npm/@geobase.js/geoai@0.0.1/build/dist/@geobase.js/geoai.js`
 
 ## 📝 **Documentation & Marketing**
 

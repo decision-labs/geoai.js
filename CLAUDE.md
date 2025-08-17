@@ -136,10 +136,10 @@ const chain = await geoai.pipeline(
 
 ## Package Structure
 
-### Core Package (`@geobase-js/geoai`)
+### Core Package (`@geobase.js/geoai`)
 
-- **Import**: `import { geoai } from "@geobase-js/geoai"`
-- **Files**: `build/dist/@geobase-js/geoai.js`, `build/dist/index.d.ts`
+- **Import**: `import { geoai } from "@geobase.js/geoai"`
+- **Files**: `build/dist/@geobase.js/geoai.js`, `build/dist/index.d.ts`
 - **Dependencies**: HuggingFace Transformers.js, ONNX Runtime Web
 - **Usage**: Vanilla JS, Node.js, any framework
 

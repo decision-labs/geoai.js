@@ -37,12 +37,12 @@ const config = {
         }}
       />
       <pre style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
-        @geobase-js/geoai
+        @geobase.js/geoai
       </pre>
     </div>
   ),
   project: {
-    link: "https://github.com/decision-labs/geobase-ai.js",
+    link: "https://github.com/decision-labs/geobase.js",
   },
   chat: {
     link: "https://geobase.app/discord",

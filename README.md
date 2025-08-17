@@ -1,13 +1,13 @@
-[![Main](https://github.com/decision-labs/geobase-ai.js/actions/workflows/main.yml/badge.svg)](https://github.com/decision-labs/geobase-ai.js/actions/workflows/main.yml)
+[![Main](https://github.com/decision-labs/geobase.js/actions/workflows/main.yml/badge.svg)](https://github.com/decision-labs/geobase.js/actions/workflows/main.yml)
 
-# `@geobase-js/geoai`
+# `@geobase.js/geoai`
 
 A Javascript library for running Geo AI models in frontend applications.
 
 ## Installation
 
 ```bash
-npm install @geobase-js/geoai
+npm install @geobase.js/geoai
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ npm install @geobase-js/geoai
 ### Core Library (Node.js and Browser)
 
 ```javascript
-import { geoai } from "@geobase-js/geoai";
+import { geoai } from "@geobase.js/geoai";
 
 // Initialize the pipeline
 const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
@@ -36,7 +36,7 @@ const result = await pipeline.inference({
 
 ## Architecture
 
-- **Core Module** (`@geobase-js/geoai`): Pure Javascript/TypeScript library that works in both Node.js and browser environments
+- **Core Module** (`@geobase.js/geoai`): Pure Javascript/TypeScript library that works in both Node.js and browser environments
 
 ## API Reference
 

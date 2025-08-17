@@ -1,5 +1,5 @@
 {
-  "name": "@geobase-js/geoai",
+  "name": "@geobase.js/geoai",
   "version": "0.0.6",
   "description": "A JavaScript library for running Geo AI models in frontend applications",
   "keywords": [
@@ -17,30 +17,30 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/decision-labs/geobase-ai.js.git"
+    "url": "git@github.com:decision-labs/geobase.js-geoai.git"
   },
   "homepage": "https://docs.geobase.app/geoaijs",
-  "bugs": "https://github.com/decision-labs/geobase-ai.js/issues",
+  "bugs": "https://github.com/decision-labs/geobase.js-geoai/issues",
   "files": [
-    "@geobase-js",
+    "@geobase.js",
     "assets",
     "*.d.ts",
     "README.md",
     "LICENSE.md",
     "CHANGELOG.md"
   ],
-  "main": "./@geobase-js/geoai.js",
-  "module": "./@geobase-js/geoai.js",
-  "unpkg": "./@geobase-js/geoai.js",
-  "jsdelivr": "./@geobase-js/geoai.js",
+  "main": "./@geobase.js/geoai.js",
+  "module": "./@geobase.js/geoai.js",
+  "unpkg": "./@geobase.js/geoai.js",
+  "jsdelivr": "./@geobase.js/geoai.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./@geobase-js/geoai.js",
+      "import": "./@geobase.js/geoai.js",
       "types": "./index.d.ts"
     },
     "./dist": {
-      "import": "./@geobase-js/geoai.js"
+      "import": "./@geobase.js/geoai.js"
     }
   },
   "types": "./index.d.ts",

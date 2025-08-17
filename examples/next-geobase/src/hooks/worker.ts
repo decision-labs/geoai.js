@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { geoai, InferenceParams } from "@geobase-js/geoai";
+import { geoai, InferenceParams } from "@geobase.js/geoai";
 import { PipelineInitConfig } from "./useGeoAIWorker";
 
 // Worker message types

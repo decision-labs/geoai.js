@@ -1,4 +1,4 @@
-import { ProviderParams, InferenceParams } from "@geobase-js/geoai";
+import { ProviderParams, InferenceParams } from "@geobase.js/geoai";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 // Worker message types

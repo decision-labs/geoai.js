@@ -1,4 +1,4 @@
-import { GeobaseParams, ProviderParams } from "@geobase-js/geoai";
+import { GeobaseParams, ProviderParams } from "@geobase.js/geoai";
 
 export const ESRI_CONFIG = {
   provider: "esri" as const,

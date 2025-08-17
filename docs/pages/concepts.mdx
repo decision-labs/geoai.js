@@ -2,15 +2,15 @@ import { Callout } from "nextra/components";
 
 # Core Concepts
 
-> Understanding the fundamental building blocks of `@geobase-js/geoai.js`
+> Understanding the fundamental building blocks of `@geobase.js/geoai.js`
 
 ## Overview
 
-`@geobase-js/geoai.js` extends the Hugging Face Transformers.js library to provide geospatial AI capabilities. Here are the core concepts that make this possible:
+`@geobase.js/geoai.js` extends the Hugging Face Transformers.js library to provide geospatial AI capabilities. Here are the core concepts that make this possible:
 
 ## 1. [Architecture](#)
 
-The overall architecture of `@geobase-js/geoai.js` provides a modular framework for geospatial AI. The GeoAI Pipeline manages model execution, the Model Registry handles task configurations, and the Base Model provides the foundation for all AI models. This architecture enables extensible provider systems and supports both Transformers.js and ONNX models.
+The overall architecture of `@geobase.js/geoai.js` provides a modular framework for geospatial AI. The GeoAI Pipeline manages model execution, the Model Registry handles task configurations, and the Base Model provides the foundation for all AI models. This architecture enables extensible provider systems and supports both Transformers.js and ONNX models.
 
 <Callout type="info">
   **Core Components:** Pipeline execution engine, extensible provider system, and modular model architecture supporting both Transformers.js and ONNX models.
@@ -45,7 +45,7 @@ graph TD
 
 ## 2. [Transformers.js Extension](./concepts/GeoRawImage)
 
-`@geobase-js/geoai.js` extends the Hugging Face `RawImage` class with the `GeoRawImage` class to add georeferencing capabilities essential for geospatial AI tasks. This maintains spatial context by storing coordinate reference system (CRS) information and geographic bounds, enabling seamless conversion between pixel and world coordinates.
+`@geobase.js/geoai.js` extends the Hugging Face `RawImage` class with the `GeoRawImage` class to add georeferencing capabilities essential for geospatial AI tasks. This maintains spatial context by storing coordinate reference system (CRS) information and geographic bounds, enabling seamless conversion between pixel and world coordinates.
 
 <Callout type="info">
   **Key Extension:** `GeoRawImage` extends `RawImage` with geospatial metadata including bounds, transform, and CRS information.
