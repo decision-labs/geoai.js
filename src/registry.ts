@@ -160,9 +160,8 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "geobase/geoai-models",
+      modelId: string = "geobase/solar-panel-detection",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "solarPanelDetection",
         dtype: "q8",
       }
     ): Promise<{
@@ -184,9 +183,8 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "geobase/geoai-models",
+      modelId: string = "geobase/ship-detection",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "shipDetection",
         dtype: "q8",
       }
     ): Promise<{
@@ -208,9 +206,8 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "geobase/geoai-models",
+      modelId: string = "geobase/car-detection",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "carDetectionUSA",
         dtype: "q8",
       }
     ): Promise<{
@@ -233,9 +230,8 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "geobase/geoai-models",
+      modelId: string = "geobase/wetland-segmentation",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "wetlandDetection",
         dtype: "q8",
       }
     ): Promise<{
@@ -257,9 +253,8 @@ export const modelRegistry: ModelConfig[] = [
     ioConfig: {} as baseIOConfig,
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "geobase/geoai-models",
+      modelId: string = "geobase/building-detection",
       modelParams: PretrainedModelOptions = {
-        model_file_name: "buildingDetection",
         dtype: "q8",
       }
     ): Promise<{
