@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@huggingface/transformers':
-        specifier: ^3.3.3
-        version: 3.7.1
+        specifier: ^3.7.2
+        version: 3.7.2
       '@techstark/opencv-js':
         specifier: ^4.10.0-release.1
         version: 4.10.0-release.1
@@ -354,8 +354,8 @@ packages:
     resolution: {integrity: sha512-yUZLld4lrM9iFxHCwFQ7D1HW2MWMwSbeB7WzWqFYDWK+rEb+WldkLdAJxUPOmgICMHZLzZGVcVjFh3w/YGubng==}
     engines: {node: '>=18'}
 
-  '@huggingface/transformers@3.7.1':
-    resolution: {integrity: sha512-z14yXkm7G/FKGM8Y24NLDbrSP/kbn62byKNYF04pZ6pidTVpucqRSderQgpfQWoMVrhOKmrZs29G3yQ1R28sIA==}
+  '@huggingface/transformers@3.7.2':
+    resolution: {integrity: sha512-6SOxo6XziupnQ5Vs5vbbs74CNB6ViHLHGQJjY6zj88JeiDtJ2d/ADKxaay688Sf2KcjtdF3dyBL11C5pJS2NxQ==}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -2515,7 +2515,7 @@ snapshots:
 
   '@huggingface/jinja@0.5.1': {}
 
-  '@huggingface/transformers@3.7.1':
+  '@huggingface/transformers@3.7.2':
     dependencies:
       '@huggingface/jinja': 0.5.1
       onnxruntime-node: 1.21.0
