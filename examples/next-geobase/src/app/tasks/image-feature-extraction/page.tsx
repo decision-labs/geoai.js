@@ -22,10 +22,13 @@ import { MapProvider } from "../../../types";
 
 GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif";
 
-const mapInitConfig = {
+// Initial demo location for precomputed embeddings
+const INITIAL_DEMO_LOCATION = {
   center: [114.84901, -3.449806] as [number, number],
   zoom: 18.2,
 };
+
+const mapInitConfig = INITIAL_DEMO_LOCATION;
 
 // Add validation for required environment variables
 if (!GEOBASE_CONFIG.projectRef || !GEOBASE_CONFIG.apikey) {
@@ -59,9 +62,9 @@ export default function ImageFeatureExtraction() {
   const [isResetting, setIsResetting] = useState<boolean>(false);
   const [isExtractingFeatures, setIsExtractingFeatures] = useState<boolean>(false);
   const [allPatches, setAllPatches] = useState<GeoJSON.Feature<GeoJSON.Polygon>[]>([]);
-  const [isLoadingDemoLayer, setIsLoadingDemoLayer] = useState<boolean>(false);
-  const [demoLayerRef, setDemoLayerRef] = useState<{ cleanup: () => void } | null>(null);
-  const [showDemoLayerMessage, setShowDemoLayerMessage] = useState<boolean>(false);
+  const [isLoadingPrecomputedEmbeddings, setIsLoadingPrecomputedEmbeddings] = useState<boolean>(false);
+  const [precomputedEmbeddingsRef, setPrecomputedEmbeddingsRef] = useState<{ cleanup: () => void } | null>(null);
+  const [showPrecomputedEmbeddingsMessage, setShowPrecomputedEmbeddingsMessage] = useState<boolean>(false);
   
   // Contextual menu state
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
@@ -202,7 +205,7 @@ export default function ImageFeatureExtraction() {
 
 
   const handleCleanupReady = useCallback((cleanup: () => void) => {
-    setDemoLayerRef({ cleanup });
+          setPrecomputedEmbeddingsRef({ cleanup });
   }, []);
 
   // Function to handle contextual menu feature extraction
@@ -248,6 +251,16 @@ export default function ImageFeatureExtraction() {
         MapUtils.clearAllLayers(map.current);
       }
 
+      // Reset to initial demo location
+      if (map.current) {
+        map.current.flyTo({
+          center: INITIAL_DEMO_LOCATION.center,
+          zoom: INITIAL_DEMO_LOCATION.zoom,
+          duration: 1000
+        });
+        setZoomLevel(INITIAL_DEMO_LOCATION.zoom);
+      }
+
       // Reset states
       setPolygon(null);
       setIsExtractingFeatures(false);
@@ -259,6 +272,8 @@ export default function ImageFeatureExtraction() {
       // Hide contextual menu
       hideContextMenu();
       
+      // Reset drawing mode
+      setIsDrawingMode(false);
 
     } finally {
       setIsResetting(false);
@@ -275,10 +290,10 @@ export default function ImageFeatureExtraction() {
 
   const handleStartDrawing = () => {
     if (draw.current) {
-      // Clear demo layer when starting to draw
-      if (demoLayerRef) {
-        demoLayerRef.cleanup();
-        setDemoLayerRef(null);
+      // Clear precomputed embeddings when starting to draw
+      if (precomputedEmbeddingsRef) {
+        precomputedEmbeddingsRef.cleanup();
+        setPrecomputedEmbeddingsRef(null);
       }
       
       draw.current.changeMode("draw_polygon");
@@ -410,7 +425,7 @@ export default function ImageFeatureExtraction() {
     });
   }, [mapProvider, initializeModel]);
 
-  // Disable/enable draw controls based on demo layer loading state
+  // Disable/enable draw controls based on precomputed embeddings loading state
   useEffect(() => {
     if (draw.current) {
       const drawControls = map.current?.getContainer().querySelector('.maplibregl-draw');
@@ -419,19 +434,19 @@ export default function ImageFeatureExtraction() {
         const trashButton = drawControls.querySelector('.maplibregl-draw-trash') as HTMLElement;
         
         if (polygonButton) {
-          polygonButton.style.opacity = isLoadingDemoLayer ? '0.5' : '1';
-          polygonButton.style.pointerEvents = isLoadingDemoLayer ? 'none' : 'auto';
-          polygonButton.style.cursor = isLoadingDemoLayer ? 'not-allowed' : 'pointer';
+          polygonButton.style.opacity = isLoadingPrecomputedEmbeddings ? '0.5' : '1';
+          polygonButton.style.pointerEvents = isLoadingPrecomputedEmbeddings ? 'none' : 'auto';
+          polygonButton.style.cursor = isLoadingPrecomputedEmbeddings ? 'not-allowed' : 'pointer';
         }
         
         if (trashButton) {
-          trashButton.style.opacity = isLoadingDemoLayer ? '0.5' : '1';
-          trashButton.style.pointerEvents = isLoadingDemoLayer ? 'none' : 'auto';
-          trashButton.style.cursor = isLoadingDemoLayer ? 'not-allowed' : 'pointer';
+          trashButton.style.opacity = isLoadingPrecomputedEmbeddings ? '0.5' : '1';
+          trashButton.style.pointerEvents = isLoadingPrecomputedEmbeddings ? 'none' : 'auto';
+          trashButton.style.cursor = isLoadingPrecomputedEmbeddings ? 'not-allowed' : 'pointer';
         }
       }
     }
-  }, [isLoadingDemoLayer]);
+  }, [isLoadingPrecomputedEmbeddings]);
 
   // Handle results from the worker
   useEffect(() => {
@@ -578,18 +593,18 @@ export default function ImageFeatureExtraction() {
           />
         )}
 
-        {/* Cached Feature Similarity Layer - Show when no features are extracted */}
+        {/* Precomputed Embeddings Layer - Show when no features are extracted */}
         {!lastResult?.features && (
           <ImageFeatureExtractionSimilarityLayer 
             map={map.current} 
             onLoadingChange={(isLoading) => {
-              setIsLoadingDemoLayer(isLoading);
-              setShowDemoLayerMessage(true);
+              setIsLoadingPrecomputedEmbeddings(isLoading);
+              setShowPrecomputedEmbeddingsMessage(true);
               
               if (!isLoading) {
                 // Show completion message briefly, then hide
                 setTimeout(() => {
-                  setShowDemoLayerMessage(false);
+                  setShowPrecomputedEmbeddingsMessage(false);
                 }, 2000); // Show for 2 seconds
               }
             }}
@@ -615,14 +630,14 @@ export default function ImageFeatureExtraction() {
           )}
         </div>
 
-        {/* Demo Layer Loading/Completion Message - Center */}
-        {showDemoLayerMessage && isInitialized && (
+        {/* Precomputed Embeddings Loading/Completion Message - Center */}
+        {showPrecomputedEmbeddingsMessage && isInitialized && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl px-6 py-4">
             <div className="flex items-center space-x-3">
-              {isLoadingDemoLayer ? (
+              {isLoadingPrecomputedEmbeddings ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                  <span className="text-sm font-medium text-gray-800">Loading demo layer...</span>
+                  <span className="text-sm font-medium text-gray-800">Loading precomputed embeddings...</span>
                 </>
               ) : (
                 <>
@@ -631,7 +646,7 @@ export default function ImageFeatureExtraction() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-sm font-medium text-gray-800">Demo layer loaded!</span>
+                  <span className="text-sm font-medium text-gray-800">Precomputed embeddings loaded!</span>
                 </>
               )}
             </div>
@@ -718,9 +733,9 @@ export default function ImageFeatureExtraction() {
           ) : (
             <button
               onClick={isDrawingMode ? handleStartDrawing : (polygon ? handleReset : handleStartDrawing)}
-              disabled={isResetting || isExtractingFeatures || isLoadingDemoLayer}
+              disabled={isResetting || isExtractingFeatures || isLoadingPrecomputedEmbeddings}
               className={`px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border ${
-                isResetting || isLoadingDemoLayer ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading demo
+                isResetting || isLoadingPrecomputedEmbeddings ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading precomputed embeddings
                 isExtractingFeatures ? 'bg-gray-400 text-white border-gray-300' : // Extracting features
                 isDrawingMode ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500' : // Drawing active
                 polygon ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-500' : // Polygon drawn (Reset)
@@ -732,10 +747,10 @@ export default function ImageFeatureExtraction() {
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Resetting...</span>
                 </>
-              ) : isLoadingDemoLayer ? (
+              ) : isLoadingPrecomputedEmbeddings ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Loading Demo...</span>
+                  <span>Loading Precomputed Embeddings...</span>
                 </>
               ) : isExtractingFeatures ? (
                 <>
