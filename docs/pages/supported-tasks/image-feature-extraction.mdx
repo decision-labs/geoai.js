@@ -1,0 +1,110 @@
+import { Callout } from "nextra/components";
+import VideoEmbed from "../../components/video-embed";
+
+# Image Feature Extraction
+
+> Extract and analyze visual features from satellite imagery using AI embeddings
+
+<VideoEmbed
+  src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/image-feature-extraction.mp4"
+  title="Image Feature Extraction Demo"
+/>
+
+## Quick Start
+
+```typescript
+import { geoai } from "@geobase.js/geoai";
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "image-feature-extraction" }],
+  providerParams
+);
+
+// Run feature extraction
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Extracted features for ${result.embeddings.length} patches`);
+```
+
+<Callout type="info" emoji="🎯">
+  Uses DINOv3 model to extract high-dimensional feature vectors from satellite imagery patches
+</Callout>
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  patchSize: 224; // Size of image patches in pixels
+  overlap: 0.1;   // Overlap between patches (0.0-1.0)
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 18; // Image resolution (16-20)
+}
+```
+
+See [Map Source Parameters](../concepts/InferenceParams#map-source-parameters) for more details.
+
+## Use Cases
+
+| Application           | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| **Similarity Search** | Find similar areas across large datasets       |
+| **Change Detection**  | Identify changes between time periods          |
+| **Land Classification** | Categorize terrain types using embeddings     |
+| **Anomaly Detection** | Find unusual patterns in satellite imagery     |
+| **Feature Matching**  | Match corresponding features across images     |
+
+## Output
+
+Returns embeddings for each image patch:
+
+```typescript
+{
+  embeddings: [
+    {
+      geometry: { /* patch polygon coordinates */ },
+      properties: {
+        embedding: [0.1, 0.2, 0.3, ...], // 1024-dimensional vector
+        patchId: "patch_001"
+      }
+    }
+  ]
+}
+```
+
+## Advanced Features
+
+### Similarity Search
+
+```typescript
+// Find similar patches
+const similarPatches = await pipeline.findSimilarPatches(
+  referenceEmbedding,
+  similarityThreshold: 0.8
+);
+```
+
+### Batch Processing
+
+```typescript
+// Process multiple areas
+const results = await Promise.all(
+  polygons.map(polygon => 
+    pipeline.inference({ inputs: { polygon } })
+  )
+);
+```
+
+<Callout type="warning" emoji="⚠️">
+  Feature extraction requires more computational resources than object detection. Consider using Web Workers for better performance.
+</Callout>

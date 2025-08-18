@@ -312,6 +312,28 @@ const result = await pipeline.inference(polygon);`}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
               <a
+                href="/geoai-live/tasks/image-feature-extraction"
+              className="bg-gray-800 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
+            >
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-48 object-cover rounded-lg mb-6"
+              >
+                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/image-feature-extraction.mp4" type="video/mp4" />
+              </video>
+              <h3 className="text-xl font-bold text-white mb-3">
+                Image Feature Extraction
+              </h3>
+              <p className="text-gray-300 text-base">
+                Extract and analyze visual features from satellite imagery using AI embeddings.
+              </p>
+            </a>
+
+            
+              <a
                 href="/geoai-live/tasks/oil-storage-tank-detection"
               className="bg-gray-800 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
             >

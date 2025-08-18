@@ -1,4 +1,5 @@
 export default {
+  "image-feature-extraction": "Image Feature Extraction",
   "object-detection": "Object Detection",
   "building-detection": "Building Detection",
   "building-footprint-segmentation": "Building Footprint Segmentation",
