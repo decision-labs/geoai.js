@@ -199,7 +199,7 @@ export default function Home() {
                 
                 <div className="relative">
                   <video autoPlay loop muted playsInline className="w-full rounded-lg shadow-xl">
-                    <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/image-feature-extraction.mp4" type="video/mp4" />
+                    <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/image-feature-extraction-sm.mp4" type="video/mp4" />
                   </video>
                   <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 to-transparent rounded-lg"></div>
                 </div>
