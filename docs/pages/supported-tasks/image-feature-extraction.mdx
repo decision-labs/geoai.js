@@ -82,28 +82,11 @@ Returns embeddings for each image patch:
 }
 ```
 
-## Advanced Features
+## Coming Soon
 
-### Similarity Search
-
-```typescript
-// Find similar patches
-const similarPatches = await pipeline.findSimilarPatches(
-  referenceEmbedding,
-  similarityThreshold: 0.8
-);
-```
-
-### Batch Processing
-
-```typescript
-// Process multiple areas
-const results = await Promise.all(
-  polygons.map(polygon => 
-    pipeline.inference({ inputs: { polygon } })
-  )
-);
-```
+<Callout type="info" emoji="🚧">
+  Advanced features like similarity search and batch processing are coming soon!
+</Callout>
 
 <Callout type="warning" emoji="⚠️">
   Feature extraction requires more computational resources than object detection. Consider using Web Workers for better performance.
