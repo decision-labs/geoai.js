@@ -1,5 +1,6 @@
 import { BaseModel } from "@/models/base_model";
 import {
+  ImageProcessor,
   PreTrainedModel,
   PretrainedModelOptions,
 } from "@huggingface/transformers";
@@ -13,6 +14,7 @@ const cv = require("@techstark/opencv-js");
 export class BuildingFootPrintSegmentation extends BaseModel {
   protected static instance: BuildingFootPrintSegmentation | null = null;
   protected model: ort.InferenceSession | undefined;
+  protected processor: ImageProcessor | undefined;
 
   private constructor(
     model_id: string,
@@ -50,73 +52,12 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   protected async initializeModel(): Promise<void> {
     // Only load the model if not already loaded
     if (this.model) return;
+    this.processor = await ImageProcessor.from_pretrained(this.model_id);
     const pretrainedModel = await PreTrainedModel.from_pretrained(
       this.model_id,
       this.modelParams
     );
     this.model = pretrainedModel.sessions.model;
-  }
-
-  protected async preProcessor(
-    rawImage: GeoRawImage
-  ): Promise<{ originalImage: any; paddedImage: any; patchSize: number }> {
-    // Convert raw image to OpenCV Mat
-    const mat = cv.matFromArray(
-      rawImage.height,
-      rawImage.width,
-      rawImage.channels === 4 ? cv.CV_8UC4 : cv.CV_8UC3,
-      rawImage.data
-    );
-
-    // Convert BGR to RGB
-    const rgbMat = new cv.Mat();
-    cv.cvtColor(mat, rgbMat, cv.COLOR_BGR2RGB);
-
-    // Calculate padding
-    const patchSize = 256;
-    const height = rgbMat.rows;
-    const width = rgbMat.cols;
-
-    // Calculate desired shape
-    const xx = Math.floor(width / patchSize) * patchSize;
-    const yy = Math.floor(height / patchSize) * patchSize;
-
-    // Calculate padding amounts
-    const xPad = xx - width;
-    const yPad = yy - height;
-
-    const x0 = Math.floor(xPad / 2);
-    const x1 = xPad - x0;
-    const y0 = Math.floor(yPad / 2);
-    const y1 = yPad - y0;
-
-    // Apply padding
-    const paddedMat = new cv.Mat();
-    const padding = new cv.Scalar(0, 0, 0);
-    cv.copyMakeBorder(
-      rgbMat,
-      paddedMat,
-      y0,
-      y1,
-      x0,
-      x1,
-      cv.BORDER_CONSTANT,
-      padding
-    );
-
-    // Convert to float32 and normalize
-    const floatMat = new cv.Mat();
-    paddedMat.convertTo(floatMat, cv.CV_32F, 1.0 / 255.0);
-
-    // Clean up intermediate Mats
-    mat.delete();
-    rgbMat.delete();
-
-    return {
-      originalImage: floatMat,
-      paddedImage: paddedMat,
-      patchSize,
-    };
   }
 
   public async inference(
@@ -156,11 +97,10 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       mapSourceParams?.bands,
       mapSourceParams?.expression
     );
-    const { originalImage, paddedImage } = await this.preProcessor(geoRawImage);
-
-    // Calculate number of patches
-    const numRows = Math.floor(paddedImage.rows / patchSize);
-    const numCols = Math.floor(paddedImage.cols / patchSize);
+    const geoPatches = await geoRawImage.toPatches(patchSize, patchSize);
+    // // Calculate number of patches
+    const numRows = geoPatches.length;
+    const numCols = geoPatches[0].length;
 
     // Initialize prediction array
     let prediction: any[] = [];
@@ -170,6 +110,9 @@ export class BuildingFootPrintSegmentation extends BaseModel {
         throw new Error("Model not initialized");
       }
 
+      if (!this.processor) {
+        throw new Error("Processor not initialized");
+      }
       // Process each row
       for (let i = 0; i < numRows; i++) {
         // Create array to store patches for this row
@@ -177,36 +120,10 @@ export class BuildingFootPrintSegmentation extends BaseModel {
 
         // Process each patch in the row
         for (let j = 0; j < numCols; j++) {
-          // Extract patch
-          const patch = new cv.Mat();
-          const roi = new cv.Rect(
-            j * patchSize,
-            i * patchSize,
-            patchSize,
-            patchSize
-          );
-          originalImage.roi(roi).copyTo(patch);
-
-          // Create tensor for patch - properly reshape the data in RGB format
-          const patchData = new Float32Array(patchSize * patchSize * 3);
-          for (let h = 0; h < patchSize; h++) {
-            for (let w = 0; w < patchSize; w++) {
-              // Convert BGR to RGB by swapping channels
-              const idx = h * patchSize * 3 + w * 3;
-              patchData[idx] = patch.floatPtr(h)[w * 3 + 2]; // R channel (was B)
-              patchData[idx + 1] = patch.floatPtr(h)[w * 3 + 1]; // G channel (stays G)
-              patchData[idx + 2] = patch.floatPtr(h)[w * 3]; // B channel (was R)
-            }
-          }
-          const patchTensor = new ort.Tensor(patchData, [
-            1,
-            patchSize,
-            patchSize,
-            3,
-          ]);
-
+          const inputs = await this.processor(geoPatches[i][j]);
+          const pixelValues = inputs.pixel_values.permute(0, 2, 3, 1);
           // Run inference on patch
-          const patchOutput = await this.model.run({ input_1: patchTensor });
+          const patchOutput = await this.model.run({ input_1: pixelValues });
           const patchPrediction = patchOutput.conv2d_12.data as Float32Array;
 
           // Convert patch prediction to Mat
@@ -224,9 +141,6 @@ export class BuildingFootPrintSegmentation extends BaseModel {
 
           // Add to row patches array
           rowPatches.push(patchPredictionMat);
-
-          // Clean up patch resources
-          patch.delete();
         }
 
         // Concatenate patches horizontally for this row
@@ -268,9 +182,6 @@ export class BuildingFootPrintSegmentation extends BaseModel {
         geoRawImage.height
       );
       finalMat.roi(roi).copyTo(croppedPrediction);
-
-      originalImage.delete();
-      paddedImage.delete();
       croppedPrediction.delete();
       // Post-processing timing
       const results = await this.postProcessor(
@@ -286,9 +197,6 @@ export class BuildingFootPrintSegmentation extends BaseModel {
 
       return results;
     } catch (error) {
-      // Clean up resources in case of error
-      originalImage.delete();
-      paddedImage.delete();
       throw error;
     }
   }
