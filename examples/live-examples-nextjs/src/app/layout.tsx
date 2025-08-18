@@ -133,7 +133,7 @@ export default function RootLayout({
                 "Wetland Segmentation"
               ],
               "screenshot": "https://docs.geobase.app/geoai-live/geoaijs-meta.png",
-              "softwareVersion": "1.0.0",
+              "softwareVersion": "1.0.0-rc.1",
               "datePublished": "2025-01-01",
               "inLanguage": "en-US"
             })

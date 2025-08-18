@@ -21,8 +21,8 @@ importers:
         specifier: ^7.2.0
         version: 7.2.0
       geoai:
-        specifier: 0.0.7
-        version: 0.0.7(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)
+        specifier: 1.0.0-rc.1
+        version: 1.0.0-rc.1(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)
       lucide-react:
         specifier: ^0.536.0
         version: 0.536.0(react@19.1.1)
@@ -2123,8 +2123,8 @@ packages:
   functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
 
-  geoai@0.0.7:
-    resolution: {integrity: sha512-saEsXqxsU923kv9OShYR5w09nA+GDqH0QTDTyue1qqF3oxzd1qR715W6LjuF5IQAyQk6cxG1GgUvnL93waHUWw==}
+  geoai@1.0.0-rc.1:
+    resolution: {integrity: sha512-dN0MsP/x4SIgF70bmb0TkZcm1VUsEwg1ZSBHtinwTUS30o8KojQceChHbcUdLM106ZJivaPFm4Ejjh0IuJ0EUw==}
     peerDependencies:
       '@huggingface/transformers': ^3.7.2
       '@techstark/opencv-js': ^4.10.0-release.1
@@ -6824,7 +6824,7 @@ snapshots:
 
   functions-have-names@1.2.3: {}
 
-  geoai@0.0.7(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0):
+  geoai@1.0.0-rc.1(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0):
     dependencies:
       '@huggingface/transformers': 3.7.2
       '@techstark/opencv-js': 4.10.0-release.1
