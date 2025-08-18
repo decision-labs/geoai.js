@@ -5,7 +5,7 @@ import { RawImage } from "@huggingface/transformers";
 describe("GeoRawImage", () => {
   let width: number;
   let height: number;
-  let channels: number;
+  let channels: 2 | 1 | 3 | 4;
   let data: Uint8ClampedArray;
   let bounds: {
     north: number;
@@ -126,6 +126,145 @@ describe("GeoRawImage", () => {
       expect(clonedImage.width).toBe(geoImage.width);
       expect(clonedImage.height).toBe(geoImage.height);
       expect(clonedImage.channels).toBe(geoImage.channels);
+    });
+  });
+
+  describe("toPatches", () => {
+    it("should return 2d array of georawimage patches", async () => {
+      const patchHeight = 20;
+      const patchWidth = 20;
+      const patches = await geoImage.toPatches(patchHeight, patchWidth);
+
+      // Should be a 2D array
+      expect(Array.isArray(patches)).toBe(true);
+      expect(Array.isArray(patches[0])).toBe(true);
+
+      // Calculate expected number of rows and columns
+      const expectedRows = Math.ceil(geoImage.height / patchHeight);
+      const expectedCols = Math.ceil(geoImage.width / patchWidth);
+
+      expect(patches.length).toBe(expectedRows);
+      patches.forEach(row => {
+        expect(Array.isArray(row)).toBe(true);
+        expect(row.length).toBe(expectedCols);
+      });
+
+      // All patches should be GeoRawImage and have correct dimensions
+      // Also construct a GeoJSON FeatureCollection of patch bounds
+      const features: GeoJSON.Feature[] = [];
+      for (let i = 0; i < expectedRows; i++) {
+        for (let j = 0; j < expectedCols; j++) {
+          const patch = patches[i][j];
+          expect(patch).toBeInstanceOf(GeoRawImage);
+
+          // Patch size: last row/col may be smaller if not padded, but default is padded
+          const isLastRow = i === expectedRows - 1;
+          const isLastCol = j === expectedCols - 1;
+          const expectedPatchHeight = patchHeight;
+          const expectedPatchWidth = patchWidth;
+
+          expect(patch.height).toBe(expectedPatchHeight);
+          expect(patch.width).toBe(expectedPatchWidth);
+
+          // CRS and bounds should be present
+          expect(patch.getCRS()).toBe(geoImage.getCRS());
+          const bounds = patch.getBounds();
+          expect(bounds).toHaveProperty("north");
+          expect(bounds).toHaveProperty("south");
+          expect(bounds).toHaveProperty("east");
+          expect(bounds).toHaveProperty("west");
+
+          // Add patch bounds as a GeoJSON Polygon feature
+          features.push({
+            type: "Feature",
+            geometry: {
+              type: "Polygon",
+              coordinates: [
+                [
+                  [bounds.west, bounds.north], // top-left
+                  [bounds.east, bounds.north], // top-right
+                  [bounds.east, bounds.south], // bottom-right
+                  [bounds.west, bounds.south], // bottom-left
+                  [bounds.west, bounds.north], // close polygon
+                ],
+              ],
+            },
+            properties: {
+              row: i,
+              col: j,
+            },
+          });
+        }
+      }
+      const patchFeatureCollection = {
+        type: "FeatureCollection",
+        features,
+      };
+      // Check that all patch polygons are within the original image bounds
+      const origBounds = geoImage.getBounds();
+      for (const feature of patchFeatureCollection.features) {
+        const coords = feature.geometry.coordinates[0];
+        for (const [lon, lat] of coords) {
+          expect(lon).toBeGreaterThanOrEqual(origBounds.west - 1e-8);
+          expect(lon).toBeLessThanOrEqual(origBounds.east + 1e-8);
+          expect(lat).toBeLessThanOrEqual(origBounds.north + 1e-8);
+          expect(lat).toBeGreaterThanOrEqual(origBounds.south - 1e-8);
+        }
+      }
+      // Bottom-right patch's bottom-right pixel should match original image's bottom-right
+      const lastRow = patches.length - 1;
+      const lastCol = patches[0].length - 1;
+      const lastPatch = patches[lastRow][lastCol];
+      expect(lastPatch.getBounds().east).toBeCloseTo(
+        geoImage.getBounds().east,
+        6
+      );
+      expect(lastPatch.getBounds().south).toBeCloseTo(
+        geoImage.getBounds().south,
+        6
+      );
+    });
+
+    it("should not pad if padding is false", async () => {
+      const patchHeight = 33;
+      const patchWidth = 33;
+      const patches = await geoImage.toPatches(patchHeight, patchWidth, {
+        padding: false,
+      });
+
+      // Should be a 2D array
+      expect(Array.isArray(patches)).toBe(true);
+      expect(Array.isArray(patches[0])).toBe(true);
+
+      // Calculate expected number of rows and columns (no padding)
+      const expectedRows = Math.ceil(geoImage.height / patchHeight);
+      const expectedCols = Math.ceil(geoImage.width / patchWidth);
+
+      expect(patches.length).toBe(expectedRows);
+      patches.forEach(row => {
+        expect(Array.isArray(row)).toBe(true);
+        expect(row.length).toBe(expectedCols);
+      });
+
+      // Last patch in each row/col may be smaller
+      for (let i = 0; i < expectedRows; i++) {
+        for (let j = 0; j < expectedCols; j++) {
+          const patch = patches[i][j];
+          expect(patch).toBeInstanceOf(GeoRawImage);
+
+          const isLastRow = i === expectedRows - 1;
+          const isLastCol = j === expectedCols - 1;
+          const expectedPatchHeight = isLastRow
+            ? geoImage.height - patchHeight * (expectedRows - 1)
+            : patchHeight;
+          const expectedPatchWidth = isLastCol
+            ? geoImage.width - patchWidth * (expectedCols - 1)
+            : patchWidth;
+
+          expect(patch.height).toBe(expectedPatchHeight);
+          expect(patch.width).toBe(expectedPatchWidth);
+        }
+      }
     });
   });
 });

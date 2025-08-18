@@ -44,6 +44,92 @@ export class GeoRawImage extends RawImage {
   }
 
   /**
+   * Convert the image into patches.
+   */
+  async toPatches(
+    patch_height: number,
+    patch_width: number,
+    { padding = true } = {}
+  ): Promise<GeoRawImage[][]> {
+    if (this.channels === 2) {
+      throw new Error(
+        "Splitting into patches is not supported for 2-channel images."
+      );
+    }
+
+    const { height, width } = this;
+
+    const remainder_h = height % patch_height;
+    const remainder_w = width % patch_width;
+    const pad_h = remainder_h === 0 ? 0 : patch_height - remainder_h;
+    const pad_w = remainder_w === 0 ? 0 : patch_width - remainder_w;
+
+    let image = this as GeoRawImage;
+    if (padding && (pad_h > 0 || pad_w > 0)) {
+      // We only pad if padding is enabled AND if there are remainders
+      image = (await image.pad([0, pad_w, 0, pad_h])) as GeoRawImage;
+    }
+
+    // Since we may have padded the image, we use the updated width and height
+    const padded_height = image.height;
+    const padded_width = image.width;
+
+    const patches: GeoRawImage[][] = [];
+    for (
+      let h_pixel_start = 0;
+      h_pixel_start < padded_height;
+      h_pixel_start += patch_height
+    ) {
+      const rowPatches: GeoRawImage[] = [];
+      for (
+        let w_pixel_start = 0;
+        w_pixel_start < padded_width;
+        w_pixel_start += patch_width
+      ) {
+        // Get the pixel coordinates of the current patch
+        const h_pixel_end =
+          Math.min(h_pixel_start + patch_height, padded_height) - 1;
+        const w_pixel_end =
+          Math.min(w_pixel_start + patch_width, padded_width) - 1;
+
+        // Crop the underlying RawImage data
+        const rawPatch = await image.crop([
+          w_pixel_start,
+          h_pixel_start,
+          w_pixel_end,
+          h_pixel_end,
+        ]);
+
+        // Convert pixel coordinates of the patch's top-left and bottom-right corners
+        // to world coordinates to define the new bounds.
+        const [west, north] = this.pixelToWorld(w_pixel_start, h_pixel_start);
+        const [east, south] = this.pixelToWorld(
+          w_pixel_end + 1,
+          h_pixel_end + 1
+        );
+
+        const patchBounds: Bounds = {
+          north: north,
+          south: south,
+          east: east,
+          west: west,
+        };
+
+        // Create a new GeoRawImage instance for the patch
+        const geoPatch = GeoRawImage.fromRawImage(
+          rawPatch,
+          patchBounds,
+          this.crs
+        );
+
+        rowPatches.push(geoPatch);
+      }
+      patches.push(rowPatches);
+    }
+    return patches;
+  }
+
+  /**
    * Convert pixel coordinates to world coordinates
    */
   pixelToWorld(x: number, y: number): [number, number] {
