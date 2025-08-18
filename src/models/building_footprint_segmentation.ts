@@ -52,7 +52,10 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   protected async initializeModel(): Promise<void> {
     // Only load the model if not already loaded
     if (this.model) return;
-    this.processor = await ImageProcessor.from_pretrained(this.model_id);
+    this.processor = await ImageProcessor.from_pretrained(
+      this.model_id,
+      this.modelParams
+    );
     const pretrainedModel = await PreTrainedModel.from_pretrained(
       this.model_id,
       this.modelParams
@@ -63,9 +66,6 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   public async inference(
     params: InferenceParams
   ): Promise<ObjectDetectionResults> {
-    const inferenceStartTime = performance.now();
-    console.log("[building-footprint-segmentation] starting inference...");
-
     const {
       inputs: { polygon },
       postProcessingParams: { confidenceThreshold = 0.5, minArea = 20 } = {},
@@ -98,12 +98,17 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       mapSourceParams?.expression
     );
     const geoPatches = await geoRawImage.toPatches(patchSize, patchSize);
-    // // Calculate number of patches
+    // Calculate number of patches
     const numRows = geoPatches.length;
     const numCols = geoPatches[0].length;
 
+    const geoPatchesFlat = geoPatches.flat();
+    console.log(`Inferencing on ${geoPatchesFlat.length} patches`);
+
     // Initialize prediction array
     let prediction: any[] = [];
+    const inferenceStartTime = performance.now();
+    console.log("[building-footprint-segmentation] starting inference...");
 
     try {
       if (!this.model) {
@@ -113,18 +118,32 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       if (!this.processor) {
         throw new Error("Processor not initialized");
       }
+
+      // Perform batch inference on all patches at once
+      const inputsAll = await this.processor(geoPatchesFlat);
+      const pixelValues = inputsAll.pixel_values.permute(0, 2, 3, 1);
+      const resultAll = await this.model.run({ input_1: pixelValues });
+      const patchPredictionsData = resultAll.conv2d_12.data as Float32Array;
+
+      const patchDataSize = patchSize * patchSize;
+      let patchIndex = 0;
+
       // Process each row
       for (let i = 0; i < numRows; i++) {
         // Create array to store patches for this row
         const rowPatches: any[] = [];
 
-        // Process each patch in the row
+        // Process each patch in the row, extracting from the single batch result
         for (let j = 0; j < numCols; j++) {
-          const inputs = await this.processor(geoPatches[i][j]);
-          const pixelValues = inputs.pixel_values.permute(0, 2, 3, 1);
-          // Run inference on patch
-          const patchOutput = await this.model.run({ input_1: pixelValues });
-          const patchPrediction = patchOutput.conv2d_12.data as Float32Array;
+          // Get the start and end index for the current patch's data
+          const startIndex = patchIndex * patchDataSize;
+          const endIndex = startIndex + patchDataSize;
+
+          // Create a new Float32Array view for the current patch's prediction
+          const patchPrediction = patchPredictionsData.subarray(
+            startIndex,
+            endIndex
+          );
 
           // Convert patch prediction to Mat
           const patchPredictionMat = new cv.Mat(
@@ -141,6 +160,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
 
           // Add to row patches array
           rowPatches.push(patchPredictionMat);
+          patchIndex++;
         }
 
         // Concatenate patches horizontally for this row
@@ -153,6 +173,9 @@ export class BuildingFootPrintSegmentation extends BaseModel {
           cv.hconcat(matVector, rowMat);
 
           prediction.push(rowMat);
+
+          // Clean up the temporary Mats in the rowPatches array
+          rowPatches.forEach(mat => mat.delete());
         }
       }
 
@@ -162,6 +185,9 @@ export class BuildingFootPrintSegmentation extends BaseModel {
 
       const finalMat = new cv.Mat();
       cv.vconcat(finalMatVector, finalMat);
+
+      // Clean up the temporary Mats in the prediction array
+      prediction.forEach(mat => mat.delete());
 
       // Remove padding
       const xx = Math.floor(geoRawImage.width / patchSize) * patchSize;
@@ -182,14 +208,16 @@ export class BuildingFootPrintSegmentation extends BaseModel {
         geoRawImage.height
       );
       finalMat.roi(roi).copyTo(croppedPrediction);
-      croppedPrediction.delete();
+      finalMat.delete(); // Clean up the final concatenated Mat
+
       // Post-processing timing
       const results = await this.postProcessor(
-        finalMat,
+        croppedPrediction,
         geoRawImage,
         confidenceThreshold as number,
         minArea as number
       );
+      croppedPrediction.delete(); // Clean up the cropped Mat
       const inferenceEndTime = performance.now();
       console.log(
         `[building-footprint-segmentagtion] inference completed. Time taken: ${(inferenceEndTime - inferenceStartTime).toFixed(2)}ms`
