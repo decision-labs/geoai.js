@@ -6,6 +6,7 @@ export { StatusMessage } from './ui/StatusMessage';
 export { ExportButton } from './ui/ExportButton';
 export { InfoTooltip } from './ui/InfoTooltip';
 export { default as BackToHomeButton } from './ui/BackToHomeButton';
+export { MobileNavigation } from './ui/MobileNavigation';
 
 // Feature Components
 export { MapProviderSelector } from './MapProviderSelector';
