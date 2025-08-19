@@ -7,7 +7,7 @@ import { PackageName, NpmInstall, ImportStatement } from "../components";
 Build your first AI-powered React mapping app in under 5 minutes. Create a React application that can detect objects in satellite imagery with just a few lines of code.
 
 <Callout type="default" emoji="🚀">
-  **NEW: Meta's DINOv3 Now Available!** We've integrated Meta's groundbreaking DINOv3 model for image feature extraction. 
+  **NEW: Meta's DINOv3 Now Available!** We've integrated Meta's groundbreaking DINOv3 model for image feature extraction.
   [Try the DINOv3 demo →](/supported-tasks/image-feature-extraction) or [learn more about DINOv3](https://ai.meta.com/dinov3/).
 </Callout>
 
@@ -61,7 +61,15 @@ git subtree add --prefix=examples/01-quickstart https://github.com/decision-labs
 
 Choose your preferred map data provider:
 
-#### Option A: Geobase (Recommended)
+#### Option A: ESRI
+
+```typescript
+const config = {
+  provider: "esri",
+};
+```
+
+### Option B: Geobase (Recommended)
 
 ```javascript
 const config = {
@@ -106,9 +114,11 @@ import 'maplibre-gl-draw/dist/mapbox-gl-draw.css';
 
 // Your config from Step 2
 const config = {
-  provider: "mapbox",
-  apiKey: "your-mapbox-token",
-  style: "mapbox://styles/mapbox/satellite-v9",
+  provider: "esri",
+  serviceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services",
+  serviceName: "World_Imagery",
+  tileSize: 256,
+  attribution: "ESRI World Imagery",
 };
 
 function App() {
@@ -124,16 +134,19 @@ function App() {
       style: {
         version: 8,
         sources: {
-          'satellite': {
-            type: 'raster',
-            tiles: [`https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=${config.apiKey}`],
+          satellite: {
+            type: "raster",
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            ],
             tileSize: 256,
-          }
+            attribution: "ESRI World Imagery",
+          },
         },
-        layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }]
+        layers: [{ id: "satellite", type: "raster", source: "satellite" }],
       },
       center: [-117.59, 47.653],
-      zoom: 18
+      zoom: 18,
     });
 
     const draw = new MaplibreDraw({
