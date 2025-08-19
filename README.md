@@ -6,24 +6,66 @@ A JavaScript library for running Geo AI models in frontend applications.
 
 ## Installation
 
+### NPM Package
+
+[![npm version](https://img.shields.io/npm/v/geoai.svg)](https://www.npmjs.com/package/geoai)
+[![npm downloads](https://img.shields.io/npm/dm/geoai.svg)](https://www.npmjs.com/package/geoai)
+
 ```bash
 npm install geoai
 ```
+
+📦 **Package Links:**
+- [npm package](https://www.npmjs.com/package/geoai)
+- [jsDelivr CDN](https://www.jsdelivr.com/package/npm/geoai)
+
+### CDN (Browser)
+
+You can also use GeoAI directly in the browser via CDN:
+
+#### Unpkg CDN
+```html
+<script src="https://unpkg.com/geoai@1.0.0-rc.1/geoai.js"></script>
+```
+
+#### jsDelivr CDN
+```html
+<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.0-rc.1/geoai.min.js"></script>
+```
+
+When using CDN, the library is available globally as `geoai`.
 
 ## Usage
 
 ### Core Library (Node.js and Browser)
 
+#### NPM Installation
 ```javascript
 import { geoai } from "geoai";
 
-// Initialize the pipeline
+// Initialize the pipeline with ESRI provider (no API key required)
 const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
-  provider: "geobase",
-  apikey: "your-api-key",
+  provider: "esri",
 });
 
 // Run inference
+const result = await pipeline.inference({
+  inputs: {
+    polygon: geoJsonFeature,
+  },
+  mapSourceParams: {
+    zoomLevel: 18,
+  },
+});
+```
+
+#### CDN Usage
+```javascript
+// When using CDN, geoai is available globally
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "esri",
+});
+
 const result = await pipeline.inference({
   inputs: {
     polygon: geoJsonFeature,
@@ -42,8 +84,7 @@ import { useGeoAIWorker } from "geoai/react";
 function MyComponent() {
   const { inference, isLoading, error } = useGeoAIWorker({
     tasks: ["object-detection"],
-    provider: "geobase",
-    apikey: "your-api-key",
+    provider: "esri", // No API key required for ESRI
   });
 
   const handleInference = async () => {
@@ -72,6 +113,7 @@ function MyComponent() {
 - **TypeScript Support**: Full TypeScript definitions
 - **Web Worker Support**: Run AI models in background threads
 - **Optimized Performance**: Efficient model loading and inference
+- **CDN Ready**: Available via npm and popular CDNs (unpkg, jsDelivr)
 
 ## Supported Tasks
 
