@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-GeoAI.js is a TypeScript library for running 13 specialized geospatial AI models in frontend applications. It provides a pipeline system to chain AI tasks together, integrates with multiple map providers (ESRI, Geobase, Mapbox, Sentinel), and includes React hooks for seamless integration.
+GeoAI.js is a TypeScript library for running specialized geospatial AI models in frontend applications. It provides a pipeline system to chain AI tasks together, integrates with multiple map providers (ESRI, Geobase, Mapbox, Sentinel), and includes React hooks for seamless integration.
 
 ## Development Commands
 
