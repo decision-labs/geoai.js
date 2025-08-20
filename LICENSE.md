@@ -1,4 +1,4 @@
-
+MIT License
 
 Copyright (c) 2025 SpacialDB UG (Decision Labs)
 
