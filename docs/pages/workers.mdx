@@ -126,9 +126,11 @@ import 'maplibre-gl-draw/dist/mapbox-gl-draw.css';
 import { useGeoAIWorker } from './useGeoAIWorker';
 
 const config = {
-  provider: "mapbox",
-  apiKey: "your-mapbox-token",
-  style: "mapbox://styles/mapbox/satellite-v9",
+  provider: "esri",
+  serviceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services",
+  serviceName: "World_Imagery",
+  tileSize: 256,
+  attribution: "ESRI World Imagery",
 };
 
 function App() {
@@ -138,9 +140,7 @@ function App() {
   const { isReady, result, initialize, runInference } = useGeoAIWorker();
 
   useEffect(() => {
-    initialize([{ task: "building-detection" }], {
-      geobase: { accessToken: config.apiKey }
-    });
+    initialize([{ task: "building-detection" }], config);
   }, []);
 
   useEffect(() => {
@@ -154,15 +154,15 @@ function App() {
           satellite: {
             type: 'raster',
             tiles: [
-              `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=${config.apiKey}`,
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
           },
         },
         layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }],
       },
-      center: [-117.59, 47.653],
-      zoom: 18,
+      center: [54.690310447932006, 24.75763471820723],
+      zoom: 15,
     });
 
     const draw = new MaplibreDraw({
@@ -179,7 +179,7 @@ function App() {
 
       runInference({
         inputs: { polygon },
-        mapSourceParams: { zoomLevel: map.current?.getZoom() || 18 },
+        mapSourceParams: { zoomLevel: map.current?.getZoom() || 15 },
       });
     });
   }, [isReady]);
@@ -205,10 +205,12 @@ function App() {
   }, [result]);
 
   return (
-    <div style={{ height: '100vh' }}>
-      <div ref={mapContainer} style={{ height: '70%' }} />
-      <div style={{ padding: '1rem' }}>
-        {detections.length > 0 && <p>Detected {detections.length} buildings.</p>}
+     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div ref={mapContainer} style={{ height: '70%', width: '100%' }} />
+      <div style={{ padding: '20px', height: '30%', backgroundColor: '#f5f5f5' }}>
+        <h2>Building Detection</h2>
+        <p>Draw a polygon to detect buildings</p>
+        {detections.length > 0 && <p>Found {detections.length} buildings!</p>}
       </div>
     </div>
   );
