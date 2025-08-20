@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-GeoAI.js is a TypeScript library for running 13 specialized geospatial AI models in frontend applications. It provides a pipeline system to chain AI tasks together, integrates with multiple map providers (ESRI, Geobase, Mapbox, Sentinel), and includes React hooks for seamless integration.
+GeoAI.js is a TypeScript library for running specialized geospatial AI models in frontend applications. It provides a pipeline system to chain AI tasks together, integrates with multiple map providers (ESRI, Geobase, Mapbox, Sentinel), and includes React hooks for seamless integration.
 
 ## Development Commands
 
@@ -29,13 +29,13 @@ GeoAI.js is a TypeScript library for running 13 specialized geospatial AI models
 ### Core Pipeline System
 The main architecture revolves around a pipeline that can chain multiple AI tasks:
 - **Pipeline validation**: Checks task dependencies and parameter compatibility
-- **Model registry**: Centralized registry of 13 AI models in `src/registry.ts`
+- **Model registry**: Centralized registry of all the AI models in `src/registry.ts`
 - **Provider abstraction**: Multiple map data providers through `src/data_providers/`
 - **Type safety**: Strong TypeScript typing throughout with core types in `src/core/types.ts`
 
 ### Key Files
 - `src/geoai.ts` - Main pipeline implementation and public API
-- `src/registry.ts` - Model registry with all 13 AI task definitions
+- `src/registry.ts` - Model registry with all the AI task definitions
 - `src/models/` - Individual AI model implementations
 - `src/data_providers/` - Map provider integrations (ESRI, Geobase, etc.)
 - `src/types/` - Core data types like GeoRawImage, BoundingBox
@@ -61,7 +61,7 @@ React hooks are implemented with sophisticated lifecycle management:
 
 ## AI Tasks Architecture
 
-The 13 AI tasks fall into categories:
+All the AI tasks fall into categories:
 - **Detection**: Object detection, zero-shot detection, oriented detection
 - **Segmentation**: Mask generation, building footprints, wetlands
 - **Classification**: Land cover classification
