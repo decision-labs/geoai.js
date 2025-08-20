@@ -10,7 +10,7 @@ const mapZoomLookup: Record<string, number> = {
   "geobase:wetland-segmentation": 17,
   "geobase:building-footprint-segmentation": 15,
   "geobase:zero-shot-object-detection": 20,
-  "geobase:mask-generation": 18,
+  "geobase:mask-generation": 19,
   "geobase:oriented-object-detection": 21
 };
 

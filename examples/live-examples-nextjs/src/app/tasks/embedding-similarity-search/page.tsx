@@ -14,8 +14,8 @@ import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
 GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/mask-generation.tif"
 
 const mapInitConfig = {
-  center : [-38.562698364257805,-13.126292062732247] as [number, number],
-  zoom : 16
+  center : [-38.511321931983844, -13.008383365638252] as [number, number],
+  zoom : 19
 }
 
 // Add validation for required environment variables
