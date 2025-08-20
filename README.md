@@ -11,6 +11,15 @@
   <a href="https://docs.geobase.app/geoai" style="margin-left:6px"><img alt="docs" src="https://img.shields.io/badge/docs-online-blue"></a>
 </p>
 
+<div align="center" style="margin: 20px 0;">
+  <div style="border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); overflow: hidden; display: inline-block; border: 2px solid white;">
+    <video width="120%" max-width="1200px" autoplay muted loop style="display: block; object-fit: cover; object-position: center;">
+      <source src="https://docs.geobase.app/geoai-live/video/image-feature-extraction-sm.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+</div>
+
 ### Quick install
 
 ### NPM Package
