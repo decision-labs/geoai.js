@@ -83,6 +83,11 @@ export default function ImageFeatureExtraction() {
   // Initial view state - new state to control the initial two-button view
   const [showInitialButtons, setShowInitialButtons] = useState<boolean>(true);
   
+  // Mouse position for tooltip
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  
+
+  
   // Contextual menu state
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
   const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
@@ -443,6 +448,13 @@ export default function ImageFeatureExtraction() {
     // Listen for zoom changes to sync with slider
     map.current.on("zoom", debouncedZoomHandler);
 
+    // Track mouse position for tooltip
+    map.current.on("mousemove", (e) => {
+      setMousePosition({ x: e.point.x, y: e.point.y });
+    });
+
+
+
     // Initialize zoom level with current map zoom
     setZoomLevel(Math.round(map.current.getZoom()));
 
@@ -589,6 +601,21 @@ export default function ImageFeatureExtraction() {
           onExtractFeatures={handleContextMenuExtractFeatures}
           onClose={hideContextMenu}
         />
+
+        {/* Drawing Tooltip - Follows mouse cursor when in drawing mode */}
+        {isDrawingMode && !polygon && !showInitialButtons && (
+          <div 
+            className="fixed z-20 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg text-sm pointer-events-none"
+            style={{
+              left: `${mousePosition.x + 10}px`,
+              top: `${mousePosition.y - 40}px`,
+              transform: 'translateX(-50%)'
+            }}
+          >
+            Click to start drawing, double-click to complete
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          </div>
+        )}
         
         {/* Feature Visualization */}
         {lastResult?.features && lastResult?.similarityMatrix && (
@@ -671,7 +698,7 @@ export default function ImageFeatureExtraction() {
         
         {/* Action Buttons - Top middle of map */}
         {!showInitialButtons && (
-          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-10 flex items-center space-x-2">
+          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-10 flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 px-3 py-2">
             <ActionButtons
               isInitialized={isInitialized}
               isDrawingMode={isDrawingMode}
