@@ -1,17 +1,5 @@
 import React, { memo } from 'react';
-
-// Extracted SVG icons for better performance
-const BarChartIcon = () => (
-  <svg className="w-8 h-8 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-);
-
-const PencilIcon = () => (
-  <svg className="w-8 h-8 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-  </svg>
-);
+import { BarChart3, Pencil } from 'lucide-react';
 
 interface InitialButtonsProps {
   isInitialized: boolean;
@@ -60,7 +48,7 @@ export const InitialButtons = memo<InitialButtonsProps>(({
             disabled={isButtonDisabled}
             className={`${buttonBaseClasses} bg-blue-600 hover:bg-blue-700 animate-in slide-in-from-left-4 duration-700 delay-400`}
           >
-            <BarChartIcon />
+            <BarChart3 className="w-8 h-8 transition-transform duration-300 group-hover:scale-110" />
             <span className="transition-all duration-300 group-hover:translate-y-[-2px]">Show Precomputed Embeddings</span>
             <span className="text-sm opacity-80 transition-all duration-300 group-hover:opacity-100">Explore existing feature analysis</span>
           </button>
@@ -69,7 +57,7 @@ export const InitialButtons = memo<InitialButtonsProps>(({
             disabled={isButtonDisabled}
             className={`${buttonBaseClasses} bg-green-600 hover:bg-green-700 animate-in slide-in-from-right-4 duration-700 delay-500`}
           >
-            <PencilIcon />
+            <Pencil className="w-8 h-8 transition-transform duration-300 group-hover:scale-110" />
             <span className="transition-all duration-300 group-hover:translate-y-[-2px]">Draw Region to See Features</span>
             <span className="text-sm opacity-80 transition-all duration-300 group-hover:opacity-100">Analyze your own areas of interest</span>
           </button>
