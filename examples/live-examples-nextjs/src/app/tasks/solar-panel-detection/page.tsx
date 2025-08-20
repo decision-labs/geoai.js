@@ -16,7 +16,7 @@ import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types"
 import { getOptimumZoom } from "@/utils/optimalParamsUtil";
 
-GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/solar_panels_davis_ca.tif"
+GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/solar-panel-detection.tif"
 
 const mapInitConfig = {
   center: [-121.7743491, 38.5533061] as [number, number],

@@ -16,7 +16,7 @@ import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types"
 import { getOptimumZoom } from "@/utils/optimalParamsUtil";
 
-GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/ships_dubai.tif"
+GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/ship-detection.tif"
 
 const mapInitConfig = {
   center: [55.13477831801109, 25.111226405681208] as [number, number],

@@ -16,7 +16,7 @@ import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { MapProvider } from "@/types";
 import { getOptimumZoom } from "@/utils/optimalParamsUtil";
 
-GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip/m_4609932_nw_14_1_20100629.tif"
+GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/wetland-segmentation.tif"
 
 const mapInitConfig = {
   center: [-99.0983079371952, 46.60892272965549] as [number, number],

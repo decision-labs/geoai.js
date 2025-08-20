@@ -11,10 +11,10 @@ import { MapProvider } from "../../../types"
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
 
 
-GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/686e390615a6768f282b22b3/0/686e390615a6768f282b22b4.tif"
+GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/mask-generation.tif"
 
 const mapInitConfig = {
-  center : [-13.274357, 8.486711] as [number, number],
+  center : [-38.562698364257805,-13.126292062732247] as [number, number],
   zoom : 16
 }
 

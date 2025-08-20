@@ -11,7 +11,7 @@ export const geobaseParams: ProviderParams = {
   projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
   apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
-    "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif",
+    "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/object-detection.tif",
 };
 
 export const geobaseParamsSolarPanel: ProviderParams = {
@@ -19,7 +19,7 @@ export const geobaseParamsSolarPanel: ProviderParams = {
   projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
   apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
-    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/solar_panels_davis_ca.tif",
+    "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/solar-panel-detection.tif",
 };
 
 export const geobaseParamsShip: ProviderParams = {
@@ -27,7 +27,7 @@ export const geobaseParamsShip: ProviderParams = {
   projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
   apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
-    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/ships_dubai.tif",
+    "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/ship-detection.tif",
 };
 
 export const geobaseParamsCar: ProviderParams = {
@@ -35,7 +35,7 @@ export const geobaseParamsCar: ProviderParams = {
   projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
   apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
-    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/cars_7cm.tif",
+    "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/car-detection.tif",
 };
 
 export const geobaseParamsWetLand: ProviderParams = {
@@ -43,7 +43,7 @@ export const geobaseParamsWetLand: ProviderParams = {
   projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
   apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
-    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip/m_4609932_nw_14_1_20100629.tif",
+    "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/wetland-segmentation.tif",
 };
 
 export const geobaseParamsImageEmbeddings: ProviderParams = {
@@ -59,7 +59,7 @@ export const geobaseParamsBuilding: ProviderParams = {
   projectRef: process.env.GEOBASE_PROJECT_REF || "test-project",
   apikey: process.env.GEOBASE_API_KEY || "test",
   cogImagery:
-    "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip_train.tif",
+    "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/building-detection.tif",
 };
 
 export const polygonOilStorage = {
@@ -281,7 +281,7 @@ export const polygonReturningNonSquareImage = {
   type: "Feature",
   properties: {
     cogUri:
-      "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/naip/m_4609932_nw_14_1_20100629.tif",
+      "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/wetland-segmentation.tif",
   },
   geometry: {
     coordinates: [

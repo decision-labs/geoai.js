@@ -16,7 +16,7 @@ import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types"
 import { getOptimumZoom } from "@/utils/optimalParamsUtil";
 
-GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/688eabbc7163f9907393c3c7/0/688eabbc7163f9907393c3c8.tif"
+GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/zero-shot-object-detection.tif"
 
 const mapInitConfig = {
   center: [-87.06908566748001, 20.653232827552685] as [number, number],

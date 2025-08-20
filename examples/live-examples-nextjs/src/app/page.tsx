@@ -13,7 +13,7 @@ const GEOBASE_CONFIG = {
   projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
   apikey: process.env.NEXT_PUBLIC_GEOBASE_API_KEY,
   cogImagery:
-    "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/67ba1d2bec9237a9ebd358a3/0/67ba1d2bec9237a9ebd358a4.tif",
+    "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/object-detection.tif",
   provider: "geobase",
 };
 
