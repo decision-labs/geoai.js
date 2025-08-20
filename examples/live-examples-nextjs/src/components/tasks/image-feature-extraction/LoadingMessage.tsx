@@ -26,7 +26,7 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
             <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-800">Loading precomputed embeddings...</span>
-              <span className="text-xs text-gray-600 mt-1">Analyzing satellite imagery for feature patterns</span>
+              <span className="text-xs text-gray-600 mt-1">Analyzing imagery for feature patterns</span>
             </div>
           </>
         ) : (
