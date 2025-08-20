@@ -145,8 +145,8 @@ function App() {
         },
         layers: [{ id: "satellite", type: "raster", source: "satellite" }],
       },
-      center: [-117.59, 47.653],
-      zoom: 18,
+      center: [54.690310447932006, 24.75763471820723],
+      zoom: 15,
     });
 
     const draw = new MaplibreDraw({
@@ -159,10 +159,10 @@ function App() {
     map.current.on('draw.create', async (e) => {
       const polygon = e.features[0];
 
-      const pipeline = await geoai.pipeline([{ task: "building-detection" }], config as ProviderParams);
+      const pipeline = await geoai.pipeline([{ task: "oil-storage-tank-detection" }], config as ProviderParams);
       const result = await pipeline.inference({
         inputs: { polygon },
-        mapSourceParams: { zoomLevel: map.current?.getZoom() || 18 }
+        mapSourceParams: { zoomLevel: map.current?.getZoom() || 15 }
       });
 
       setDetections(result.detections.features || []);
