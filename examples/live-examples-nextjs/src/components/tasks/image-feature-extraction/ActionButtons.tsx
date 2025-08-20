@@ -9,7 +9,6 @@ interface ActionButtonsProps {
   isButtonDisabled: boolean;
   isButtonLoading: boolean;
   isExtractingFeatures: boolean;
-  isLoadingPrecomputedEmbeddings: boolean;
   showPrecomputedEmbeddings: boolean;
   isResetting: boolean;
   lastResult: any;
@@ -27,7 +26,6 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   isButtonDisabled,
   isButtonLoading,
   isExtractingFeatures,
-  isLoadingPrecomputedEmbeddings,
   showPrecomputedEmbeddings,
   isResetting,
   lastResult,
@@ -63,11 +61,6 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Resetting...</span>
-          </>
-        ) : (isLoadingPrecomputedEmbeddings && showPrecomputedEmbeddings) ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Loading Precomputed Embeddings...</span>
           </>
         ) : isExtractingFeatures ? (
           <>

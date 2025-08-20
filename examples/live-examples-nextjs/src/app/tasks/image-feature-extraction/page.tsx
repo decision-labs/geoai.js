@@ -665,7 +665,6 @@ export default function ImageFeatureExtraction() {
               isButtonDisabled={isButtonDisabled}
               isButtonLoading={isButtonLoading}
               isExtractingFeatures={isExtractingFeatures}
-              isLoadingPrecomputedEmbeddings={isLoadingPrecomputedEmbeddings}
               showPrecomputedEmbeddings={showPrecomputedEmbeddings}
               isResetting={isResetting}
               lastResult={lastResult}
