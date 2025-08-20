@@ -46,7 +46,7 @@ pnpm format:scripts
 ### Provider Integration
 - All map providers implement the same interface in `src/data_providers/`
 - Handle different authentication methods (API keys, tokens, none)
-- Support both raster and vector data sources
+- Support raster data sources only for now
 
 ### React Hook Pattern
 - Use consistent state management (loading, error, result)
