@@ -71,7 +71,7 @@ Each task is registered with specific input/output types and model configuration
 
 ## Development Notes
 
-- Bundle size is large (~10MB) due to embedded AI models - peer dependencies prevent duplication
+- Bundle size is large (~10MB) due to opencv-js but this dependency will later be removed by migrating to either custom compiled version of opencv-js or implementing our own functions for the tasks that require it - peer dependencies prevent duplication
 - Memory management is critical in React hooks due to large data structures
 - Web workers are used to prevent UI blocking during AI inference
 - TypeScript-first development with comprehensive type definitions
