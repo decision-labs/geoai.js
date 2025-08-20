@@ -4,7 +4,7 @@ Instructions for AI coding agents working on the GeoAI.js project.
 
 ## Project Overview
 
-GeoAI.js is a TypeScript library for running geospatial AI models in browsers. It provides 13 specialized AI tasks (object detection, segmentation, classification) with React integration and multiple map provider support.
+GeoAI.js is a TypeScript library for running geospatial AI models in browsers. It provides a tool kit to run GeoAI tasks (object detection, segmentation, classification) with React integration and multiple map provider support.
 
 ## Setup Commands
 
