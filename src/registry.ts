@@ -345,7 +345,6 @@ export const modelRegistry: ModelConfig[] = [
       params: ProviderParams,
       modelId: string = "onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX",
       modelParams: PretrainedModelOptions = {
-        device: "wasm",
         dtype: "q8",
       }
     ): Promise<{

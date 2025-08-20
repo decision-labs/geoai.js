@@ -45,10 +45,11 @@ export class ImageFeatureExtraction extends BaseModel {
 
   protected async initializeModel(): Promise<void> {
     // Initialize the DINOv3 feature extractor
-    this.extractor = await pipeline("image-feature-extraction", this.model_id, {
-      device: "wasm", // Use WASM for browser compatibility
-      dtype: "q8", // Use quantized model for better performance
-    });
+    this.extractor = await pipeline(
+      "image-feature-extraction",
+      this.model_id,
+      this.modelParams
+    );
 
     // Configure the processor to not resize images
     this.extractor.processor.image_processor.do_resize = false;
