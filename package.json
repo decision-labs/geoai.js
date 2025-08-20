@@ -27,7 +27,9 @@
     "*.d.ts",
     "README.md",
     "LICENSE.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
   ],
   "main": "./geoai.js",
   "module": "./geoai.js",
