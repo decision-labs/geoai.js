@@ -18,13 +18,13 @@ export const InitialButtons = memo<InitialButtonsProps>(({
   // Early return for loading state
   if (!isInitialized) {
     return (
-      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-500">
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-200/50 animate-in slide-in-from-bottom-4 duration-700">
+      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-200/50">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2 animate-in slide-in-from-top-4 duration-700 delay-200">Image Feature Extraction</h2>
-            <p className="text-gray-600 animate-in slide-in-from-top-4 duration-700 delay-300">Loading model...</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Image Feature Extraction</h2>
+            <p className="text-gray-600">Loading model...</p>
           </div>
-          <div className="flex justify-center animate-in slide-in-from-bottom-4 duration-700 delay-400">
+          <div className="flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         </div>
@@ -32,34 +32,34 @@ export const InitialButtons = memo<InitialButtonsProps>(({
     );
   }
 
-  // Common button styles with smooth transitions
-  const buttonBaseClasses = "flex-1 px-8 py-6 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-out font-semibold text-lg flex flex-col items-center space-y-2 disabled:opacity-50 disabled:cursor-not-allowed group transform hover:scale-105 active:scale-95";
+  // Common button styles
+  const buttonBaseClasses = "flex-1 px-8 py-6 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-semibold text-lg flex flex-col items-center space-y-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-500">
-      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-200/50 animate-in slide-in-from-bottom-4 duration-700">
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-200/50">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2 animate-in slide-in-from-top-4 duration-700 delay-200">Image Feature Extraction</h2>
-          <p className="text-gray-600 animate-in slide-in-from-top-4 duration-700 delay-300">Choose how you'd like to explore image features</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Image Feature Extraction</h2>
+          <p className="text-gray-600">Choose how you'd like to explore image features</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={onShowPrecomputedEmbeddings}
             disabled={isButtonDisabled}
-            className={`${buttonBaseClasses} bg-blue-600 hover:bg-blue-700 animate-in slide-in-from-left-4 duration-700 delay-400`}
+            className={`${buttonBaseClasses} bg-blue-600 hover:bg-blue-700`}
           >
-            <BarChart3 className="w-8 h-8 transition-transform duration-300 group-hover:scale-110" />
-            <span className="transition-all duration-300 group-hover:translate-y-[-2px]">Show Precomputed Embeddings</span>
-            <span className="text-sm opacity-80 transition-all duration-300 group-hover:opacity-100">Explore existing feature analysis</span>
+            <BarChart3 className="w-8 h-8" />
+            <span>Show Precomputed Embeddings</span>
+            <span className="text-sm opacity-80">Explore existing feature analysis</span>
           </button>
           <button
             onClick={onStartDrawingMode}
             disabled={isButtonDisabled}
-            className={`${buttonBaseClasses} bg-green-600 hover:bg-green-700 animate-in slide-in-from-right-4 duration-700 delay-500`}
+            className={`${buttonBaseClasses} bg-green-600 hover:bg-green-700`}
           >
-            <Pencil className="w-8 h-8 transition-transform duration-300 group-hover:scale-110" />
-            <span className="transition-all duration-300 group-hover:translate-y-[-2px]">Draw Region to See Features</span>
-            <span className="text-sm opacity-80 transition-all duration-300 group-hover:opacity-100">Analyze your own areas of interest</span>
+            <Pencil className="w-8 h-8" />
+            <span>Draw Region to See Features</span>
+            <span className="text-sm opacity-80">Analyze your own areas of interest</span>
           </button>
         </div>
       </div>

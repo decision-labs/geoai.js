@@ -16,6 +16,7 @@ interface ActionButtonsProps {
   allPatches: GeoJSON.Feature<GeoJSON.Polygon>[];
   onStartDrawing: () => void;
   onReset: () => void;
+  onResetAndDraw: () => void;
   onResetToDemo: () => void;
 }
 
@@ -33,6 +34,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   allPatches,
   onStartDrawing,
   onReset,
+  onResetAndDraw,
   onResetToDemo,
 }) => {
   if (!isInitialized) {
@@ -47,7 +49,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   return (
     <>
       <button
-        onClick={isDrawingMode ? onStartDrawing : (polygon ? onReset : onStartDrawing)}
+        onClick={isDrawingMode ? onStartDrawing : (polygon ? onResetAndDraw : onStartDrawing)}
         disabled={isButtonDisabled}
         className={`px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border ${
           isButtonLoading ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading precomputed embeddings

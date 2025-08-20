@@ -287,6 +287,20 @@ export default function ImageFeatureExtraction() {
     }
   };
 
+  const handleResetAndDraw = async () => {
+    setIsResetting(true);
+    
+    try {
+      clearCurrentState();
+      
+      // Go directly to drawing mode
+      setShowInitialButtons(false);
+      handleStartDrawing();
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   const handleResetToDemo = async () => {
     setIsResetting(true);
     
@@ -672,6 +686,7 @@ export default function ImageFeatureExtraction() {
               allPatches={allPatches}
               onStartDrawing={handleStartDrawing}
               onReset={handleReset}
+              onResetAndDraw={handleResetAndDraw}
               onResetToDemo={handleResetToDemo}
             />
           </div>
