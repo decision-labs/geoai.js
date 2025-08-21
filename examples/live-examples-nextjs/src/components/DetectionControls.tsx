@@ -1,4 +1,5 @@
-import React from 'react';
+"use client";
+import React, { useState } from 'react';
 import { GlassmorphismCard } from './ui/GlassmorphismCard';
 import { GradientButton } from './ui/GradientButton';
 import { ZoomSlider } from './ui/ZoomSlider';
@@ -15,6 +16,7 @@ interface DetectionControlsProps {
   mapProvider: MapProvider;
   lastResult: any;
   error: string | null;
+  drawWarning?: string | null;
 
   // Content props
   title?: string;
@@ -98,6 +100,7 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
   mapProvider,
   lastResult,
   error,
+  drawWarning = null,
   title = 'AI Detection',
   description = 'Advanced geospatial AI powered detection system',
   onStartDrawing,
@@ -109,10 +112,12 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
   optimumZoom = 18
 }) => {
   // Icons
-  
+  const [hoverWarning, setHoverWarning] = useState<string | null>(null);
+  const showHoverWarning = zoomLevel < optimumZoom;
+   
 
-  return (
-    <div className={`p-6 flex flex-col gap-6 text-gray-800 overflow-y-auto h-full ${className}`}>
+   return (
+     <div className={`p-6 flex flex-col gap-6 text-gray-800 overflow-y-auto h-full ${className}`}>
       {/* Title section with glow effect */}
       <div className="space-y-3 relative">
         <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg blur opacity-10"></div>
@@ -141,9 +146,12 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
       {mapProvider === "geobase" && (<GlassmorphismCard glowColor="teal" className="group-hover:opacity-20 transition duration-1000 cursor-pointer" padding='sm' onClick={() => onZoomChange(optimumZoom)}>
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-green-700 text-sm font-medium">
-            Optimum zoom level: {optimumZoom}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-green-700 text-sm font-medium">
+              Optimum zoom level: {optimumZoom}
+            </span>
+            <span className="text-xs text-gray-500">Tap to jump to optimal zoom</span>
+          </div>
         </div>
       </GlassmorphismCard>)}
 
@@ -158,13 +166,28 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-4">
-          <GradientButton
-            variant="primary"
-            onClick={onStartDrawing}
-            icon={PlusIcon}
+          <div
+            className="relative w-full"
+            onMouseEnter={() => { if (showHoverWarning) setHoverWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`); }}
+            onMouseLeave={() => setHoverWarning(null)}
           >
-            Draw Detection Zone
-          </GradientButton>
+            {/* Compact tooltip rendered above the button so the button design remains unchanged */}
+            {hoverWarning && (
+              <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded shadow-lg pointer-events-none whitespace-nowrap z-50">
+                {hoverWarning}
+              </div>
+            )}
+
+            <GradientButton
+              variant="primary"
+              onClick={onStartDrawing}
+              icon={PlusIcon}
+              disabled={!!drawWarning}
+              className="w-full"
+            >
+              Draw Detection Zone
+            </GradientButton>
+           </div>
 
           <GradientButton
             variant="secondary"
@@ -215,4 +238,4 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
       )}
     </div>
   );
-};
+ };

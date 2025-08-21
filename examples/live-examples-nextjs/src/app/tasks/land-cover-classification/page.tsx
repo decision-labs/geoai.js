@@ -51,6 +51,10 @@ export default function LandCoverClassification() {
   const [zoomLevel, setZoomLevel] = useState<number>(mapInitConfig.zoom);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
   const [showDetections, setShowDetections] = useState(false);
+  const [drawWarning, setDrawWarning] = useState<string | null>(null);
+  
+    // Dynamic optimum zoom computed per provider (used for guiding drawing)
+    const optimumZoom = getOptimumZoom("land-cover-classification", mapProvider) ?? mapInitConfig.zoom;
 
 
   const handleReset = () => {
@@ -100,6 +104,12 @@ export default function LandCoverClassification() {
   };
 
   const handleStartDrawing = () => {
+    if (zoomLevel < optimumZoom) {
+      setDrawWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`);
+      // Clear the warning after a short delay
+      window.setTimeout(() => setDrawWarning(null), 500);
+      return;
+    }
     if (draw.current) {
       draw.current.changeMode("draw_polygon");
     }
@@ -399,7 +409,7 @@ export default function LandCoverClassification() {
           polygon,
         },
         mapSourceParams: {
-          zoomLevel,
+          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
         },
         postProcessingParams: {
           minArea: 20
@@ -424,6 +434,7 @@ export default function LandCoverClassification() {
             mapProvider={mapProvider}
             lastResult={lastResult}
             error={error}
+            drawWarning={drawWarning}
             title="Land Cover Classification"
             description="Advanced geospatial AI powered land cover classification system"
             onStartDrawing={handleStartDrawing}
@@ -431,7 +442,7 @@ export default function LandCoverClassification() {
             onReset={handleReset}
             onZoomChange={handleZoomChange}
             onMapProviderChange={setMapProvider}
-            optimumZoom={mapInitConfig.zoom}
+            optimumZoom={optimumZoom}
           />
         </div>
       </aside>

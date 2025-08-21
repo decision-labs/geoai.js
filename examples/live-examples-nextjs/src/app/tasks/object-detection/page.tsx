@@ -51,6 +51,10 @@ export default function ObjectDetection() {
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(22);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
+  const [drawWarning, setDrawWarning] = useState<string | null>(null);
+  
+    // Dynamic optimum zoom computed per provider (used for guiding drawing)
+    const optimumZoom = getOptimumZoom("object-detection", mapProvider) ?? mapInitConfig.zoom;
 
   const handleReset = () => {
     // Clear all drawn features
@@ -85,7 +89,7 @@ export default function ObjectDetection() {
         polygon: polygon
       },
       mapSourceParams: {
-        zoomLevel,
+        zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
       },
       postProcessingParams : {
         confidence : 0.9,
@@ -94,6 +98,12 @@ export default function ObjectDetection() {
   };
 
   const handleStartDrawing = () => {
+    if (zoomLevel < optimumZoom) {
+      setDrawWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`);
+      // Clear the warning after a short delay
+      window.setTimeout(() => setDrawWarning(null), 500);
+      return;
+    }
     if (draw.current) {
       draw.current.changeMode("draw_polygon");
     }
@@ -240,6 +250,7 @@ export default function ObjectDetection() {
             mapProvider={mapProvider}
             lastResult={lastResult}
             error={error}
+            drawWarning={drawWarning}
             title="Object Detection"
             description="Advanced geospatial AI powered object detection system"
             onStartDrawing={handleStartDrawing}
@@ -247,7 +258,7 @@ export default function ObjectDetection() {
             onReset={handleReset}
             onZoomChange={handleZoomChange}
             onMapProviderChange={setMapProvider}
-            optimumZoom={mapInitConfig.zoom}
+            optimumZoom={optimumZoom}
           />
         </div>
       </aside>

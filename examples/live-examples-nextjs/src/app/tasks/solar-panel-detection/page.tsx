@@ -50,6 +50,10 @@ export default function SolarPanelDetection() {
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(20);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
+  const [drawWarning, setDrawWarning] = useState<string | null>(null);
+  
+    // Dynamic optimum zoom computed per provider (used for guiding drawing)
+    const optimumZoom = getOptimumZoom("solar-panel-detection", mapProvider) ?? mapInitConfig.zoom;
 
   const handleReset = () => {
     // Clear all drawn features
@@ -210,13 +214,19 @@ export default function SolarPanelDetection() {
           polygon,
         },
         mapSourceParams: {
-          zoomLevel,
+          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
         },
       }
     );
   };
 
   const handleStartDrawing = () => {
+    if (zoomLevel < optimumZoom) {
+      setDrawWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`);
+      // Clear the warning after a short delay
+      window.setTimeout(() => setDrawWarning(null), 500);
+      return;
+    }
     if (draw.current) {
       draw.current.changeMode("draw_polygon");
     }
@@ -238,6 +248,7 @@ export default function SolarPanelDetection() {
             mapProvider={mapProvider}
             lastResult={lastResult}
             error={error}
+            drawWarning={drawWarning}
             title="Solar Panel Detection"
             description="Advanced geospatial AI powered solar panel detection system"
             onStartDrawing={handleStartDrawing}
@@ -245,7 +256,7 @@ export default function SolarPanelDetection() {
             onReset={handleReset}
             onZoomChange={handleZoomChange}
             onMapProviderChange={setMapProvider}
-            optimumZoom={mapInitConfig.zoom}
+            optimumZoom={optimumZoom}
           />
         </div>
       </aside>

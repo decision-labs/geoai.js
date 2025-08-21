@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import MaplibreDraw from "maplibre-gl-draw";
-import type { StyleSpecification } from "maplibre-gl";
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
 import { 
   DetectionControls, 
@@ -58,7 +57,10 @@ export default function CarDetection() {
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(22);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
+  const [drawWarning, setDrawWarning] = useState<string | null>(null);
 
+  // Dynamic optimum zoom computed per provider (used for guiding drawing)
+  const optimumZoom = getOptimumZoom("car-detection", mapProvider) ?? mapInitConfig.zoom;
   const handleReset = () => {
     // Clear all drawn features
     if (draw.current) {
@@ -93,13 +95,21 @@ export default function CarDetection() {
           polygon,
         },
         mapSourceParams: {
-          zoomLevel,
+          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel
         },
       }
     );
   };
 
   const handleStartDrawing = () => {
+    // Prevent drawing if the current zoom is below the recommended optimum
+    if (zoomLevel < optimumZoom) {
+      setDrawWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`);
+      // Clear the warning after a short delay
+      window.setTimeout(() => setDrawWarning(null), 500);
+      return;
+    }
+
     if (draw.current) {
       draw.current.changeMode("draw_polygon");
     }
@@ -246,6 +256,7 @@ export default function CarDetection() {
             mapProvider={mapProvider}
             lastResult={lastResult}
             error={error}
+            drawWarning={drawWarning}
             title="Car Detection"
             description="Advanced geospatial AI powered vehicle detection system"
             onStartDrawing={handleStartDrawing}
@@ -253,7 +264,7 @@ export default function CarDetection() {
             onReset={handleReset}
             onZoomChange={handleZoomChange}
             onMapProviderChange={setMapProvider}
-            optimumZoom={mapInitConfig.zoom}
+            optimumZoom={optimumZoom}
           />
         </div>
       </aside>

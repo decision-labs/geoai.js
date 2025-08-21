@@ -50,6 +50,10 @@ export default function OrientedObjectDetection() {
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(22);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
+  const [drawWarning, setDrawWarning] = useState<string | null>(null);
+  
+    // Dynamic optimum zoom computed per provider (used for guiding drawing)
+    const optimumZoom = getOptimumZoom("oriented-object-detection", mapProvider) ?? mapInitConfig.zoom;
 
   const handleReset = () => {
     // Clear all drawn features
@@ -85,7 +89,7 @@ export default function OrientedObjectDetection() {
           polygon
         },
         mapSourceParams : {
-          zoomLevel
+          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel
         },
         postProcessingParams: {
           conf_thres: 0.5, // Default confidence threshold,
@@ -96,6 +100,12 @@ export default function OrientedObjectDetection() {
   };
 
   const handleStartDrawing = () => {
+    if (zoomLevel < optimumZoom) {
+      setDrawWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`);
+      // Clear the warning after a short delay
+      window.setTimeout(() => setDrawWarning(null), 500);
+      return;
+    }
     if (draw.current) {
       draw.current.changeMode("draw_polygon");
     }
@@ -242,6 +252,7 @@ export default function OrientedObjectDetection() {
             mapProvider={mapProvider}
             lastResult={lastResult}
             error={error}
+            drawWarning={drawWarning}
             title="Oriented Object Detection"
             description="Advanced geospatial AI powered oriented object detection system"
             onStartDrawing={handleStartDrawing}
@@ -249,7 +260,7 @@ export default function OrientedObjectDetection() {
             onReset={handleReset}
             onZoomChange={handleZoomChange}
             onMapProviderChange={setMapProvider}
-            optimumZoom={mapInitConfig.zoom}
+            optimumZoom={optimumZoom}
           />
         </div>
       </aside>

@@ -51,6 +51,10 @@ export default function WetLandSegmentation() {
   const [zoomLevel, setZoomLevel] = useState<number>(17);
   const [confidenceScore, setConfidenceScore] = useState<number>(0.9);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
+  const [drawWarning, setDrawWarning] = useState<string | null>(null);
+  
+    // Dynamic optimum zoom computed per provider (used for guiding drawing)
+    const optimumZoom = getOptimumZoom("wetland-segmentation", mapProvider) ?? mapInitConfig.zoom;
 
   const handleReset = () => {
     // Clear all drawn features
@@ -86,13 +90,19 @@ export default function WetLandSegmentation() {
           polygon,
         },
         mapSourceParams: {
-          zoomLevel,
+          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
         },
       }
     );
   };
 
   const handleStartDrawing = () => {
+    if (zoomLevel < optimumZoom) {
+      setDrawWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`);
+      // Clear the warning after a short delay
+      window.setTimeout(() => setDrawWarning(null), 500);
+      return;
+    }
     if (draw.current) {
       draw.current.changeMode("draw_polygon");
     }
@@ -239,6 +249,7 @@ export default function WetLandSegmentation() {
             mapProvider={mapProvider}
             lastResult={lastResult}
             error={error}
+            drawWarning={drawWarning}
             title="Wetland Segmentation"
             description="Advanced geospatial AI powered wetland segmentation system"
             onStartDrawing={handleStartDrawing}
@@ -246,7 +257,7 @@ export default function WetLandSegmentation() {
             onReset={handleReset}
             onZoomChange={handleZoomChange}
             onMapProviderChange={setMapProvider}
-            optimumZoom={mapInitConfig.zoom}
+            optimumZoom={optimumZoom}
           />
         </div>
       </aside>

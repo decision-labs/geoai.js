@@ -50,6 +50,10 @@ export default function OilStorageTankDetection() {
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(22);
   const [mapProvider, setMapProvider] = useState<MapProvider>("mapbox");
+  const [drawWarning, setDrawWarning] = useState<string | null>(null);
+  
+    // Dynamic optimum zoom computed per provider (used for guiding drawing)
+    const optimumZoom = getOptimumZoom("oil-storage-tank-detection", mapProvider) ?? mapInitConfig.zoom;
 
   const handleReset = () => {
     // Clear all drawn features
@@ -85,7 +89,7 @@ export default function OilStorageTankDetection() {
           polygon
         },
         mapSourceParams : {
-          zoomLevel
+          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel
         },
         postProcessingParams: {
           confidenceThreshold: 0.5,
@@ -95,6 +99,12 @@ export default function OilStorageTankDetection() {
   };
 
   const handleStartDrawing = () => {
+    if (zoomLevel < optimumZoom) {
+      setDrawWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`);
+      // Clear the warning after a short delay
+      window.setTimeout(() => setDrawWarning(null), 500);
+      return;
+    }
     if (draw.current) {
       draw.current.changeMode("draw_polygon");
     }
@@ -250,6 +260,7 @@ export default function OilStorageTankDetection() {
             mapProvider={mapProvider}
             lastResult={lastResult}
             error={error}
+            drawWarning={drawWarning}
             title="Oil Storage Tank Detection"
             description="Advanced geospatial AI powered oil storage tank detection system"
             onStartDrawing={handleStartDrawing}
@@ -257,7 +268,7 @@ export default function OilStorageTankDetection() {
             onReset={handleReset}
             onZoomChange={handleZoomChange}
             onMapProviderChange={setMapProvider}
-            optimumZoom={mapInitConfig.zoom}
+            optimumZoom={optimumZoom}
           />
         </div>
       </aside>
