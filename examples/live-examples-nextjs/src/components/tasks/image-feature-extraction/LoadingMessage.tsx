@@ -16,9 +16,13 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
 
   return (
     <div 
-      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl px-6 py-4 cursor-pointer hover:bg-white/98 transition-colors duration-200"
+      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl px-6 py-4 cursor-pointer hover:bg-white/98 transition-colors duration-200"
       onClick={onDismiss}
       title="Click to dismiss"
+      onMouseEnter={(e) => e.stopPropagation()}
+      onMouseLeave={(e) => e.stopPropagation()}
+      onMouseMove={(e) => e.stopPropagation()}
+      onMouseOver={(e) => e.stopPropagation()}
     >
       <div className="flex items-center space-x-3">
         {isLoading ? (

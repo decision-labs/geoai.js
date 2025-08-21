@@ -60,7 +60,7 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
 
   return (
     <button
-      className={`group relative overflow-hidden rounded-lg p-0.5 bg-gradient-to-r ${variants[variant]} transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg ${className}`}
+      className={`group relative overflow-hidden rounded-lg p-0.5 bg-gradient-to-r ${variants[variant]} transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg cursor-pointer ${className}`}
       onClick={onClick}
       disabled={disabled || loading}
     >

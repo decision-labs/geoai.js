@@ -23,7 +23,7 @@ export const MapProviderSelector: React.FC<MapProviderSelectorProps> = ({
           id="mapProvider"
           value={value}
           onChange={(e) => onChange(e.target.value as MapProvider)}
-          className="block w-full rounded-md bg-white/80 backdrop-blur-sm border border-gray-300/60 text-gray-800 placeholder-gray-500 focus:border-green-400 focus:ring-1 focus:ring-green-400/20 transition-all duration-300 p-2 pl-8 appearance-none text-sm"
+          className="block w-full rounded-md bg-white/80 backdrop-blur-sm border border-gray-300/60 text-gray-800 placeholder-gray-500 focus:border-green-400 focus:ring-1 focus:ring-green-400/20 transition-all duration-300 p-2 pl-8 appearance-none text-sm cursor-pointer"
         >
           <option value="geobase" className="bg-white">Geobase</option>
           <option value="mapbox" className="bg-white">Mapbox</option>

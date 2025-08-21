@@ -95,7 +95,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
                     e.stopPropagation();
                     setIsOpen(false);
                   }}
-                  className="text-gray-400 hover:text-white transition-colors ml-auto"
+                  className="text-gray-400 hover:text-white transition-colors ml-auto cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                 </button>

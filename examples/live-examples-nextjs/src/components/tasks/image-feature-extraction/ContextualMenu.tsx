@@ -35,7 +35,7 @@ export const ImageFeatureExtractionContextualMenu: React.FC<ImageFeatureExtracti
         <h3 className="text-sm font-semibold text-gray-800">Extract Features</h3>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -64,7 +64,7 @@ export const ImageFeatureExtractionContextualMenu: React.FC<ImageFeatureExtracti
       <button
         onClick={onExtractFeatures}
         disabled={!isInitialized || isProcessing}
-        className="w-full px-4 py-2 bg-teal-600 text-white rounded-md shadow-lg font-medium text-sm hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 border border-teal-500"
+        className="w-full px-4 py-2 bg-teal-600 text-white rounded-md shadow-lg font-medium text-sm hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 border border-teal-500 cursor-pointer"
       >
         {isProcessing ? (
           <>

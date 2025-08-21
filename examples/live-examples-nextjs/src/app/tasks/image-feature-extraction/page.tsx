@@ -653,7 +653,7 @@ export default function ImageFeatureExtraction() {
 
         
         {/* Status Message - Bottom Left */}
-        <div className="absolute bottom-6 left-6 z-10">
+        <div className="absolute bottom-6 left-6 z-50">
           <ModelStatusMessage
             isInitialized={isInitialized}
             isProcessing={isProcessing}
@@ -663,16 +663,18 @@ export default function ImageFeatureExtraction() {
         </div>
 
         {/* Precomputed Embeddings Loading/Completion Message - Center */}
-        <LoadingMessage
-          isLoading={isLoadingPrecomputedEmbeddings}
-          isVisible={showPrecomputedEmbeddingsMessage && isInitialized && showPrecomputedEmbeddings && !isPrecomputedMessageDismissed && !showInitialButtons}
-          onDismiss={handleDismissPrecomputedMessage}
-        />
+        <div className="z-50">
+          <LoadingMessage
+            isLoading={isLoadingPrecomputedEmbeddings}
+            isVisible={showPrecomputedEmbeddingsMessage && isInitialized && showPrecomputedEmbeddings && !isPrecomputedMessageDismissed && !showInitialButtons}
+            onDismiss={handleDismissPrecomputedMessage}
+          />
+        </div>
 
 
 
         {/* Task Info - Bottom Right */}
-        <div className="absolute bottom-6 right-6 z-10">
+        <div className="absolute bottom-6 right-6 z-50">
           <TaskInfo
             taskName="Image Feature Extraction"
             modelId={lastResult?.metadata?.modelId}
@@ -681,13 +683,15 @@ export default function ImageFeatureExtraction() {
         </div>
 
         {/* Map Provider Selector - Top Left */}
-        <MapProviderSelectorWrapper
-          value={mapProvider}
-          onChange={debouncedMapProviderChange}
-        />
+        <div className="absolute top-6 left-6 z-50">
+          <MapProviderSelectorWrapper
+            value={mapProvider}
+            onChange={debouncedMapProviderChange}
+          />
+        </div>
 
         {/* Zoom Control - Top Right */}
-        <div className="absolute top-6 right-6 z-10">
+        <div className="absolute top-6 right-6 z-50">
           <ZoomControl
             zoomLevel={zoomLevel}
             onZoomChange={handleZoomChange}
@@ -698,7 +702,7 @@ export default function ImageFeatureExtraction() {
         
         {/* Action Buttons - Top middle of map */}
         {!showInitialButtons && (
-          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-10 flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 px-3 py-2">
+          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-50 flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 px-3 py-2">
             <ActionButtons
               isInitialized={isInitialized}
               isDrawingMode={isDrawingMode}

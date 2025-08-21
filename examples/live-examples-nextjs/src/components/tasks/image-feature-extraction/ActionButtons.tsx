@@ -51,7 +51,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
       <button
         onClick={isDrawingMode ? onStartDrawing : (polygon ? onResetAndDraw : onStartDrawing)}
         disabled={isButtonDisabled}
-        className={`px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border ${
+        className={`px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border cursor-pointer ${
           isButtonLoading ? 'bg-gray-400 text-white border-gray-300' : // Resetting state or loading precomputed embeddings
           isExtractingFeatures ? 'bg-gray-400 text-white border-gray-300' : // Extracting features
           isDrawingMode ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500' : // Drawing active
@@ -92,7 +92,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
         <button
           onClick={onResetToDemo}
           disabled={isButtonDisabled}
-          className="px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border bg-purple-600 text-white hover:bg-purple-700 border-purple-500"
+          className="px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border bg-purple-600 text-white hover:bg-purple-700 border-purple-500 cursor-pointer"
           title="Reset current work and return to precomputed embeddings demo"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +107,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
         <button
           onClick={onReset}
           disabled={isButtonDisabled}
-          className="px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border bg-gray-600 text-white hover:bg-gray-700 border-gray-500"
+          className="px-4 py-2 rounded-md shadow-xl backdrop-blur-sm font-medium text-sm transition-all duration-200 flex items-center space-x-2 border bg-gray-600 text-white hover:bg-gray-700 border-gray-500 cursor-pointer"
           title="Return to main menu"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -33,11 +33,23 @@ export const InitialButtons = memo<InitialButtonsProps>(({
   }
 
   // Common button styles
-  const buttonBaseClasses = "flex-1 px-8 py-6 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-semibold text-lg flex flex-col items-center space-y-2 disabled:opacity-50 disabled:cursor-not-allowed";
+  const buttonBaseClasses = "flex-1 px-8 py-6 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-semibold text-lg flex flex-col items-center space-y-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-200/50">
+    <div 
+      className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm"
+      onMouseEnter={(e) => e.stopPropagation()}
+      onMouseLeave={(e) => e.stopPropagation()}
+      onMouseMove={(e) => e.stopPropagation()}
+      onMouseOver={(e) => e.stopPropagation()}
+    >
+      <div 
+        className="bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-200/50"
+        onMouseEnter={(e) => e.stopPropagation()}
+        onMouseLeave={(e) => e.stopPropagation()}
+        onMouseMove={(e) => e.stopPropagation()}
+        onMouseOver={(e) => e.stopPropagation()}
+      >
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Image Feature Extraction</h2>
           <p className="text-gray-600">Choose how you'd like to explore image features</p>

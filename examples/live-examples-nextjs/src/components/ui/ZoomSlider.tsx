@@ -76,7 +76,7 @@ export const ZoomSlider: React.FC<ZoomSliderProps> = ({
 
         {/* Custom slider track */}
         <div
-          className="w-full h-2 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full cursor-pointer relative overflow-hidden"
+          className="w-full h-2 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full cursor-pointer relative overflow-hidden hover:from-gray-300 hover:to-gray-400 transition-colors duration-200"
           onClick={handleClick}
         >
           {/* Progress fill */}
@@ -90,7 +90,7 @@ export const ZoomSlider: React.FC<ZoomSliderProps> = ({
 
           {/* Slider thumb */}
           <div
-            className="absolute top-1/2 transform -translate-y-1/2 w-5 h-5 bg-white border-2 border-teal-500 rounded-full shadow-lg cursor-grab active:cursor-grabbing transition-all duration-200 hover:scale-110"
+            className="absolute top-1/2 transform -translate-y-1/2 w-5 h-5 bg-white border-2 border-teal-500 rounded-full shadow-lg cursor-grab active:cursor-grabbing transition-all duration-200 hover:scale-110 hover:shadow-xl"
             style={{ left: `calc(${(value / max) * 100}% - 10px)` }}
             onMouseDown={handleMouseDown}
           >

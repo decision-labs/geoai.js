@@ -16,7 +16,13 @@ export const TaskInfo: React.FC<TaskInfoProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`bg-white/90 backdrop-blur-sm border border-gray-200 rounded-md shadow-md p-3 ${className}`}>
+    <div 
+      className={`bg-white/90 backdrop-blur-sm border border-gray-200 rounded-md shadow-md p-3 ${className}`}
+      onMouseEnter={(e) => e.stopPropagation()}
+      onMouseLeave={(e) => e.stopPropagation()}
+      onMouseMove={(e) => e.stopPropagation()}
+      onMouseOver={(e) => e.stopPropagation()}
+    >
       <div className="text-right">
         <h3 className="text-sm font-semibold text-gray-800 mb-1">
           {taskName}

@@ -19,7 +19,7 @@ import { getOptimumZoom } from "@/utils/optimalParamsUtil";
 GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/object-detection.tif"
 
 const mapInitConfig = {
-  center: [114.84857638295142, -3.449805712621256] as [number, number],
+  center: [114.847, -3.4498] as [number, number],
   zoom: getOptimumZoom("object-detection","geobase") || 20,
 }
 

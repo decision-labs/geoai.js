@@ -29,7 +29,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ className = 
       {/* Hamburger Button */}
       <button
         onClick={toggleMenu}
-        className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-colors"
+        className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-colors cursor-pointer"
         aria-label="Toggle navigation menu"
       >
         {isOpen ? (
@@ -56,7 +56,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ className = 
                 <h2 className="text-lg font-semibold text-white">Menu</h2>
                 <button
                   onClick={toggleMenu}
-                  className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  className="p-2 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer"
                 >
                   <X className="h-5 w-5 text-white" />
                 </button>
