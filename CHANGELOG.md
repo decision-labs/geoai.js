@@ -89,3 +89,9 @@ To migrate from the old package:
 - ESLint and Prettier for code quality
 - Vitest for testing
 - Husky for pre-commit hooks
+
+## [1.0.0-rc.3] - 2025-08-21
+
+### Release Candidate
+- Fix: remove hardcoded modelParams from the image-feature-extraction task
+
