@@ -352,17 +352,16 @@ const result = await pipeline.inference(polygon);`}
         {/* Integration Highlight */}
         <section className="max-w-4xl mx-auto mb-12 sm:mb-16 px-4">
           <div className="text-center">
-            <p className="text-gray-300 text-xs sm:text-sm mb-4 font-medium">POWERED BY</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
               <div className="flex items-center gap-2">
                 <span className="text-2xl sm:text-3xl">🤗</span>
-                <span className="text-white font-semibold text-base sm:text-lg">Hugging Face</span>
+                <span className="text-white font-semibold text-base sm:text-lg pr-2">Hugging Face</span>
               </div>
               <span className="text-gray-300 text-lg sm:text-xl">×</span>
               <img src="/geoai-live/geobase-logo-darkmode.svg" alt="Geobase" className="h-6 sm:h-8" />
             </div>
             <p className="text-gray-300 text-xs sm:text-sm mt-4">
-              Seamless integration of state-of-the-art AI models with Geobase's geospatial platform
+              Seamless integration of state-of-the-art AI models from TransformersJS with Geobase's geospatial platform
             </p>
           </div>
         </section>
