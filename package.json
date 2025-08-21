@@ -1,6 +1,6 @@
 {
   "name": "geoai",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "description": "A JavaScript library for running Geo AI models in frontend applications",
   "keywords": [
     "geoai",
@@ -19,7 +19,7 @@
     "type": "git",
     "url": "git@github.com:decision-labs/geoai.js.git"
   },
-  "homepage": "https://docs.geobase.app/geoaijs",
+  "homepage": "https://docs.geobase.app/geoai",
   "bugs": "https://github.com/decision-labs/geoai/issues",
   "files": [
     "geoai.js",
@@ -27,7 +27,9 @@
     "*.d.ts",
     "README.md",
     "LICENSE.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
   ],
   "main": "./geoai.js",
   "module": "./geoai.js",

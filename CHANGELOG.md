@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Release Candidate
 This is the first release candidate for version 1.0.0. This RC includes all the features and improvements planned for the final 1.0.0 release.
 
+## [1.0.0-rc.2] - 2025-01-XX
+
+### Release Candidate
+- Bug fixes and improvements
+- Minor documentation updates and example references to the new RC version.
+- Internal release scripts updated to support rc.2 flow.
+- No functional changes to the library API.
+
 ## [1.0.0] - 2024-01-XX
 
 ### Changed

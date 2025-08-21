@@ -356,7 +356,7 @@ const result = await pipeline.inference(polygon);`}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
               <div className="flex items-center gap-2">
                 <span className="text-2xl sm:text-3xl">🤗</span>
-                <span className="text-white font-semibold text-base sm:text-lg">HuggingFace</span>
+                <span className="text-white font-semibold text-base sm:text-lg">Hugging Face</span>
               </div>
               <span className="text-gray-300 text-lg sm:text-xl">×</span>
               <img src="/geoai-live/geobase-logo-darkmode.svg" alt="Geobase" className="h-6 sm:h-8" />

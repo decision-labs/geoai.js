@@ -9,11 +9,8 @@ import { useDebounce } from "../../../hooks/useDebounce";
 
 import { 
   BackgroundEffects,
-  ExportButton,
   ImageFeatureExtractionVisualization,
   ImageFeatureExtractionPrecomputedSimilarityLayer,
-  MapProviderSelector,
-  InfoTooltip,
   ImageFeatureExtractionContextualMenu,
   ModelStatusMessage,
   TaskInfo,
@@ -21,13 +18,14 @@ import {
   ActionButtons,
   LoadingMessage,
   CornerDecorations,
-  MapProviderSelectorWrapper
+  MapProviderSelectorWrapper,
+  InitialButtons
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createImageFeatureExtractionMapStyle } from "../../../utils/mapStyleUtils";
 import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types";
-import styles from "./page.module.css";
+
 
 GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/object-detection.tif";
 
@@ -79,8 +77,16 @@ export default function ImageFeatureExtraction() {
   const [isLoadingPrecomputedEmbeddings, setIsLoadingPrecomputedEmbeddings] = useState<boolean>(false);
   const [precomputedEmbeddingsRef, setPrecomputedEmbeddingsRef] = useState<{ cleanup: () => void } | null>(null);
   const [showPrecomputedEmbeddingsMessage, setShowPrecomputedEmbeddingsMessage] = useState<boolean>(false);
-  const [showPrecomputedEmbeddings, setShowPrecomputedEmbeddings] = useState<boolean>(true);
+  const [showPrecomputedEmbeddings, setShowPrecomputedEmbeddings] = useState<boolean>(false);
   const [isPrecomputedMessageDismissed, setIsPrecomputedMessageDismissed] = useState<boolean>(false);
+  
+  // Initial view state - new state to control the initial two-button view
+  const [showInitialButtons, setShowInitialButtons] = useState<boolean>(true);
+  
+  // Mouse position for tooltip
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  
+
   
   // Contextual menu state
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
@@ -104,22 +110,7 @@ export default function ImageFeatureExtraction() {
     setMapProvider(provider);
   }, 200);
 
-  const debouncedExtractFeatures = useDebounce(() => {
-    if (!polygon) return;
-    
-    setIsExtractingFeatures(true);
-    runInference({
-      inputs: {
-        polygon: polygon
-      },
-      mapSourceParams: {
-        zoomLevel,
-      },
-      postProcessingParams: {
-        similarityThreshold: contextMenuThreshold,
-      }
-    });
-  }, 500);
+
 
   // Callback to receive patches from ImageFeatureExtractionVisualization
   const handlePatchesReady = useCallback((patches: GeoJSON.Feature<GeoJSON.Polygon>[]) => {
@@ -293,6 +284,23 @@ export default function ImageFeatureExtraction() {
     
     try {
       clearCurrentState();
+      
+      // Show initial buttons when resetting
+      setShowInitialButtons(true);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleResetAndDraw = async () => {
+    setIsResetting(true);
+    
+    try {
+      clearCurrentState();
+      
+      // Go directly to drawing mode
+      setShowInitialButtons(false);
+      handleStartDrawing();
     } finally {
       setIsResetting(false);
     }
@@ -314,7 +322,8 @@ export default function ImageFeatureExtraction() {
         setZoomLevel(INITIAL_DEMO_LOCATION.zoom);
       }
       
-      // Show precomputed embeddings when resetting to demo
+      // Directly load precomputed embeddings instead of showing initial buttons
+      setShowInitialButtons(false);
       setShowPrecomputedEmbeddings(true);
     } finally {
       setIsResetting(false);
@@ -350,6 +359,18 @@ export default function ImageFeatureExtraction() {
     } else {
       console.error('❌ Draw control not initialized');
     }
+  };
+
+  // Function to show precomputed embeddings
+  const handleShowPrecomputedEmbeddings = () => {
+    setShowInitialButtons(false);
+    setShowPrecomputedEmbeddings(true);
+  };
+
+  // Function to start drawing mode
+  const handleStartDrawingMode = () => {
+    setShowInitialButtons(false);
+    handleStartDrawing();
   };
 
   useEffect(() => {
@@ -388,7 +409,7 @@ export default function ImageFeatureExtraction() {
     }, 100);
 
     // Listen for polygon creation
-    map.current.on("draw.create", (e) => {
+    map.current.on("draw.create", () => {
       updatePolygon();
       
       // Show contextual menu instead of auto-running inference
@@ -399,10 +420,10 @@ export default function ImageFeatureExtraction() {
         }
       }, 100); // Small delay to ensure polygon is fully set
     });
-    map.current.on("draw.update", (e) => {
+    map.current.on("draw.update", () => {
       updatePolygon();
     });
-    map.current.on("draw.delete", (e) => {
+    map.current.on("draw.delete", () => {
       setPolygon(null);
       hideContextMenu();
       
@@ -426,6 +447,13 @@ export default function ImageFeatureExtraction() {
 
     // Listen for zoom changes to sync with slider
     map.current.on("zoom", debouncedZoomHandler);
+
+    // Track mouse position for tooltip
+    map.current.on("mousemove", (e) => {
+      setMousePosition({ x: e.point.x, y: e.point.y });
+    });
+
+
 
     // Initialize zoom level with current map zoom
     setZoomLevel(Math.round(map.current.getZoom()));
@@ -542,7 +570,15 @@ export default function ImageFeatureExtraction() {
     <main className="w-full h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 relative">
       <BackgroundEffects />
       
-
+      {/* Initial Two-Button View */}
+      {showInitialButtons && (
+        <InitialButtons
+          isInitialized={isInitialized}
+          isButtonDisabled={isButtonDisabled}
+          onShowPrecomputedEmbeddings={handleShowPrecomputedEmbeddings}
+          onStartDrawingMode={handleStartDrawingMode}
+        />
+      )}
 
       {/* Map Container */}
       <div className="w-full h-full relative">
@@ -565,6 +601,21 @@ export default function ImageFeatureExtraction() {
           onExtractFeatures={handleContextMenuExtractFeatures}
           onClose={hideContextMenu}
         />
+
+        {/* Drawing Tooltip - Follows mouse cursor when in drawing mode */}
+        {isDrawingMode && !polygon && !showInitialButtons && (
+          <div 
+            className="fixed z-20 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg text-sm pointer-events-none"
+            style={{
+              left: `${mousePosition.x + 10}px`,
+              top: `${mousePosition.y - 40}px`,
+              transform: 'translateX(-50%)'
+            }}
+          >
+            Click to start drawing, double-click to complete
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          </div>
+        )}
         
         {/* Feature Visualization */}
         {lastResult?.features && lastResult?.similarityMatrix && (
@@ -579,7 +630,7 @@ export default function ImageFeatureExtraction() {
         )}
 
         {/* Precomputed Embeddings Layer - Show when no features are extracted and embeddings should be shown */}
-        {!lastResult?.features && showPrecomputedEmbeddings && (
+        {!lastResult?.features && showPrecomputedEmbeddings && !showInitialButtons && (
           <>
             <ImageFeatureExtractionPrecomputedSimilarityLayer 
               map={map.current} 
@@ -614,7 +665,7 @@ export default function ImageFeatureExtraction() {
         {/* Precomputed Embeddings Loading/Completion Message - Center */}
         <LoadingMessage
           isLoading={isLoadingPrecomputedEmbeddings}
-          isVisible={showPrecomputedEmbeddingsMessage && isInitialized && showPrecomputedEmbeddings && !isPrecomputedMessageDismissed}
+          isVisible={showPrecomputedEmbeddingsMessage && isInitialized && showPrecomputedEmbeddings && !isPrecomputedMessageDismissed && !showInitialButtons}
           onDismiss={handleDismissPrecomputedMessage}
         />
 
@@ -646,25 +697,27 @@ export default function ImageFeatureExtraction() {
         </div>
         
         {/* Action Buttons - Top middle of map */}
-        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-10 flex items-center space-x-2">
-          <ActionButtons
-            isInitialized={isInitialized}
-            isDrawingMode={isDrawingMode}
-            polygon={polygon}
-            isButtonDisabled={isButtonDisabled}
-            isButtonLoading={isButtonLoading}
-            isExtractingFeatures={isExtractingFeatures}
-            isLoadingPrecomputedEmbeddings={isLoadingPrecomputedEmbeddings}
-            showPrecomputedEmbeddings={showPrecomputedEmbeddings}
-            isResetting={isResetting}
-            lastResult={lastResult}
-            mapProvider={mapProvider}
-            allPatches={allPatches}
-            onStartDrawing={handleStartDrawing}
-            onReset={handleReset}
-            onResetToDemo={handleResetToDemo}
-          />
-        </div>
+        {!showInitialButtons && (
+          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-10 flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 px-3 py-2">
+            <ActionButtons
+              isInitialized={isInitialized}
+              isDrawingMode={isDrawingMode}
+              polygon={polygon}
+              isButtonDisabled={isButtonDisabled}
+              isButtonLoading={isButtonLoading}
+              isExtractingFeatures={isExtractingFeatures}
+              showPrecomputedEmbeddings={showPrecomputedEmbeddings}
+              isResetting={isResetting}
+              lastResult={lastResult}
+              mapProvider={mapProvider}
+              allPatches={allPatches}
+              onStartDrawing={handleStartDrawing}
+              onReset={handleReset}
+              onResetAndDraw={handleResetAndDraw}
+              onResetToDemo={handleResetToDemo}
+            />
+          </div>
+        )}
         
         {/* Corner decorations */}
         <CornerDecorations />

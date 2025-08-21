@@ -1,6 +1,6 @@
-<p align="center">
-  <img src="geoai-logo.svg" alt="JavaScript logo" width="150" height="100" style="vertical-align:middle" />
-</p>
+<h1 align="center">
+  GeoAI <img src="https://cdn-icons-png.flaticon.com/256/5968/5968292.png" alt="JavaScript logo" height="24" style="vertical-align:middle" />
+</h1>
 
 <p align="center" style="margin-top:8px;">A lightweight JavaScript library for running Geo AI models in frontend applications.</p>
 
@@ -10,6 +10,15 @@
   <a href="https://www.npmjs.com/package/geoai" style="margin-left:6px"><img alt="npm downloads" src="https://img.shields.io/npm/dm/geoai.svg"></a>
   <a href="https://docs.geobase.app/geoai" style="margin-left:6px"><img alt="docs" src="https://img.shields.io/badge/docs-online-blue"></a>
 </p>
+
+<div align="center" style="margin: 20px 0;">
+  <div style="border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); overflow: hidden; display: inline-block; border: 2px solid white;">
+    <video width="120%" max-width="1200px" autoplay muted loop style="display: block; object-fit: cover; object-position: center;">
+      <source src="https://docs.geobase.app/geoai-live/video/image-feature-extraction-sm.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+</div>
 
 ### Quick install
 
@@ -32,12 +41,12 @@ You can also use GeoAI directly in the browser via CDN:
 
 #### Unpkg CDN
 ```html
-<script src="https://unpkg.com/geoai@1.0.0-rc.1/geoai.js"></script>
+<script src="https://unpkg.com/geoai@1.0.0-rc.2/geoai.js"></script>
 ```
 
 #### jsDelivr CDN
 ```html
-<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.0-rc.1/geoai.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.0-rc.2/geoai.min.js"></script>
 ```
 
 When using CDN, the library is available globally as `geoai`.

@@ -1,4 +1,5 @@
 import { BackToHomeButton } from '../../components';
+import { Analytics } from "@vercel/analytics/next"
 
 export default function TaskLayout({
   children,
@@ -12,6 +13,7 @@ export default function TaskLayout({
         <BackToHomeButton />
       </div>
       {children}
+      <Analytics />
     </div>
   );
 }

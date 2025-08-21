@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { geoai, InferenceParams } from "geoai";
 import { PipelineInitConfig } from "./useGeoAIWorker";
 

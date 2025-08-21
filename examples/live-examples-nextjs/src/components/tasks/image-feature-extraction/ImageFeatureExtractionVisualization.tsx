@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { detectGPU, type GPUInfo } from '../../../utils/gpuUtils';
 import { createColorExpression, createOpacityExpression } from '../../../utils/maplibreUtils';
@@ -25,6 +25,7 @@ export const ImageFeatureExtractionVisualization: React.FC<ImageFeatureExtractio
   const sourceRef = useRef<string | null>(null);
   const layerRef = useRef<string | null>(null);
   const hoveredPatchRef = useRef<number | null>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // GPU capabilities for performance optimization
   const gpuInfo = useRef<GPUInfo>({
@@ -39,8 +40,8 @@ export const ImageFeatureExtractionVisualization: React.FC<ImageFeatureExtractio
     });
   }, []);
 
-  // Helper function to update layer styling based on hovered patch
-  const updateLayerStyling = (hoveredPatchIndex: number | null) => {
+  // Debounced function to update layer styling based on hovered patch
+  const updateLayerStyling = useCallback((hoveredPatchIndex: number | null) => {
     if (!map || !map.getStyle || !layerRef.current) return;
     
     hoveredPatchRef.current = hoveredPatchIndex;
@@ -53,11 +54,11 @@ export const ImageFeatureExtractionVisualization: React.FC<ImageFeatureExtractio
           hoveredPatchIndex
         );
         
-        map.setPaintProperty(layerRef.current, 'fill-color', colorExpression);
-        
         const opacityExpression = createOpacityExpression(
           hoveredPatchIndex
         );
+        
+        map.setPaintProperty(layerRef.current, 'fill-color', colorExpression);
         map.setPaintProperty(layerRef.current, 'fill-opacity', opacityExpression);
       } catch (error) {
         console.warn('Error updating layer styling:', error);
@@ -71,7 +72,20 @@ export const ImageFeatureExtractionVisualization: React.FC<ImageFeatureExtractio
         console.warn('Error resetting layer styling:', error);
       }
     }
-  };
+  }, [map]);
+
+  // Debounced mouse move handler
+  const debouncedMouseMove = useCallback((patchIndex: number | null) => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (patchIndex !== hoveredPatchRef.current) {
+        updateLayerStyling(patchIndex);
+      }
+    }, 16); // ~60fps for smooth interaction
+  }, [updateLayerStyling]);
 
   // Helper function to cleanup layers
   const cleanupLayers = () => {
@@ -199,15 +213,15 @@ export const ImageFeatureExtractionVisualization: React.FC<ImageFeatureExtractio
         const feature = e.features[0];
         const patchIndex = feature.properties?.patchIndex;
     
-        if (patchIndex !== undefined && patchIndex !== hoveredPatchRef.current) {
+        if (patchIndex !== undefined) {
           map.getCanvas().style.cursor = 'crosshair';
-          updateLayerStyling(patchIndex);
+          debouncedMouseMove(patchIndex);
         }
       } else {
         // Cursor not on any patch
         if (hoveredPatchRef.current !== null) {
           map.getCanvas().style.cursor = '';
-          updateLayerStyling(null);
+          debouncedMouseMove(null);
         }
       }
     });
@@ -216,6 +230,10 @@ export const ImageFeatureExtractionVisualization: React.FC<ImageFeatureExtractio
     console.log(`ImageFeatureExtractionVisualization - Update hook completed in ${endTime - startTime}ms`);
 
     return () => {
+      // Clear debounce timeout on cleanup
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
       cleanupLayers();
     };
   }, [features, similarityMatrix, patchSize, geoRawImage]);
