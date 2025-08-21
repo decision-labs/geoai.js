@@ -11,7 +11,7 @@ export async function GET(
     
     // Check if the environment variable is set
     if (!process.env.GEOBASE_TITILER) {
-      console.error('GEOBASE_TITILER environment variable is not set');
+      console.error('GEOBASE_TITILER environment variable is not configured');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
     
@@ -45,7 +45,11 @@ export async function GET(
       let errorDetails = '';
       try {
         const errorText = await response.text();
-        errorDetails = errorText.substring(0, 200); // Limit error message length
+        // Sanitize error details to remove any potential sensitive URLs
+        const sanitizedError = errorText
+          .replace(/https?:\/\/[^\s"']+/g, '[REDACTED_URL]')
+          .replace(/GEOBASE_TITILER[^\s"']*/g, '[REDACTED_ENV_VAR]');
+        errorDetails = sanitizedError.substring(0, 200); // Limit error message length
       } catch (e) {
         errorDetails = 'Could not read error response';
       }
@@ -56,7 +60,6 @@ export async function GET(
           details: errorDetails,
           status: response.status,
           statusText: response.statusText,
-          titilerUrl: url.toString(),
           cogUrl: searchParams.get('url')
         }, 
         { status: response.status }
@@ -81,7 +84,8 @@ export async function GET(
       headers,
     });
   } catch (error) {
-    console.error('Tile proxy error:', error);
+    // Log the error for debugging but don't expose sensitive details
+    console.error('Tile proxy error:', error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json(
       { error: 'Internal server error' }, 
       { status: 500 }
