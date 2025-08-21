@@ -97,8 +97,7 @@ export default function WetLandSegmentation() {
   };
 
   const handleStartDrawing = () => {
-    if (zoomLevel < optimumZoom) {
-      setDrawWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`);
+    if (zoomLevel < optimumZoom - 1) {
       // Clear the warning after a short delay
       window.setTimeout(() => setDrawWarning(null), 500);
       return;

@@ -113,7 +113,7 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
 }) => {
   // Icons
   const [hoverWarning, setHoverWarning] = useState<string | null>(null);
-  const showHoverWarning = zoomLevel < optimumZoom;
+  const showHoverWarning = zoomLevel < optimumZoom - 1;
    
 
    return (
@@ -168,7 +168,7 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
         <div className="flex flex-col gap-4">
           <div
             className="relative w-full"
-            onMouseEnter={() => { if (showHoverWarning) setHoverWarning(`Zoom in to at least ${optimumZoom} to draw a reliable detection zone.`); }}
+            onMouseEnter={() => { if (showHoverWarning) setHoverWarning(`Zoom in to at least ${optimumZoom -1} to draw a reliable detection zone.`); }}
             onMouseLeave={() => setHoverWarning(null)}
           >
             {/* Compact tooltip rendered above the button so the button design remains unchanged */}
