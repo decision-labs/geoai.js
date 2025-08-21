@@ -35,13 +35,17 @@ bump-version:
 	echo "" >> CHANGELOG.md; \
 	echo "### Release Candidate" >> CHANGELOG.md; \
 	echo "- $$changelog" >> CHANGELOG.md; \
-	echo "" >> CHANGELOG.md; \
-	echo "🔨 Building and testing..."; \
-	# pnpm install --frozen-lockfile && pnpm run build && pnpm run test:build; \
+	echo "" >> CHANGELOG.md;
+
+build-version:
+	echo "🔨 Building and testing...";
+	@echo ""
+	@read -p "Enter version (e.g., 1.0.0-rc.3): " version; \
+	pnpm install --frozen-lockfile && pnpm run build && pnpm run test:build; \
 	echo "🏷️  Creating git commit..."; \
-	# git add package.json README.md CHANGELOG.md; \
-	# git commit -m "chore(release): $$version"; \
-	# git tag v$$version; \
+	git add package.json README.md CHANGELOG.md; \
+	git commit -m "chore(release): $$version"; \
+	git tag v$$version; \
 	echo ""; \
 	echo "✅ Local upgrade to $$version completed! Run 'make publish' to publish."
 
