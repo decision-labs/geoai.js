@@ -33,7 +33,7 @@ export class MapUtils {
       type: type,
       source: "detections",
       paint: paint,
-    } as any);
+    } as maplibregl.LayerSpecification);
 
     // Add hover functionality
     const popup = new maplibregl.Popup({
