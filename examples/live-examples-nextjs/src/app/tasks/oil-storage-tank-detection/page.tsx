@@ -89,7 +89,7 @@ export default function OilStorageTankDetection() {
           polygon
         },
         mapSourceParams : {
-          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel
+          zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel
         },
         postProcessingParams: {
           confidenceThreshold: 0.5,

@@ -89,7 +89,7 @@ export default function OrientedObjectDetection() {
           polygon
         },
         mapSourceParams : {
-          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel
+          zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel
         },
         postProcessingParams: {
           conf_thres: 0.5, // Default confidence threshold,

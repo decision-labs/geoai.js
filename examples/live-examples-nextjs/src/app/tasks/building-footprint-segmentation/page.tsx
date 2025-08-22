@@ -92,7 +92,7 @@ export default function BuildingFootPrintSegmentation() {
           polygon,
         },
         mapSourceParams: {
-          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
+          zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
         },
         postProcessingParams: { confidenceThreshold: 0.5, minArea: 20 }
       }

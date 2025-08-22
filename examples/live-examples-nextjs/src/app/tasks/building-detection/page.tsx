@@ -90,7 +90,7 @@ export default function BuildingDetection() {
           polygon,
         },
         mapSourceParams: {
-         zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
+         zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
         },
       }
     );

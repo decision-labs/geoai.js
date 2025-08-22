@@ -95,7 +95,7 @@ export default function CarDetection() {
           polygon,
         },
         mapSourceParams: {
-          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel
+          zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel
         },
       }
     );

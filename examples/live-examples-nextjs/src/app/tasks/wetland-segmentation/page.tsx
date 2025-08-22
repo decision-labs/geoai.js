@@ -90,7 +90,7 @@ export default function WetLandSegmentation() {
           polygon,
         },
         mapSourceParams: {
-          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
+          zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
         },
       }
     );

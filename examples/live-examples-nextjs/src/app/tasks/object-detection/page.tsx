@@ -89,7 +89,7 @@ export default function ObjectDetection() {
         polygon: polygon
       },
       mapSourceParams: {
-        zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
+        zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
       },
       postProcessingParams : {
         confidence : 0.9,

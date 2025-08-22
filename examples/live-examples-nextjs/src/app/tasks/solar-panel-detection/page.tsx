@@ -214,7 +214,7 @@ export default function SolarPanelDetection() {
           polygon,
         },
         mapSourceParams: {
-          zoomLevel : zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
+          zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
         },
       }
     );
