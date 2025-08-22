@@ -2,7 +2,7 @@ import maplibregl from 'maplibre-gl';
 
 // Utility functions for handling map operations
 export class MapUtils {
-  static defaultDetectionsPaint = {
+  static defaultDetectionsPaint: any = {
     "fill-color": "#FF6B35", // Orange - highly visible and color-blind friendly
     "fill-opacity": 0.6,
     "fill-outline-color": "#CC5500", // Darker orange for better contrast
@@ -33,7 +33,7 @@ export class MapUtils {
       type: type,
       source: "detections",
       paint: paint,
-    });
+    } as any);
 
     // Add hover functionality
     const popup = new maplibregl.Popup({
