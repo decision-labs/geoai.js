@@ -11,6 +11,7 @@ export class MapUtils {
     map: maplibregl.Map,
     detections: GeoJSON.FeatureCollection,
     paint = MapUtils.defaultDetectionsPaint,
+    type: "symbol" | "fill" | "line" | "raster" | "circle" | "heatmap" | "fill-extrusion" | "hillshade" | "color-relief" | "background" = "fill",
   ) {
     if (!map) return;
 
@@ -29,7 +30,7 @@ export class MapUtils {
     // Add a layer to display the detections
     map.addLayer({
       id: "detections-layer",
-      type: "fill",
+      type: type,
       source: "detections",
       paint: paint,
     });

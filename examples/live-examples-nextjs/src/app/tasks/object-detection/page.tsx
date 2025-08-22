@@ -225,7 +225,12 @@ export default function ObjectDetection() {
   // Handle results from the worker
   useEffect(() => {
     if (lastResult?.detections && map.current) {
-      MapUtils.displayDetections(map.current, lastResult.detections);
+       MapUtils.displayDetections(map.current, lastResult.detections, {
+        "line-color": "#FFD400", // Yellow - visible and high contrast
+        "line-width": 3,
+        "line-dasharray": [1, 1], // dotted/dashed appearance
+        "line-opacity": 1.0,
+      },"line");
       setDetections(lastResult.detections);
     }
     if (lastResult?.geoRawImage?.bounds && map.current) {
