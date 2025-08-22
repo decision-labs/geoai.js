@@ -9,6 +9,7 @@ export { default as BackToHomeButton } from './ui/BackToHomeButton';
 export { MobileNavigation } from './ui/MobileNavigation';
 export { ModelDownloadProgress } from './ui/ModelDownloadProgress';
 export { TaskDownloadProgress } from './ui/TaskDownloadProgress';
+export { default as CollapsibleAttribution } from './ui/CollapsibleAttribution';
 
 // Feature Components
 export { MapProviderSelector } from './MapProviderSelector';

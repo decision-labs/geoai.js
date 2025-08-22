@@ -9,6 +9,7 @@ import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
 import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types"
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
+import { CollapsibleAttribution } from "../../../components";
 
 
 GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/mask-generation.tif"
@@ -1909,11 +1910,7 @@ export default function EmbeddingSimilaritySearch() {
       <div className="flex-1 relative">
         <div ref={mapContainer} className="w-full h-full" />
 
-        <div className="absolute bottom-6 left-6 z-40 text-xs text-white bg-black/60 backdrop-blur-sm rounded px-3 py-1">
-          <span>
-            Imagery: <a href="https://geobase.app/" target="_blank" rel="noreferrer" className="underline">Geobase</a>, <a href="https://opengeoai.org/" target="_blank" rel="noreferrer" className="underline">geoai</a>, <a href="https://www.mapbox.com/" target="_blank" rel="noreferrer" className="underline">Mapbox</a>, <a href="https://www.esri.com/" target="_blank" rel="noreferrer" className="underline">ESRI</a>, <a href="https://openaerialmap.org" target="_blank" rel="noreferrer" className="underline">OpenAerialMap</a> and <a href="https://www.openstreetmap.org" target="_blank" rel="noreferrer" className="underline">OpenStreetMap</a>
-          </span>
-        </div>
+        <CollapsibleAttribution position="bottom-left" />
       </div>
     </div>
   );
