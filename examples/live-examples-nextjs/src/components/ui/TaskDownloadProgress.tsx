@@ -1,4 +1,7 @@
 "use client";
+// TODO: Review this wrapper component - it adds unnecessary complexity.
+// Consider using ModelDownloadProgress directly with useModelDownloadProgress hook.
+// This wrapper was created to handle task-specific model sizes but adds extra indirection.
 import React, { useEffect } from 'react';
 import { ModelDownloadProgress } from './ModelDownloadProgress';
 import { useTaskDownloadProgress } from '../../hooks/useTaskDownloadProgress';
