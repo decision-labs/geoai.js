@@ -36,12 +36,7 @@ export default function BuildingDetection() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const draw = useRef<MaplibreDraw | null>(null);
-  // Keep a ref to the Maplibre attribution control so we can (re)attach it when styles change
-  const attrControl = useRef<maplibregl.AttributionControl | null>(null);
-
-  // Attribution HTML used in the map's attribution control
-  const attributionHTML = `Imagery: <a href="https://opengeoai.org/" target="_blank" rel="noreferrer" className="underline">geoai</a>`;
-
+  
   // GeoAI hook
   const {
     isInitialized,
@@ -133,17 +128,6 @@ export default function BuildingDetection() {
       zoom: mapInitConfig.zoom,
     });
 
-    // Add Maplibre attribution control (uses the built-in attribution UI instead of a custom div)
-    attrControl.current = new maplibregl.AttributionControl({ compact: false, customAttribution: attributionHTML });
-    map.current.addControl(attrControl.current, 'bottom-left');
-    // Ensure the attribution control DOM contains our HTML (fixes cases where it's rendered empty)
-    try {
-      const el = map.current.getContainer().querySelector('.maplibregl-ctrl-attrib');
-      if (el) el.innerHTML = attributionHTML;
-    } catch (e) {
-      // ignore
-    }
-
     // Add draw control
     draw.current = new MaplibreDraw({
       displayControlsDefault: false,
@@ -216,26 +200,6 @@ export default function BuildingDetection() {
       map.current?.setZoom(currentZoom);
       map.current?.setBearing(currentBearing);
       map.current?.setPitch(currentPitch);
-
-      // Re-add (or refresh) our attribution control after style changes to ensure it is present
-      if (map.current) {
-        try {
-          if (attrControl.current) {
-            map.current.removeControl(attrControl.current);
-          }
-        } catch (e) {
-          // ignore
-        }
-        attrControl.current = new maplibregl.AttributionControl({ compact: false, customAttribution: attributionHTML });
-        map.current.addControl(attrControl.current, 'bottom-left');
-        // Ensure the attribution control DOM contains our HTML after style changes
-        try {
-          const el = map.current.getContainer().querySelector('.maplibregl-ctrl-attrib');
-          if (el) el.innerHTML = attributionHTML;
-        } catch (e) {
-          // ignore
-        }
-      }
     });
   }, [mapProvider]);
 
@@ -271,7 +235,6 @@ export default function BuildingDetection() {
 
   return (
     <main className="w-full h-screen flex overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 relative">
-      {/* Maplibre AttributionControl only — no manual fallback */}
       <BackgroundEffects />
 
       {/* Sidebar */}
@@ -302,7 +265,7 @@ export default function BuildingDetection() {
       {/* Map Container */}
       <div className="flex-1 h-full relative">
         {/* Map overlay with subtle border */}
-        <div className="absolute inset-2 rounded-lg overflow-hidden border border-gray-200/50 shadow-2xl z-0">
+        <div className="absolute inset-2 rounded-lg overflow-hidden border border-gray-200/50 shadow-2xl">
           <div ref={mapContainer} className="w-full h-full" />
         </div>
         
@@ -331,11 +294,11 @@ export default function BuildingDetection() {
         <div className="absolute top-4 right-4 w-20 h-20 border-t-2 border-r-2 border-green-400/40 rounded-tr-lg"></div>
         <div className="absolute bottom-4 left-4 w-20 h-20 border-b-2 border-l-2 border-emerald-400/40 rounded-bl-lg"></div>
 
-        {/* {mapProvider === "geobase" && (<div className="absolute bottom-6 left-6 z-40 text-xs text-white bg-black/60 backdrop-blur-sm rounded px-3 py-1">
+        <div className="absolute bottom-6 left-6 z-40 text-xs text-white bg-black/60 backdrop-blur-sm rounded px-3 py-1">
           <span>
-            Imagery: <a href="https://opengeoai.org/" target="_blank" rel="noreferrer" className="underline">geoai</a> 
+            Imagery: <a href="https://geobase.app/" target="_blank" rel="noreferrer" className="underline">Geobase</a>, <a href="https://opengeoai.org/" target="_blank" rel="noreferrer" className="underline">geoai</a>, <a href="https://www.mapbox.com/" target="_blank" rel="noreferrer" className="underline">Mapbox</a>, <a href="https://www.esri.com/" target="_blank" rel="noreferrer" className="underline">ESRI</a>, <a href="https://openaerialmap.org" target="_blank" rel="noreferrer" className="underline">OpenAerialMap</a> and <a href="https://www.openstreetmap.org" target="_blank" rel="noreferrer" className="underline">OpenStreetMap</a>
           </span>
-        </div>)} */}
+        </div>
       </div>
     </main>
   );

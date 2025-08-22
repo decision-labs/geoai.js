@@ -720,7 +720,14 @@ export default function ImageFeatureExtraction() {
             />
           </div>
         )}
-        
+
+        {/* Imagery attribution (general) */}
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-40 text-[12px] text-white bg-black/60 backdrop-blur-sm rounded px-3 py-1 max-w-2xl text-center whitespace-normal">
+          <span>
+            Imagery: <a href="https://geobase.app/" target="_blank" rel="noreferrer" className="underline">Geobase</a>, <a href="https://opengeoai.org/" target="_blank" rel="noreferrer" className="underline">geoai</a>, <a href="https://www.mapbox.com/" target="_blank" rel="noreferrer" className="underline">Mapbox</a>, <a href="https://www.esri.com/" target="_blank" rel="noreferrer" className="underline">ESRI</a>, <a href="https://openaerialmap.org" target="_blank" rel="noreferrer" className="underline">OpenAerialMap</a> and <a href="https://www.openstreetmap.org" target="_blank" rel="noreferrer" className="underline">OpenStreetMap</a>
+          </span>
+        </div>
+
         {/* Corner decorations */}
         <CornerDecorations />
       </div>

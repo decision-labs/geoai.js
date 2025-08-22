@@ -293,6 +293,12 @@ export default function WetLandSegmentation() {
         {/* Corner decorations */}
         <div className="absolute top-4 right-4 w-20 h-20 border-t-2 border-r-2 border-green-400/40 rounded-tr-lg"></div>
         <div className="absolute bottom-4 left-4 w-20 h-20 border-b-2 border-l-2 border-emerald-400/40 rounded-bl-lg"></div>
+
+        <div className="absolute bottom-6 left-6 z-40 text-xs text-white bg-black/60 backdrop-blur-sm rounded px-3 py-1">
+          <span>
+            Imagery: <a href="https://geobase.app/" target="_blank" rel="noreferrer" className="underline">Geobase</a>, <a href="https://opengeoai.org/" target="_blank" rel="noreferrer" className="underline">geoai</a>, <a href="https://www.mapbox.com/" target="_blank" rel="noreferrer" className="underline">Mapbox</a>, <a href="https://www.esri.com/" target="_blank" rel="noreferrer" className="underline">ESRI</a>, <a href="https://openaerialmap.org" target="_blank" rel="noreferrer" className="underline">OpenAerialMap</a> and <a href="https://www.openstreetmap.org" target="_blank" rel="noreferrer" className="underline">OpenStreetMap</a>
+          </span>
+        </div>
       </div>
     </main>
   );
