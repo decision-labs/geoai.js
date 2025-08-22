@@ -58,6 +58,16 @@ export interface UseGeoAIWorkerReturn {
 export function useGeoAIWorker(): UseGeoAIWorkerReturn {
   const workerRef = useRef<Worker | null>(null);
 
+  const lastInitConfigRef = useRef<PipelineInitConfig | null>(null);
+
+  const providerParamsEqual = (a?: ProviderParams, b?: ProviderParams) => {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch (e) {
+      return false;
+    }
+  };
+
   // State management
   const [isInitialized, setIsInitialized] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -105,7 +115,7 @@ export function useGeoAIWorker(): UseGeoAIWorkerReturn {
         setIsInitialized(true);
         setError(null);
         setInitializedTasks(payload?.tasks || []);
-        console.log("[Hook] AI model initialized successfully");
+        console.log("[Hook] AI model initialized successfully with provider",lastInitConfigRef.current?.providerParams.provider);
         break;
 
       case "inference_complete":
@@ -150,18 +160,28 @@ export function useGeoAIWorker(): UseGeoAIWorkerReturn {
         return;
       }
 
-      if (isInitialized) {
-        console.warn("[Hook] Model already initialized");
-        return;
+      if (isInitialized && lastInitConfigRef.current) {
+        const sameProvider = providerParamsEqual(
+          config.providerParams,
+          lastInitConfigRef.current.providerParams
+        );
+        if (sameProvider) {
+          console.warn("[Hook] Model already initialized with the same provider/config");
+          return;
+        }
+
+        console.info("[Hook] Provider changed, re-initializing model with new provider");
+        setIsInitialized(false);
+        setInitializedTasks([]);
       }
 
-      console.log("[Hook] Initializing AI model with config:", config);
       setError(null);
 
       const message: WorkerMessage = {
         type: "init",
         payload: config,
       };
+      lastInitConfigRef.current = config;
 
       workerRef.current.postMessage(message);
     },
@@ -252,6 +272,7 @@ export function useGeoAIWorker(): UseGeoAIWorkerReturn {
       workerRef.current.onmessage = handleWorkerMessage;
       workerRef.current.onerror = handleWorkerError;
     }
+    lastInitConfigRef.current = null;
 
     setIsInitialized(false);
     setIsProcessing(false);
