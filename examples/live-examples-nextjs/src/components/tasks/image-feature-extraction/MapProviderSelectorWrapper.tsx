@@ -13,7 +13,7 @@ export const MapProviderSelectorWrapper: React.FC<MapProviderSelectorWrapperProp
 }) => {
   return (
     <div 
-      className="absolute top-6 left-6 z-50 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-md shadow-md p-2 min-w-[200px]"
+      className="absolute top-16 left-6 z-50 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-md shadow-md p-2 min-w-[200px]"
       onMouseEnter={(e) => e.stopPropagation()}
       onMouseLeave={(e) => e.stopPropagation()}
       onMouseMove={(e) => e.stopPropagation()}
