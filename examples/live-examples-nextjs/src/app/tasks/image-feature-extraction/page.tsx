@@ -683,12 +683,10 @@ export default function ImageFeatureExtraction() {
         </div>
 
         {/* Map Provider Selector - Top Left */}
-        <div className="absolute top-6 left-6 z-50">
-          <MapProviderSelectorWrapper
-            value={mapProvider}
-            onChange={debouncedMapProviderChange}
-          />
-        </div>
+        <MapProviderSelectorWrapper
+          value={mapProvider}
+          onChange={debouncedMapProviderChange}
+        />
 
         {/* Zoom Control - Top Right */}
         <div className="absolute top-6 right-6 z-50">
