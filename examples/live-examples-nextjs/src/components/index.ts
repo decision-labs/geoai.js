@@ -7,6 +7,8 @@ export { ExportButton } from './ui/ExportButton';
 export { InfoTooltip } from './ui/InfoTooltip';
 export { default as BackToHomeButton } from './ui/BackToHomeButton';
 export { MobileNavigation } from './ui/MobileNavigation';
+export { ModelDownloadProgress } from './ui/ModelDownloadProgress';
+export { TaskDownloadProgress } from './ui/TaskDownloadProgress';
 
 // Feature Components
 export { MapProviderSelector } from './MapProviderSelector';

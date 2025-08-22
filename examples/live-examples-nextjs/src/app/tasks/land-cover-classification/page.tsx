@@ -8,7 +8,8 @@ import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
 import { 
   DetectionControls, 
   BackgroundEffects,
-  ExportButton
+  ExportButton,
+  TaskDownloadProgress
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
@@ -468,6 +469,15 @@ export default function LandCoverClassification() {
             provider={mapProvider}
             disabled={(!classifications || !Array.isArray(classifications) || classifications.length === 0) && !lastResult?.geoRawImage}
             className="shadow-2xl backdrop-blur-lg"
+          />
+        </div>
+        
+        {/* Model Loading Progress - Floating in top center */}
+        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-50">
+          <TaskDownloadProgress
+            task="land-cover-classification"
+            className="min-w-80"
+            isInitialized={isInitialized}
           />
         </div>
         

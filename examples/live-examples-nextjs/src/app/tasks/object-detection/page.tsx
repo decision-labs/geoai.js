@@ -8,13 +8,15 @@ import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
 import { 
   DetectionControls, 
   BackgroundEffects,
-  ExportButton
+  ExportButton,
+  TaskDownloadProgress
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
 import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { MapProvider } from "../../../types"
 import { getOptimumZoom } from "@/utils/optimalParamsUtil";
+import { useTaskDownloadProgress } from "../../../hooks/useTaskDownloadProgress";
 
 GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/object-detection.tif"
 
@@ -47,6 +49,8 @@ export default function ObjectDetection() {
     clearError,
   } = useGeoAIWorker();
 
+
+
   const [polygon, setPolygon] = useState<GeoJSON.Feature | null>(null);
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(22);
@@ -71,6 +75,8 @@ export default function ObjectDetection() {
     setPolygon(null);
     setDetections(undefined);
     clearError();
+    
+
   };
 
   const handleZoomChange = (newZoom: number) => {
@@ -214,6 +220,8 @@ export default function ObjectDetection() {
       providerParams = MAPBOX_CONFIG;
     }
 
+
+
     initializeModel({
       tasks: [{
         task: "object-detection"
@@ -283,6 +291,15 @@ export default function ObjectDetection() {
             provider={mapProvider}
             disabled={!detections && !lastResult?.geoRawImage}
             className="shadow-2xl backdrop-blur-lg"
+          />
+        </div>
+        
+        {/* Model Loading Progress - Floating in top center */}
+        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-50">
+          <TaskDownloadProgress
+            task="object-detection"
+            className="min-w-80"
+            isInitialized={isInitialized}
           />
         </div>
         

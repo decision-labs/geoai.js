@@ -7,7 +7,7 @@ import type { StyleSpecification } from "maplibre-gl";
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
 import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG  } from "../../../config";
 import { MapProvider } from "../../../types"
-import { BackgroundEffects, ExportButton, GlassmorphismCard, GradientButton, MapProviderSelector, StatusMessage, ZoomSlider } from "@/components";
+import { BackgroundEffects, ExportButton, GlassmorphismCard, GradientButton, MapProviderSelector, StatusMessage, ZoomSlider, TaskDownloadProgress } from "@/components";
 import { ClearPoint, PlayIcon, PlusIcon, ResetIcon } from "@/components/DetectionControls";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
@@ -557,11 +557,20 @@ export default function MaskGeneration() {
                 : undefined
               }
               geoRawImage={lastResult?.geoRawImage}
-              task="land-cover-classification"
+              task="mask-generation"
               provider={mapProvider}
               disabled={(!detections || !Array.isArray(detections) || detections.length === 0) && !lastResult?.geoRawImage}
               className="shadow-2xl backdrop-blur-lg"
             />
+        </div>
+        
+        {/* Model Loading Progress - Floating in top center */}
+        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-50">
+          <TaskDownloadProgress
+            task="mask-generation"
+            className="min-w-80"
+            isInitialized={isInitialized}
+          />
         </div>
         {/* Corner decorations */}
         <div className="absolute top-4 right-4 w-20 h-20 border-t-2 border-r-2 border-green-400/40 rounded-tr-lg"></div>
