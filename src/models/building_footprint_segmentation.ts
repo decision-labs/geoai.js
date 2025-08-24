@@ -9,7 +9,7 @@ import { ProviderParams } from "@/geoai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import * as ort from "onnxruntime-web";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
-const cv = require("@techstark/opencv-js");
+import cv from "@techstark/opencv-js";
 
 export class BuildingFootPrintSegmentation extends BaseModel {
   protected static instance: BuildingFootPrintSegmentation | null = null;
@@ -146,17 +146,12 @@ export class BuildingFootPrintSegmentation extends BaseModel {
           );
 
           // Convert patch prediction to Mat
-          const patchPredictionMat = new cv.Mat(
+          const patchPredictionMat = cv.matFromArray(
             patchSize,
             patchSize,
-            cv.CV_32F
+            cv.CV_32F,
+            patchPrediction
           );
-          for (let y = 0; y < patchSize; y++) {
-            for (let x = 0; x < patchSize; x++) {
-              const idx = y * patchSize + x;
-              patchPredictionMat.floatPtr(y)[x] = patchPrediction[idx];
-            }
-          }
 
           // Add to row patches array
           rowPatches.push(patchPredictionMat);
@@ -293,10 +288,12 @@ export class BuildingFootPrintSegmentation extends BaseModel {
         );
         cv.drawContours(contourImage, contours, i, new cv.Scalar(255), -1); // -1 fills the contour
 
-        // Convert contour image to binary mask array
+        // Convert contour image to binary mask array using data array
+        const imageData = contourImage.data;
         for (let y = 0; y < contourImage.rows; y++) {
           for (let x = 0; x < contourImage.cols; x++) {
-            mask[y][x] = contourImage.ucharPtr(y)[x] > 0 ? 1 : 0;
+            const idx = y * contourImage.cols + x;
+            mask[y][x] = imageData[idx] > 0 ? 1 : 0;
           }
         }
 

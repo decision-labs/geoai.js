@@ -1,0 +1,27 @@
+{
+  "name": "server-side-demos",
+  "version": "1.0.0",
+  "description": "Server-side examples using geoai.js for oil tank detection",
+
+  "main": "oil-tank-detection.cjs",
+  "scripts": {
+    "start": "node oil-tank-detection.cjs",
+    "detect": "node oil-tank-detection.cjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "geoai",
+    "oil-tank-detection",
+    "satellite-imagery",
+    "geospatial",
+    "server-side"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "geoai": "file:../../build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoAI Frontend Test</title>
+</head>
+<body>
+    <h1>GeoAI Frontend Test</h1>
+    <div id="output"></div>
+    
+    <script type="module">
+        import { geoai } from './node_modules/geoai/geoai.js';
+        
+        document.getElementById('output').innerHTML = '<p>Loading geoai...</p>';
+        
+        try {
+            console.log('GeoAI loaded:', geoai);
+            console.log('Available methods:', Object.keys(geoai));
+            
+            // Test if pipeline method exists
+            if (typeof geoai.pipeline === 'function') {
+                document.getElementById('output').innerHTML = '<p>✅ GeoAI loaded successfully! Pipeline method available.</p>';
+            } else {
+                document.getElementById('output').innerHTML = '<p>⚠️ GeoAI loaded but pipeline method not found.</p>';
+            }
+        } catch (error) {
+            console.error('Error loading GeoAI:', error);
+            document.getElementById('output').innerHTML = `<p>❌ Error: ${error.message}</p>`;
+        }
+    </script>
+</body>
+</html>

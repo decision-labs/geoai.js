@@ -31,7 +31,7 @@
     "CONTRIBUTING.md",
     "CODE_OF_CONDUCT.md"
   ],
-  "main": "./geoai.js",
+  "main": "./geoai.cjs",
   "module": "./geoai.js",
   "unpkg": "./geoai.js",
   "jsdelivr": "./geoai.js",
@@ -39,10 +39,12 @@
   "exports": {
     ".": {
       "import": "./geoai.js",
+      "require": "./geoai.cjs",
       "types": "./index.d.ts"
     },
     "./dist": {
-      "import": "./geoai.js"
+      "import": "./geoai.js",
+      "require": "./geoai.cjs"
     }
   },
   "types": "./index.d.ts",
