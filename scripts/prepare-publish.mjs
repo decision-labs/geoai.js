@@ -26,6 +26,11 @@ async function main() {
   // Remove devDependencies from the published manifest
   if (pkg.devDependencies) delete pkg.devDependencies;
 
+  // Remove mini-cv-tensor dependency since it's bundled into the final JS
+  if (pkg.dependencies && pkg.dependencies['mini-cv-tensor']) {
+    delete pkg.dependencies['mini-cv-tensor'];
+  }
+
   // Write sanitized package.json into build/
   const outPkgPath = path.join(buildDir, 'package.json');
   await fs.writeFile(outPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
