@@ -101,3 +101,9 @@ To migrate from the old package:
 ### Release Candidate
 - Update docs. Minor bug fixes.
 
+
+## [1.0.0-experimental-no-cv] - 2025-08-24
+
+### Release Candidate
+- Removed opencv with a self implemented api
+

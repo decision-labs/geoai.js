@@ -40,12 +40,12 @@ You can also use GeoAI directly in the browser via CDN:
 
 #### Unpkg CDN
 ```html
-<script src="https://unpkg.com/geoai@1.0.0-rc.4/geoai.js"></script>
+<script src="https://unpkg.com/geoai@1.0.0-experimental-no-cv/geoai.js"></script>
 ```
 
 #### jsDelivr CDN
 ```html
-<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.0-rc.4/geoai.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.0-experimental-no-cv/geoai.min.js"></script>
 ```
 
 When using CDN, the library is available globally as `geoai`.

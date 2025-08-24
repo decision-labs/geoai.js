@@ -6,17 +6,10 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_BASE_PATH: "/geoai-live",
   },
-  // Experimental: Configure Turbopack settings
-  experimental: {
-    turbo: {
-      // Disable HMR for external packages that have overloaded functions
-      resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
-      // Add specific handling for geoai package
-      moduleIdStrategy: 'deterministic',
-    },
-    // Fallback to webpack in case of Turbopack issues
-    forceSwcTransforms: true,
-  },
+  // Clean configuration without experimental features
+  // experimental: {
+  //   // Reserved for future experimental features if needed
+  // },
   async redirects() {
     return [
       {
@@ -66,7 +59,7 @@ const nextConfig: NextConfig = {
   },
   transpilePackages: ["geoai"],
   // Force webpack instead of Turbopack to fix function overload HMR issues
-  turbo: false,
+  // Note: turbo: false disables Turbopack in favor of webpack
   // Configure headers for WASM files
   async headers() {
     return [
