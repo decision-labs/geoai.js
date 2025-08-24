@@ -1,0 +1,23 @@
+{
+  "name": "mini-cv-tensor",
+  "version": "0.2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@huggingface/transformers": "^3.7.2",
+    "onnxruntime-web": "^1.22.0"
+  },
+  "optionalDependencies": {
+    "canny-edge-detector": "^1.0.0"
+  },
+  "devDependencies": {
+    "@techstark/opencv-js": "^4.11.0-release.1",
+    "typescript": "^5.9.2",
+    "vitest": "^2.1.9"
+  }
+}
