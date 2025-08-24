@@ -3,7 +3,7 @@ import { load_image, RawImage } from "@huggingface/transformers";
 import { bboxPolygon as turfBboxPolygon } from "@turf/bbox-polygon";
 import { tileToBBox } from "global-mercator/index";
 import { GeobaseError, ErrorType } from "../errors";
-const cv = require("@techstark/opencv-js");
+import * as cv from "mini-cv-tensor";
 
 const latLngToTileXY = (
   lat: number,

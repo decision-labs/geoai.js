@@ -48,7 +48,6 @@
   "types": "./index.d.ts",
   "peerDependencies": {
     "@huggingface/transformers": "^3.7.2",
-    "@techstark/opencv-js": "^4.10.0-release.1",
     "onnxruntime-web": "^1.21.0"
   },
   "scripts": {
@@ -109,7 +108,8 @@
     "@turf/bbox": "^7.2.0",
     "@turf/bbox-polygon": "^7.2.0",
     "global-mercator": "github:decision-labs/global-mercator",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "mini-cv-tensor": "file:./mini-opencv"
   },
   "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf"
 }

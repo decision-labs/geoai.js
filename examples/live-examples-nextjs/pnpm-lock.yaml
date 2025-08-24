@@ -14,9 +14,6 @@ importers:
       '@mapbox/mapbox-gl-draw':
         specifier: ^1.5.0
         version: 1.5.0
-      '@techstark/opencv-js':
-        specifier: ^4.10.0-release.1
-        version: 4.10.0-release.1
       '@turf/turf':
         specifier: ^7.2.0
         version: 7.2.0
@@ -24,8 +21,8 @@ importers:
         specifier: ^1.5.0
         version: 1.5.0(next@15.3.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)
       geoai:
-        specifier: 1.0.0-rc.3
-        version: 1.0.0-rc.3(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)
+        specifier: file:../../build
+        version: file:../../build(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0)
       lucide-react:
         specifier: ^0.536.0
         version: 0.536.0(react@19.1.1)
@@ -2536,8 +2533,8 @@ packages:
   functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
 
-  geoai@1.0.0-rc.3:
-    resolution: {integrity: sha512-tiqdyoF0ukKPFXV+1+yhKk1OcV8CX22Oc92ED4T40dMvw9G8Rt94nEZSC274k3u7kKpZIEisJ3slOPZIlmiMDQ==}
+  geoai@file:../../build:
+    resolution: {directory: ../../build, type: directory}
     peerDependencies:
       '@huggingface/transformers': ^3.7.2
       '@techstark/opencv-js': ^4.10.0-release.1
@@ -7764,7 +7761,7 @@ snapshots:
 
   functions-have-names@1.2.3: {}
 
-  geoai@1.0.0-rc.3(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0):
+  geoai@file:../../build(@huggingface/transformers@3.7.2)(@techstark/opencv-js@4.10.0-release.1)(onnxruntime-web@1.22.0):
     dependencies:
       '@huggingface/transformers': 3.7.2
       '@techstark/opencv-js': 4.10.0-release.1

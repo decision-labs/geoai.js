@@ -1,6 +1,6 @@
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedModelOptions, RawImage } from "@huggingface/transformers";
-const cv = require("@techstark/opencv-js");
+import * as cv from "mini-cv-tensor";
 
 type detection = {
   x1: number;

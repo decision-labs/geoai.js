@@ -11,9 +11,6 @@ importers:
       '@huggingface/transformers':
         specifier: ^3.7.2
         version: 3.7.2
-      '@techstark/opencv-js':
-        specifier: ^4.10.0-release.1
-        version: 4.10.0-release.1
       '@turf/bbox':
         specifier: ^7.2.0
         version: 7.2.0
@@ -23,6 +20,9 @@ importers:
       global-mercator:
         specifier: github:decision-labs/global-mercator
         version: https://codeload.github.com/decision-labs/global-mercator/tar.gz/905ce5c6f8dd66d180abcbb62594f6094cac7878
+      mini-cv-tensor:
+        specifier: file:./mini-opencv
+        version: file:mini-opencv(@huggingface/transformers@3.7.2)(onnxruntime-web@1.22.0)
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
@@ -690,9 +690,6 @@ packages:
     peerDependencies:
       stylelint: ^16.8.0
 
-  '@techstark/opencv-js@4.10.0-release.1':
-    resolution: {integrity: sha512-S4XELidRiQeA0q1s9VQLo540wCxUo24r1O4C+LqZ6llX+sPCXvZCPv3Ice8dEIr0uavyZ8YZeKXSBdDgMXSXjw==}
-
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
 
@@ -925,6 +922,9 @@ packages:
   callsites@3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
+
+  canny-edge-detector@1.0.0:
+    resolution: {integrity: sha512-SpewmkHDE1PbJ1/AVAcpvZKOufYpUXT0euMvhb5C4Q83Q9XEOmSXC+yR7jl3F4Ae1Ev6OtQKbFgdcPrOdHjzQg==}
 
   chai@5.2.1:
     resolution: {integrity: sha512-5nFxhUrX0PqtyogoYOA8IPswy5sZFTOsBFl/9bNsmDLgsxYTzSZQJDPppDnZPTQbzSEm0hqGjWPzRemQCYbD6A==}
@@ -1631,6 +1631,12 @@ packages:
   mimic-function@5.0.1:
     resolution: {integrity: sha512-VP79XUPxV2CigYP3jWwAUFSku2aKqBH7uTAapFWCBqutsbmDo96KY5o8uh6U+/YSIn5OxJnXp73beVkpqMIGhA==}
     engines: {node: '>=18'}
+
+  mini-cv-tensor@file:mini-opencv:
+    resolution: {directory: mini-opencv, type: directory}
+    peerDependencies:
+      '@huggingface/transformers': ^3.7.2
+      onnxruntime-web: ^1.22.0
 
   minimatch@10.0.3:
     resolution: {integrity: sha512-IPZ167aShDZZUMdRk66cyQAW3qr0WzbHkPdMYa8bzZhlHhO3jALbKdxcaak7W9FfT2rZNpQuUu4Od7ILEpXSaw==}
@@ -2779,8 +2785,6 @@ snapshots:
       style-search: 0.1.0
       stylelint: 16.23.0(typescript@5.9.2)
 
-  '@techstark/opencv-js@4.10.0-release.1': {}
-
   '@tsconfig/node10@1.0.11': {}
 
   '@tsconfig/node12@1.0.11': {}
@@ -3050,6 +3054,9 @@ snapshots:
       keyv: 5.5.0
 
   callsites@3.1.0: {}
+
+  canny-edge-detector@1.0.0:
+    optional: true
 
   chai@5.2.1:
     dependencies:
@@ -3757,6 +3764,13 @@ snapshots:
   mimic-fn@4.0.0: {}
 
   mimic-function@5.0.1: {}
+
+  mini-cv-tensor@file:mini-opencv(@huggingface/transformers@3.7.2)(onnxruntime-web@1.22.0):
+    dependencies:
+      '@huggingface/transformers': 3.7.2
+      onnxruntime-web: 1.22.0
+    optionalDependencies:
+      canny-edge-detector: 1.0.0
 
   minimatch@10.0.3:
     dependencies:
