@@ -3,7 +3,7 @@ import { load_image, RawImage } from "@huggingface/transformers";
 import { bboxPolygon as turfBboxPolygon } from "@turf/bbox-polygon";
 import { tileToBBox } from "global-mercator/index";
 import { GeobaseError, ErrorType } from "../errors";
-import cv from "@techstark/opencv-js";
+import { getOpenCV } from "@/utils/opencv";
 
 const latLngToTileXY = (
   lat: number,
@@ -93,8 +93,9 @@ export const calculateTilesForBbox = (
 };
 
 const rawImageToMat = async (rawImage: RawImage): Promise<any> => {
+  const cv = getOpenCV();
   const { width, height } = rawImage;
-  let data = rawImage.data;
+  const data = rawImage.data;
 
   // Convert Uint8Array to OpenCV.js Mat
   const channels = rawImage.channels;
@@ -108,6 +109,7 @@ const rawImageToMat = async (rawImage: RawImage): Promise<any> => {
 
 // Stitch 2D grid of images
 const stitchImageGrid = async (imageGrid: RawImage[][]) => {
+  const cv = getOpenCV();
   const rowMats = [];
 
   for (const row of imageGrid) {

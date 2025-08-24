@@ -1,6 +1,6 @@
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedModelOptions, RawImage } from "@huggingface/transformers";
-import cv from "@techstark/opencv-js";
+import { getOpenCV } from "@/utils/opencv";
 
 type detection = {
   x1: number;
@@ -425,6 +425,7 @@ export const refineMasks = (
   classes: string[] = [],
   minArea: number = 20
 ): GeoJSON.FeatureCollection[] => {
+  const cv = getOpenCV();
   const maskGeojson: GeoJSON.FeatureCollection[] = [];
   binaryMasks.forEach((mask, index) => {
     const maskDataArray = Array.from(mask.data);

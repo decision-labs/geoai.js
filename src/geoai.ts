@@ -12,6 +12,7 @@ import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
 import { MaskGeneration } from "./models/mask_generation";
 import { ObjectDetection } from "./models/object_detection";
 import { ErrorType, GeobaseError } from "./errors";
+import { initializeOpenCV } from "@/utils/opencv";
 
 interface ChainInstance {
   inference: (
@@ -121,6 +122,9 @@ class Pipeline {
     taskOrTasks: TaskConfig[],
     providerParams: ProviderParams
   ): Promise<ModelInstance | ChainInstance> {
+    // Initialize OpenCV
+    await initializeOpenCV();
+
     // Handle single task case
     if (taskOrTasks.length === 1) {
       const config = modelRegistry.find(

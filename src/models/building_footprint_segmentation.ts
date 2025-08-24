@@ -9,7 +9,7 @@ import { ProviderParams } from "@/geoai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import * as ort from "onnxruntime-web";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
-import cv from "@techstark/opencv-js";
+import { getOpenCV } from "@/utils/opencv";
 
 export class BuildingFootPrintSegmentation extends BaseModel {
   protected static instance: BuildingFootPrintSegmentation | null = null;
@@ -66,6 +66,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   public async inference(
     params: InferenceParams
   ): Promise<ObjectDetectionResults> {
+    const cv = getOpenCV();
     const {
       inputs: { polygon },
       postProcessingParams: { confidenceThreshold = 0.5, minArea = 20 } = {},
@@ -230,6 +231,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
     CONFIDENCE_THRESHOLD: number = 0.5,
     minArea: number = 20
   ): Promise<ObjectDetectionResults> {
+    const cv = getOpenCV();
     // Convert to binary image using threshold
     const binaryMat = new cv.Mat();
     try {
