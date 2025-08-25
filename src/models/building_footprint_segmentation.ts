@@ -3,13 +3,15 @@ import {
   ImageProcessor,
   PreTrainedModel,
   PretrainedModelOptions,
+  RawImage,
 } from "@huggingface/transformers";
-import { parametersChanged, getPolygonFromMask } from "@/utils/utils";
+import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geoai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import * as ort from "onnxruntime-web";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
-const cv = require("@techstark/opencv-js");
+import * as d3 from "d3-contour";
+import { polygonArea } from "d3-polygon";
 
 export class BuildingFootPrintSegmentation extends BaseModel {
   protected static instance: BuildingFootPrintSegmentation | null = null;
@@ -68,7 +70,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   ): Promise<ObjectDetectionResults> {
     const {
       inputs: { polygon },
-      postProcessingParams: { confidenceThreshold = 0.5, minArea = 20 } = {},
+      postProcessingParams: { confidenceThreshold = 0.3, minArea = 20 } = {},
       mapSourceParams,
     } = params;
 
@@ -98,15 +100,10 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       mapSourceParams?.expression
     )) as GeoRawImage;
     const geoPatches = await geoRawImage.toPatches(patchSize, patchSize);
-    // Calculate number of patches
-    const numRows = geoPatches.length;
-    const numCols = geoPatches[0].length;
 
     const geoPatchesFlat = geoPatches.flat();
     console.log(`Inferencing on ${geoPatchesFlat.length} patches`);
 
-    // Initialize prediction array
-    let prediction: any[] = [];
     const inferenceStartTime = performance.now();
     console.log("[building-footprint-segmentation] starting inference...");
 
@@ -123,222 +120,119 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       const inputsAll = await this.processor(geoPatchesFlat);
       const pixelValues = inputsAll.pixel_values.permute(0, 2, 3, 1);
       const resultAll = await this.model.run({ input_1: pixelValues });
-      const patchPredictionsData = resultAll.conv2d_12.data as Float32Array;
-
-      const patchDataSize = patchSize * patchSize;
-      let patchIndex = 0;
-
-      // Process each row
-      for (let i = 0; i < numRows; i++) {
-        // Create array to store patches for this row
-        const rowPatches: any[] = [];
-
-        // Process each patch in the row, extracting from the single batch result
-        for (let j = 0; j < numCols; j++) {
-          // Get the start and end index for the current patch's data
-          const startIndex = patchIndex * patchDataSize;
-          const endIndex = startIndex + patchDataSize;
-
-          // Create a new Float32Array view for the current patch's prediction
-          const patchPrediction = patchPredictionsData.subarray(
-            startIndex,
-            endIndex
-          );
-
-          // Convert patch prediction to Mat
-          const patchPredictionMat = new cv.Mat(
-            patchSize,
-            patchSize,
-            cv.CV_32F
-          );
-          for (let y = 0; y < patchSize; y++) {
-            for (let x = 0; x < patchSize; x++) {
-              const idx = y * patchSize + x;
-              patchPredictionMat.floatPtr(y)[x] = patchPrediction[idx];
-            }
-          }
-
-          // Add to row patches array
-          rowPatches.push(patchPredictionMat);
-          patchIndex++;
-        }
-
-        // Concatenate patches horizontally for this row
-        if (rowPatches.length > 0) {
-          // Create a MatVector for hconcat
-          const matVector = new cv.MatVector();
-          rowPatches.forEach(mat => matVector.push_back(mat));
-
-          const rowMat = new cv.Mat();
-          cv.hconcat(matVector, rowMat);
-
-          prediction.push(rowMat);
-
-          // Clean up the temporary Mats in the rowPatches array
-          rowPatches.forEach(mat => mat.delete());
-        }
+      const uint8Data = new Uint8Array(resultAll.conv2d_12.data.length);
+      for (let i = 0; i < resultAll.conv2d_12.data.length; i++) {
+        uint8Data[i] = Math.min(
+          255,
+          Math.max(0, (resultAll.conv2d_12.data[i] as any) * 255)
+        );
       }
+      // dimensions are [batch, height, width, channels = 1]
+      const predictionRawImages: RawImage[][] = [];
+      const rowSize = geoPatches[0].length; // number of patches per row
+      const total = resultAll.conv2d_12.dims[0]; // total patches
 
-      // Concatenate all rows vertically
-      const finalMatVector = new cv.MatVector();
-      prediction.forEach(mat => finalMatVector.push_back(mat));
+      for (let i = 0; i < total; i++) {
+        const batchData = uint8Data.subarray(
+          i * resultAll.conv2d_12.dims[1] * resultAll.conv2d_12.dims[2],
+          (i + 1) * resultAll.conv2d_12.dims[1] * resultAll.conv2d_12.dims[2]
+        );
 
-      const finalMat = new cv.Mat();
-      cv.vconcat(finalMatVector, finalMat);
+        const rawImage = new RawImage(
+          batchData,
+          resultAll.conv2d_12.dims[2],
+          resultAll.conv2d_12.dims[1],
+          1
+        );
 
-      // Clean up the temporary Mats in the prediction array
-      prediction.forEach(mat => mat.delete());
-
-      // Remove padding
-      const xx = Math.floor(geoRawImage.width / patchSize) * patchSize;
-      const yy = Math.floor(geoRawImage.height / patchSize) * patchSize;
-
-      // Calculate padding amounts
-      const xPad = xx - geoRawImage.width;
-      const yPad = yy - geoRawImage.height;
-
-      const padX0 = Math.floor(xPad / 2);
-      const padY0 = Math.floor(yPad / 2);
-
-      const croppedPrediction = new cv.Mat();
-      const roi = new cv.Rect(
-        padX0,
-        padY0,
-        geoRawImage.width,
-        geoRawImage.height
+        // --- put into 2D structure ---
+        const row = Math.floor(i / rowSize);
+        if (!predictionRawImages[row]) {
+          predictionRawImages[row] = [];
+        }
+        predictionRawImages[row].push(rawImage);
+      }
+      const stitchedPrediction = GeoRawImage.fromPatches(
+        predictionRawImages,
+        geoRawImage.getBounds(),
+        geoRawImage.getCRS()
       );
-      finalMat.roi(roi).copyTo(croppedPrediction);
-      finalMat.delete(); // Clean up the final concatenated Mat
 
       // Post-processing timing
       const results = await this.postProcessor(
-        croppedPrediction,
-        geoRawImage,
+        stitchedPrediction,
         confidenceThreshold as number,
         minArea as number
       );
-      croppedPrediction.delete(); // Clean up the cropped Mat
+      // croppedPrediction.delete(); // Clean up the cropped Mat
       const inferenceEndTime = performance.now();
       console.log(
         `[building-footprint-segmentagtion] inference completed. Time taken: ${(inferenceEndTime - inferenceStartTime).toFixed(2)}ms`
       );
 
-      return results;
+      return {
+        detections: results,
+        geoRawImage,
+      };
     } catch (error) {
       throw error;
     }
   }
 
   protected async postProcessor(
-    outputs: any,
-    geoRawImage: GeoRawImage,
-    CONFIDENCE_THRESHOLD: number = 0.5,
+    output: GeoRawImage,
+    // geoRawImage: GeoRawImage,
+    CONFIDENCE_THRESHOLD: number = 0.1,
     minArea: number = 20
-  ): Promise<ObjectDetectionResults> {
-    // Convert to binary image using threshold
-    const binaryMat = new cv.Mat();
+  ): Promise<GeoJSON.FeatureCollection> {
     try {
-      cv.threshold(
-        outputs,
-        binaryMat,
-        CONFIDENCE_THRESHOLD,
-        1.0,
-        cv.THRESH_BINARY
-      ); // Use 0.5 threshold for float32 data
-
-      // Convert to uint8 for contour detection
-      const uint8Mat = new cv.Mat();
-      binaryMat.convertTo(uint8Mat, cv.CV_8U, 255.0);
-
-      // Find contours
-      let contours = new cv.MatVector();
-      const hierarchy = new cv.Mat();
-      cv.findContours(
-        uint8Mat,
-        contours,
-        hierarchy,
-        cv.RETR_EXTERNAL,
-        cv.CHAIN_APPROX_SIMPLE
-      );
-
-      // Filter contours by minimum area
-      const filteredContours = new cv.MatVector();
-
-      for (let i = 0; i < contours.size(); i++) {
-        const contour = contours.get(i);
-        const area = cv.contourArea(contour);
-        if (area >= minArea) {
-          filteredContours.push_back(contour);
-        }
+      if (CONFIDENCE_THRESHOLD > 0 && CONFIDENCE_THRESHOLD < 1) {
+        CONFIDENCE_THRESHOLD = Math.floor(CONFIDENCE_THRESHOLD * 255);
       }
+      const contourGen = d3
+        .contours()
+        .size([output.width, output.height])
+        .thresholds([CONFIDENCE_THRESHOLD]);
 
-      // Replace original contours with filtered ones
-      contours.delete();
-      contours = filteredContours;
+      const data: number[] = [];
+      output.data.forEach((v: number) => {
+        data.push(v);
+      });
+      const contours = contourGen(data);
 
-      // Convert contours to GeoJSON features
       const features: GeoJSON.Feature[] = [];
-      for (let i = 0; i < contours.size(); i++) {
-        const contour = contours.get(i);
 
-        // Create binary mask for this contour
-        const mask = new Array(geoRawImage.height)
-          .fill(0)
-          .map(() => new Array(geoRawImage.width).fill(0));
-        const contourImage = new cv.Mat(
-          geoRawImage.height,
-          geoRawImage.width,
-          cv.CV_8UC1,
-          new cv.Scalar(0)
-        );
-        cv.drawContours(contourImage, contours, i, new cv.Scalar(255), -1); // -1 fills the contour
-
-        // Convert contour image to binary mask array
-        for (let y = 0; y < contourImage.rows; y++) {
-          for (let x = 0; x < contourImage.cols; x++) {
-            mask[y][x] = contourImage.ucharPtr(y)[x] > 0 ? 1 : 0;
-          }
-        }
-
-        // Get polygon using getPolygonFromMask
-        const polygon = getPolygonFromMask(mask, geoRawImage);
-
-        // Create feature from polygon
-        features.push({
-          type: "Feature",
-          properties: {
-            confidence: 1.0,
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [polygon],
-          },
+      contours.forEach(contour => {
+        contour.coordinates.forEach(polygon => {
+          polygon.forEach(ring => {
+            if (ring.length < 3) return; // skip invalid rings
+            const area = Math.abs(polygonArea(ring as [number, number][]));
+            if (area < minArea) return;
+            const coordinates = ring.map(coord =>
+              output.pixelToWorld(coord[0], coord[1])
+            );
+            features.push({
+              type: "Feature",
+              properties: {
+                confidence: 1.0,
+              },
+              geometry: {
+                type: "Polygon",
+                coordinates: [coordinates],
+              },
+            });
+          });
         });
-
-        // Clean up
-        contourImage.delete();
-        contour.delete();
-      }
-
-      // Clean up resources
-      uint8Mat.delete();
-      contours.delete();
-      hierarchy.delete();
+      });
 
       const geojson: GeoJSON.FeatureCollection = {
         type: "FeatureCollection",
         features,
       };
-      return {
-        detections: geojson,
-        geoRawImage,
-      };
+      return geojson;
     } catch (error) {
       console.error("Error processing contours:", error);
       throw error;
-    } finally {
-      // Ensure all resources are cleaned up
-      binaryMat.delete();
     }
   }
 }

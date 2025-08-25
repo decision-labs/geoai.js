@@ -108,6 +108,10 @@
   "dependencies": {
     "@turf/bbox": "^7.2.0",
     "@turf/bbox-polygon": "^7.2.0",
+    "@types/d3-contour": "^3.0.6",
+    "@types/d3-polygon": "^3.0.2",
+    "d3-contour": "^4.0.2",
+    "d3-polygon": "^3.0.1",
     "global-mercator": "github:decision-labs/global-mercator",
     "node-fetch": "^3.3.2"
   },
