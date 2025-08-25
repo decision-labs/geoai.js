@@ -1,6 +1,8 @@
 import { describe, expect, it, beforeAll } from "vitest";
 import { GeoRawImage } from "../../../src/types/images/GeoRawImage";
 import { RawImage } from "@huggingface/transformers";
+import { geobaseParams, polygon } from "../../constants";
+import { Geobase } from "../../../src/data_providers/geobase";
 
 describe("GeoRawImage", () => {
   let width: number;
@@ -265,6 +267,67 @@ describe("GeoRawImage", () => {
           expect(patch.width).toBe(expectedPatchWidth);
         }
       }
+    });
+  });
+
+  describe("polygonToImage", () => {
+    it("should return a stitched geoRawImage", async () => {
+      const geobase = new Geobase(geobaseParams);
+      const geoRawImage = (await geobase.getImage(polygon)) as GeoRawImage;
+
+      expect(Array.isArray(geoRawImage)).toBe(false);
+      if (!Array.isArray(geoRawImage)) {
+        expect(geoRawImage).toBeInstanceOf(GeoRawImage);
+        expect(geoRawImage.width).toBeDefined();
+        expect(geoRawImage.height).toBeDefined();
+        expect(geoRawImage.channels).toBeDefined();
+        expect(geoRawImage.data).toBeDefined();
+        expect(geoRawImage.data.length).toBe(
+          geoRawImage.width * geoRawImage.height * geoRawImage.channels
+        );
+      }
+    });
+
+    it("should return array of geoRawImages", async () => {
+      const geobase = new Geobase(geobaseParams);
+      const fullImage = (await geobase.getImage(polygon)) as GeoRawImage;
+      const geoRawImages = (await geobase.getImage(
+        polygon,
+        undefined,
+        undefined,
+        undefined,
+        true,
+        false
+      )) as GeoRawImage[][];
+
+      expect(Array.isArray(geoRawImages)).toBe(true);
+      // Flatten the 2D array and check each GeoRawImage
+      if (Array.isArray(geoRawImages)) {
+        const flattenedImages = geoRawImages.flatMap(image => image);
+        await Promise.all(
+          flattenedImages.map(async geoRawImage => {
+            expect(geoRawImage).toBeInstanceOf(GeoRawImage);
+            expect(geoRawImage.width).toBeDefined();
+            expect(geoRawImage.height).toBeDefined();
+            expect(geoRawImage.channels).toBeDefined();
+            expect(geoRawImage.data).toBeDefined();
+            expect(geoRawImage.data.length).toBe(
+              geoRawImage.width * geoRawImage.height * geoRawImage.channels
+            );
+          })
+        );
+      }
+
+      const topLeftBounds = geoRawImages[0][0].getBounds();
+      const bottomRightBounds =
+        geoRawImages[geoRawImages.length - 1][
+          geoRawImages.length - 1
+        ].getBounds();
+      const bounds = fullImage.getBounds();
+      expect(topLeftBounds.north).toBe(bounds.north);
+      expect(topLeftBounds.west).toBe(bounds.west);
+      expect(bottomRightBounds.south).toBe(bounds.south);
+      expect(bottomRightBounds.east).toBe(bounds.east);
     });
   });
 });

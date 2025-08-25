@@ -30,8 +30,9 @@ export abstract class MapSource {
     bands?: number[],
     expression?: string,
     zoomLevel?: number,
-    requiresSquare: boolean = false // default is false
-  ): Promise<GeoRawImage> {
+    requiresSquare: boolean = false, // default is false,
+    stitch: boolean = true
+  ): Promise<GeoRawImage | GeoRawImage[][]> {
     const bbox = turfBbox(polygon);
     const initialSearchZoom = 22;
 
@@ -45,7 +46,7 @@ export abstract class MapSource {
         expression,
         requiresSquare
       );
-      return await getImageFromTiles(tilesGrid);
+      return await getImageFromTiles(tilesGrid, stitch);
     }
 
     let zoom = initialSearchZoom;
@@ -84,6 +85,6 @@ export abstract class MapSource {
       yTileNum = tilesGrid.length;
     }
 
-    return await getImageFromTiles(tilesGrid);
+    return await getImageFromTiles(tilesGrid, stitch);
   }
 }

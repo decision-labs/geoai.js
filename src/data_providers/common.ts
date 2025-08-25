@@ -3,7 +3,6 @@ import { load_image, RawImage } from "@huggingface/transformers";
 import { bboxPolygon as turfBboxPolygon } from "@turf/bbox-polygon";
 import { tileToBBox } from "global-mercator/index";
 import { GeobaseError, ErrorType } from "../errors";
-const cv = require("@techstark/opencv-js");
 
 const latLngToTileXY = (
   lat: number,
@@ -92,74 +91,10 @@ export const calculateTilesForBbox = (
   return tiles;
 };
 
-const rawImageToMat = async (rawImage: RawImage): Promise<any> => {
-  const { width, height } = rawImage;
-  let data = rawImage.data;
-
-  // Convert Uint8Array to OpenCV.js Mat
-  const channels = rawImage.channels;
-  const matType =
-    channels === 1 ? cv.CV_8UC1 : channels === 3 ? cv.CV_8UC3 : cv.CV_8UC4;
-  const mat = new cv.Mat(height, width, matType);
-  mat.data.set(new Uint8Array(data)); // Directly set the data
-
-  return mat;
-};
-
-// Stitch 2D grid of images
-const stitchImageGrid = async (imageGrid: RawImage[][]) => {
-  const rowMats = [];
-
-  for (const row of imageGrid) {
-    const rowMatsConverted = await Promise.all(row.map(rawImageToMat));
-
-    let rowMat = rowMatsConverted[0];
-    for (let i = 1; i < rowMatsConverted.length; i++) {
-      const tempMat = new cv.Mat();
-      const matVector = new cv.MatVector();
-      matVector.push_back(rowMat);
-      matVector.push_back(rowMatsConverted[i]);
-      await cv.hconcat(matVector, tempMat);
-      matVector.delete();
-      rowMat = tempMat;
-    }
-    rowMats.push(rowMat);
-  }
-
-  let finalImage = rowMats[0];
-  for (let i = 1; i < rowMats.length; i++) {
-    const tempMat = new cv.Mat();
-    const matVector = new cv.MatVector();
-    matVector.push_back(finalImage);
-    matVector.push_back(rowMats[i]);
-    await cv.vconcat(matVector, tempMat);
-    matVector.delete();
-    finalImage = tempMat;
-  }
-  // Convert the final image to a RawImage
-  const finalImageData = new Uint8ClampedArray(
-    finalImage.data.buffer,
-    finalImage.data.byteOffset,
-    finalImage.data.length
-  );
-  const finalRawImage = new RawImage(
-    finalImageData,
-    finalImage.cols,
-    finalImage.rows,
-    finalImage.channels()
-  );
-  // Cleanup memory
-  rowMats.forEach(mat => mat.delete());
-  // Mat instance already deleted
-
-  // await finalRawImage.save("stitched_image.png");
-
-  return finalRawImage;
-};
-
 export const getImageFromTiles = async (
-  tilesGrid: any
-): Promise<GeoRawImage> => {
+  tilesGrid: any,
+  stitch: boolean = true
+): Promise<GeoRawImage | GeoRawImage[][]> => {
   // Throw error if tile count exceeds maximum
   const MAX_TILE_COUNT = 100; // Set your desired maximum here
   if (tilesGrid.length * tilesGrid[0].length > MAX_TILE_COUNT) {
@@ -174,10 +109,9 @@ export const getImageFromTiles = async (
   // Load all images in parallel
   const tileImages: RawImage[][] = await Promise.all(
     tileUrlsGrid.map((row: any) =>
-      Promise.all(row.map((url: string) => load_image(url)))
+      Promise.all(row.map(async (url: string) => await load_image(url)))
     )
   );
-  const stitchedImage = await stitchImageGrid(tileImages);
   const cornerTiles = [
     tilesGrid[0][0], // Top-left
     tilesGrid[0][tilesGrid[0].length - 1], // Top-right
@@ -196,29 +130,27 @@ export const getImageFromTiles = async (
     east: Math.max(...cornerTiles.map((tile: any) => tile.tileGeoJson.bbox[2])),
     west: Math.min(...cornerTiles.map((tile: any) => tile.tileGeoJson.bbox[0])),
   };
-  //   const bounds = {
-  //     north: Math.max(
-  //       tilesGrid[0][0].tileGeoJson.bbox[3], // Top-left
-  //       tilesGrid[0][tilesGrid[0].length - 1].tileGeoJson.bbox[3] // Top-right
-  //     ),
-  //     south: Math.min(
-  //       tilesGrid[tilesGrid.length - 1][0].tileGeoJson.bbox[1], // Bottom-left
-  //       tilesGrid[tilesGrid.length - 1][tilesGrid[0].length - 1].tileGeoJson
-  //         .bbox[1] // Bottom-right
-  //     ),
-  //     east: Math.max(
-  //       tilesGrid[0][tilesGrid[0].length - 1].tileGeoJson.bbox[2], // Top-right
-  //       tilesGrid[tilesGrid.length - 1][tilesGrid[0].length - 1].tileGeoJson
-  //         .bbox[2] // Bottom-right
-  //     ),
-  //     west: Math.min(
-  //       tilesGrid[0][0].tileGeoJson.bbox[0], // Top-left
-  //       tilesGrid[tilesGrid.length - 1][0].tileGeoJson.bbox[0] // Bottom-left
-  //     ),
-  //   };
+  if (stitch) {
+    return GeoRawImage.fromPatches(tileImages, bounds, "EPSG:4326");
+  }
 
-  //save the stitched image to a file
-  // await stitchedImage.save("stitched_image_wetland.png");
+  // If not stitching, set bounds for each individual GeoRawImage
+  const geoRawImages: GeoRawImage[][] = tilesGrid.map(
+    (row: any, rowIndex: number) =>
+      row.map((tile: any, colIndex: number) => {
+        const tileBounds = {
+          north: tile.tileGeoJson.bbox[1],
+          south: tile.tileGeoJson.bbox[3],
+          east: tile.tileGeoJson.bbox[2],
+          west: tile.tileGeoJson.bbox[0],
+        };
+        return GeoRawImage.fromRawImage(
+          tileImages[rowIndex][colIndex],
+          tileBounds,
+          "EPSG:4326"
+        );
+      })
+  );
 
-  return GeoRawImage.fromRawImage(stitchedImage, bounds, "EPSG:4326");
+  return geoRawImages;
 };

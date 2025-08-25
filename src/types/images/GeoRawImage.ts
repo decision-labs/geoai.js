@@ -130,6 +130,94 @@ export class GeoRawImage extends RawImage {
   }
 
   /**
+   * Static function to join a 2D array of RawImage patches into a single GeoRawImage.
+   * This function assumes the patches are contiguous and form a complete grid.
+   * @param patches A 2D array of RawImage objects to be joined.
+   * @param bounds The bounds of the final, merged image.
+   * @param crs The Coordinate Reference System of the final, merged image.
+   * @returns A promise that resolves to a single GeoRawImage containing the joined data.
+   */
+  static fromPatches(
+    patches: RawImage[][],
+    bounds: Bounds,
+    crs: string
+  ): GeoRawImage {
+    // Validate input patches
+    if (!patches || patches.length === 0 || patches[0].length === 0) {
+      throw new Error("Input patches must be a non-empty 2D array.");
+    }
+
+    const firstPatch = patches[0][0];
+    const channels = firstPatch.channels;
+
+    // Check for consistent channels across all patches
+    patches.forEach((row, i) => {
+      row.forEach((patch, j) => {
+        if (patch.channels !== channels) {
+          if (patch.channels === 4 && channels === 3) {
+            patch = patch.rgb();
+          } else {
+            throw new Error(
+              `All patches must have the same number of channels. Row: ${i}, Column: ${j}`
+            );
+          }
+        }
+      });
+    });
+
+    // Calculate total dimensions of the new image
+    let totalWidth = 0;
+    let totalHeight = 0;
+
+    // Sum widths of the first row to get total width
+    patches[0].forEach(patch => (totalWidth += patch.width));
+
+    // Sum heights of the first column to get total height
+    patches.forEach(row => (totalHeight += row[0].height));
+
+    // Create a new data array for the merged image
+    const mergedData = new Uint8ClampedArray(
+      totalWidth * totalHeight * channels
+    );
+
+    // Copy data from each patch into the new merged data array
+    let currentHeightOffset = 0;
+    for (let i = 0; i < patches.length; i++) {
+      let currentWidthOffset = 0;
+      for (let j = 0; j < patches[i].length; j++) {
+        const patch = patches[i][j];
+
+        // Copy pixel by pixel for simplicity and clarity
+        for (let y = 0; y < patch.height; y++) {
+          for (let x = 0; x < patch.width; x++) {
+            const patchIndex = (y * patch.width + x) * channels;
+            const mergedIndex =
+              ((currentHeightOffset + y) * totalWidth +
+                (currentWidthOffset + x)) *
+              channels;
+
+            // Copy all channels for the current pixel
+            for (let c = 0; c < channels; c++) {
+              mergedData[mergedIndex + c] = patch.data[patchIndex + c];
+            }
+          }
+        }
+        currentWidthOffset += patch.width;
+      }
+      currentHeightOffset += patches[i][0].height;
+    }
+
+    return new GeoRawImage(
+      mergedData,
+      totalWidth,
+      totalHeight,
+      channels as 1 | 2 | 3 | 4,
+      bounds,
+      crs
+    );
+  }
+
+  /**
    * Convert pixel coordinates to world coordinates
    */
   pixelToWorld(x: number, y: number): [number, number] {
