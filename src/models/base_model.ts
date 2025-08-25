@@ -88,8 +88,9 @@ export abstract class BaseModel {
     zoomLevel?: number,
     bands?: number[],
     expression?: string,
-    requiresSquare: boolean = true
-  ): Promise<GeoRawImage> {
+    requiresSquare: boolean = true,
+    stitch = true
+  ): Promise<GeoRawImage | GeoRawImage[][]> {
     if (!this.dataProvider) {
       throw new Error("Data provider not initialized");
     }
@@ -99,7 +100,8 @@ export abstract class BaseModel {
       bands,
       expression,
       zoomLevel,
-      requiresSquare
+      requiresSquare,
+      stitch
     );
   }
 

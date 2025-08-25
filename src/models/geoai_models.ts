@@ -117,12 +117,12 @@ abstract class BaseDetectionModel extends BaseModel {
       throw new Error("Data provider not initialized");
     }
 
-    const geoRawImage = await this.polygonToImage(
+    const geoRawImage = (await this.polygonToImage(
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
       mapSourceParams?.expression
-    );
+    )) as GeoRawImage;
 
     const task = this.model_id.split("/").pop()?.split(".")[0].split("_")[0];
     const inferenceStartTime = performance.now();
@@ -370,12 +370,12 @@ export class WetLandSegmentation extends BaseModel {
       throw new Error("Data provider not initialized");
     }
 
-    const geoRawImage = await this.polygonToImage(
+    const geoRawImage = (await this.polygonToImage(
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
       mapSourceParams?.expression
-    );
+    )) as GeoRawImage;
     const inferenceStartTime = performance.now();
     console.log("[wetland-segmentation] starting inference...");
 

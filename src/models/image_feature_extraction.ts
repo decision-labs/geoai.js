@@ -4,6 +4,7 @@ import { ProviderParams } from "@/geoai";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { BaseModel } from "./base_model";
 import { InferenceParams, ImageFeatureExtractionResults } from "@/core/types";
+import { GeoRawImage } from "@/types/images/GeoRawImage";
 
 export class ImageFeatureExtraction extends BaseModel {
   protected static instance: ImageFeatureExtraction | null = null;
@@ -92,12 +93,12 @@ export class ImageFeatureExtraction extends BaseModel {
       throw new Error("Feature extractor not properly initialized");
     }
 
-    const geoRawImage = await this.polygonToImage(
+    const geoRawImage = (await this.polygonToImage(
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
       mapSourceParams?.expression
-    );
+    )) as GeoRawImage;
 
     const inferenceStartTime = performance.now();
     console.log("[image-feature-extraction] starting inference...");

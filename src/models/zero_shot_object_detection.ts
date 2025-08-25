@@ -4,6 +4,7 @@ import { BaseModel } from "./base_model";
 import { ProviderParams } from "@/geoai";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
+import { GeoRawImage } from "@/types/images/GeoRawImage";
 
 export class ZeroShotObjectDetection extends BaseModel {
   protected static instance: ZeroShotObjectDetection | null = null;
@@ -79,12 +80,12 @@ export class ZeroShotObjectDetection extends BaseModel {
       await this.initialize();
     }
 
-    const geoRawImage = await this.polygonToImage(
+    const geoRawImage = (await this.polygonToImage(
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
       mapSourceParams?.expression
-    );
+    )) as GeoRawImage;
     const inferenceStartTime = performance.now();
     console.log("[zero-shot-object-detection] starting inference...");
     let outputs;

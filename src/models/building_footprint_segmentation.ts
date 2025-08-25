@@ -91,12 +91,12 @@ export class BuildingFootPrintSegmentation extends BaseModel {
     }
 
     const patchSize = 256;
-    const geoRawImage = await this.polygonToImage(
+    const geoRawImage = (await this.polygonToImage(
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
       mapSourceParams?.expression
-    );
+    )) as GeoRawImage;
     const geoPatches = await geoRawImage.toPatches(patchSize, patchSize);
     // Calculate number of patches
     const numRows = geoPatches.length;

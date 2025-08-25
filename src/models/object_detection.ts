@@ -11,6 +11,7 @@ import { ProviderParams } from "@/geoai";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { BaseModel } from "./base_model";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
+import { GeoRawImage } from "@/types/images/GeoRawImage";
 
 export class ObjectDetection extends BaseModel {
   protected static instance: ObjectDetection | null = null;
@@ -85,12 +86,12 @@ export class ObjectDetection extends BaseModel {
       await this.initialize();
     }
 
-    const geoRawImage = await this.polygonToImage(
+    const geoRawImage = (await this.polygonToImage(
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
       mapSourceParams?.expression
-    );
+    )) as GeoRawImage;
 
     const inferenceStartTime = performance.now();
     console.log("[oriented-object-detection] starting inference...");

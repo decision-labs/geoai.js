@@ -151,12 +151,12 @@ export class MaskGeneration extends BaseModel {
 
     // Compute new embeddings
     if (!geoRawImage) {
-      geoRawImage = await this.polygonToImage(
+      geoRawImage = (await this.polygonToImage(
         polygon,
         zoomLevel,
         bands,
         expression
-      );
+      )) as GeoRawImage;
     }
     image_inputs = await this.processor(geoRawImage);
     const image_embeddings =
@@ -403,12 +403,12 @@ export class MaskGeneration extends BaseModel {
       throw new Error("Data provider not initialized");
     }
 
-    const geoRawImage = await this.polygonToImage(
+    const geoRawImage = (await this.polygonToImage(
       inputs.polygon,
       params.mapSourceParams?.zoomLevel,
       params.mapSourceParams?.bands,
       params.mapSourceParams?.expression
-    );
+    )) as GeoRawImage;
 
     if (!geoRawImage) {
       throw new Error("Failed to convert polygon to image");

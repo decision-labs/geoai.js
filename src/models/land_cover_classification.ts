@@ -90,12 +90,12 @@ export class LandCoverClassification extends BaseModel {
       throw new Error("Data provider not initialized");
     }
 
-    const geoRawImage = await this.polygonToImage(
+    const geoRawImage = (await this.polygonToImage(
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
       mapSourceParams?.expression
-    );
+    )) as GeoRawImage;
     const inferenceStartTime = performance.now();
     console.log("[land-cover-classification] starting inference...");
     if (!this.processor) {
