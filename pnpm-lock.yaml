@@ -11,9 +11,6 @@ importers:
       '@huggingface/transformers':
         specifier: ^3.7.2
         version: 3.7.2
-      '@techstark/opencv-js':
-        specifier: ^4.10.0-release.1
-        version: 4.10.0-release.1
       '@turf/bbox':
         specifier: ^7.2.0
         version: 7.2.0
@@ -701,9 +698,6 @@ packages:
     engines: {node: ^18.12 || >=20.9}
     peerDependencies:
       stylelint: ^16.8.0
-
-  '@techstark/opencv-js@4.10.0-release.1':
-    resolution: {integrity: sha512-S4XELidRiQeA0q1s9VQLo540wCxUo24r1O4C+LqZ6llX+sPCXvZCPv3Ice8dEIr0uavyZ8YZeKXSBdDgMXSXjw==}
 
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
@@ -2815,8 +2809,6 @@ snapshots:
       postcss-value-parser: 4.2.0
       style-search: 0.1.0
       stylelint: 16.23.0(typescript@5.9.2)
-
-  '@techstark/opencv-js@4.10.0-release.1': {}
 
   '@tsconfig/node10@1.0.11': {}
 

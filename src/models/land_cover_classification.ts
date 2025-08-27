@@ -1,14 +1,12 @@
 import { BaseModel } from "@/models/base_model";
-import {
-  ImageProcessor,
-  PreTrainedModel,
-  RawImage,
-} from "@huggingface/transformers";
-import { parametersChanged, refineMasks } from "@/utils/utils";
+import { ImageProcessor, PreTrainedModel } from "@huggingface/transformers";
+import { parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geoai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { InferenceParams, onnxModel } from "@/core/types";
+import * as d3 from "d3-contour";
+import { polygonArea } from "d3-polygon";
 
 export class LandCoverClassification extends BaseModel {
   protected static instance: LandCoverClassification | null = null;
@@ -140,32 +138,8 @@ export class LandCoverClassification extends BaseModel {
 
     const outputImage = new Uint8Array(height * width * 3);
 
-    // Create a binary mask for each class
-    const binaryMasks: RawImage[] = [];
-    for (let c = 0; c < channels; c++) {
-      const mask = new Uint8Array(height * width);
-      for (let i = 0; i < height * width; i++) {
-        mask[i] = argmaxOutput[i] === c ? 1 : 0;
-      }
-
-      // Save each binary mask as an image
-      const maskImage = new Uint8Array(height * width * 3);
-      for (let i = 0; i < height * width; i++) {
-        const value = mask[i] * 255;
-        maskImage[i * 3] = value;
-        maskImage[i * 3 + 1] = value;
-        maskImage[i * 3 + 2] = value;
-      }
-      const maskRawImage = new RawImage(maskImage, height, width, 3);
-      binaryMasks.push(maskRawImage);
-    }
-
-    const featureCollection: GeoJSON.FeatureCollection[] = refineMasks(
-      binaryMasks,
-      geoRawImage,
-      this.classes,
-      minArea as number
-    );
+    const binaryOutput = new Uint8Array(height * width * 1);
+    const binaryThresholds = [0, 32, 64, 96, 128, 160, 192, 224]; // Example thresholds for 8 classes
     // Assign color to each pixel based on class index
     for (let i = 0; i < height * width; i++) {
       const classIndex = argmaxOutput[i];
@@ -175,6 +149,7 @@ export class LandCoverClassification extends BaseModel {
         outputImage[offset] = color[0];
         outputImage[offset + 1] = color[1];
         outputImage[offset + 2] = color[2];
+        binaryOutput[i] = binaryThresholds[classIndex];
       } else {
         // Fallback to black if color is undefined
         outputImage[offset] = 0;
@@ -191,6 +166,53 @@ export class LandCoverClassification extends BaseModel {
       3,
       geoRawImage.getBounds()
     );
+    const grayRawImage = new GeoRawImage(
+      binaryOutput,
+      height,
+      width,
+      1,
+      geoRawImage.getBounds()
+    );
+    const contourGen = d3
+      .contours()
+      .size([width, height])
+      .thresholds(binaryThresholds)
+      .smooth(true);
+
+    const data: number[] = [];
+    grayRawImage.data.forEach((v: number) => {
+      data.push(v);
+    });
+    const contours = contourGen(data);
+    const features: GeoJSON.Feature[] = [];
+
+    contours.forEach((contour, idx) => {
+      contour.coordinates.forEach(polygon => {
+        polygon.forEach(ring => {
+          if (ring.length < 3) return; // skip invalid rings
+          const area = Math.abs(polygonArea(ring as [number, number][]));
+          if (area < (minArea as number)) return;
+          const coordinates = ring.map(coord =>
+            grayRawImage.pixelToWorld(coord[0], coord[1])
+          );
+          features.push({
+            type: "Feature",
+            properties: {
+              class: this.classes ? this.classes[idx] : "unknown",
+            },
+            geometry: {
+              type: "Polygon",
+              coordinates: [coordinates],
+            },
+          });
+        });
+      });
+    });
+
+    const featureCollection: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features,
+    };
 
     const inferenceEndTime = performance.now();
     console.log(
@@ -198,8 +220,8 @@ export class LandCoverClassification extends BaseModel {
     );
     return {
       detections: featureCollection,
-      binaryMasks,
       outputImage: outputRawImage,
+      geoRawImage,
     };
   }
 }

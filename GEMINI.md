@@ -26,7 +26,7 @@ The project uses `pnpm` as a package manager.
 *   **Architecture**: The project follows a modular architecture. Each AI model in `src/models/` follows the same interface pattern and is registered in `src/registry.ts`. All map providers implement the same interface in `src/data_providers/`. React hooks follow a consistent state management pattern.
 *   **Branching**: The project uses the Gitflow workflow. All new development should be done on a feature branch, and then merged into the `develop` branch. The `main` branch is used for releases.
 *   **Commits**: Commit messages should follow the Conventional Commits specification.
-*   **Dependencies**: The project uses `pnpm` to manage dependencies. All dependencies should be added to the `package.json` file. Peer dependencies are required: `@huggingface/transformers`, `@techstark/opencv-js`, `onnxruntime-web`. Node.js 18+ is required for development.
+*   **Dependencies**: The project uses `pnpm` to manage dependencies. All dependencies should be added to the `package.json` file. Peer dependencies are required: `@huggingface/transformers`, `onnxruntime-web`. Node.js 18+ is required for development.
 *   **Pull Requests**: Pull requests must include test coverage for new features, be type-safe, and include documentation updates if needed. Consider the performance impact and maintain backward compatibility.
 
 ### Common Tasks

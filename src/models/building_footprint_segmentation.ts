@@ -214,7 +214,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
             features.push({
               type: "Feature",
               properties: {
-                confidence: 1.0,
+                // confidence: 1.0,
               },
               geometry: {
                 type: "Polygon",

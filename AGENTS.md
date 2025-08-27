@@ -64,7 +64,7 @@ pnpm format:scripts
 ## Development Environment
 
 ### Dependencies
-- **Peer dependencies** are required: `@huggingface/transformers`, `@techstark/opencv-js`, `onnxruntime-web`
+- **Peer dependencies** are required: `@huggingface/transformers`, `onnxruntime-web`
 - **Node.js 18+** required for development
 - **pnpm** as package manager (not npm or yarn)
 

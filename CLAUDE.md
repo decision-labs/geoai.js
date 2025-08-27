@@ -51,7 +51,7 @@ React hooks are implemented with sophisticated lifecycle management:
 - **Vite 5.4.14** for fast building with Terser minification
 - **TypeScript 5.7.3** in strict mode
 - **Output**: Single `geoai.js` ES module (~10MB due to AI models)
-- **Peer dependencies**: `@huggingface/transformers`, `@techstark/opencv-js`, `onnxruntime-web`
+- **Peer dependencies**: `@huggingface/transformers`, `onnxruntime-web`
 
 ## Testing
 
