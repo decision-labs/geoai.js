@@ -1,5 +1,7 @@
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedModelOptions, RawImage } from "@huggingface/transformers";
+import { contours } from "d3-contour";
+import { polygonArea } from "d3-polygon";
 
 type detection = {
   x1: number;
@@ -332,71 +334,52 @@ export const getPolygonFromMask = (
 export const maskToGeoJSON = (
   masks: any,
   geoRawImage: GeoRawImage,
-  topN: number = 1
-): GeoJSON.FeatureCollection => {
-  const { mask, scores } = masks;
-  const numMasks = scores.length;
-  const features: GeoJSON.Feature[] = [];
+  thresholds: number[] = [128],
+  minArea: number = 50
+): GeoJSON.FeatureCollection[] => {
+  const featureCollections: GeoJSON.FeatureCollection[] = [];
 
-  for (let index = 0; index < numMasks; index++) {
-    const height = mask[0].dims[2];
-    const width = mask[0].dims[3];
-    const binaryMask = Array.from({ length: height }, () =>
-      Array(width).fill(0)
-    );
-
-    for (let y = 0; y < height; ++y) {
-      for (let x = 0; x < width; ++x) {
-        if (mask[0].data[index * height * width + y * width + x] === 1) {
-          binaryMask[y][x] = 1;
-        }
-      }
-    }
-
-    //save binary mask as a png using RawImage
-    // const maskImage = {
-    //   data: new Uint8ClampedArray(width * height * 4),
-    //   width: width,
-    //   height: height,
-    // };
-    // const edgeMask = getEdges(binaryMask);
-    // for (let y = 0; y < height; ++y) {
-    //   for (let x = 0; x < width; ++x) {
-    //     const value = edgeMask[y][x] === 1 ? 255 : 0;
-    //     maskImage.data[4 * (y * width + x) + 0] = value;
-    //     maskImage.data[4 * (y * width + x) + 1] = value;
-    //     maskImage.data[4 * (y * width + x) + 2] = value;
-    //     maskImage.data[4 * (y * width + x) + 3] = 255;
-    //   }
-    // }
-
-    // const rawImage = new RawImage(maskImage.data, width, height, 4);
-    // rawImage.save(`mask_${index}-${scores[index]}.png`);
-
-    features.push({
-      type: "Feature",
-      properties: {
-        score: scores[index],
-      },
-      geometry: {
-        type: "Polygon",
-        coordinates: [getPolygonFromMask(binaryMask, geoRawImage)],
-      },
+  masks.mask.forEach((mask: any, index: number) => {
+    const contoursGen = contours()
+      .size([mask.dims[3], mask.dims[2]])
+      .thresholds(thresholds)
+      .smooth(true);
+    const data: number[] = [];
+    mask.data.forEach((v: number) => {
+      data.push(v);
     });
-  }
+    const generatedContours = contoursGen(data);
+    const maskFeatures: GeoJSON.Feature[] = [];
+    generatedContours.forEach(contour => {
+      contour.coordinates.forEach(polygon => {
+        polygon.forEach(ring => {
+          if (ring.length < 3) return; // skip invalid rings
+          const area = Math.abs(polygonArea(ring as [number, number][]));
+          if (area < minArea) return;
+          const coordinates = ring.map(coord =>
+            geoRawImage.pixelToWorld(coord[0], coord[1])
+          );
+          maskFeatures.push({
+            type: "Feature",
+            properties: {
+              score: masks.scores[index],
+            },
+            geometry: {
+              type: "Polygon",
+              coordinates: [coordinates],
+            },
+          });
+        });
+      });
+    });
 
-  // Sort features by score in descending order and take top N
-  const sortedFeatures = features
-    .sort((a, b) => {
-      if (!a.properties?.score || !b.properties?.score) return 0;
-      return b.properties.score - a.properties.score;
-    })
-    .slice(0, topN);
+    featureCollections.push({
+      type: "FeatureCollection",
+      features: maskFeatures,
+    });
+  });
 
-  return {
-    type: "FeatureCollection",
-    features: sortedFeatures,
-  };
+  return featureCollections;
 };
 
 /**

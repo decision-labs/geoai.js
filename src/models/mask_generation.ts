@@ -190,7 +190,7 @@ export class MaskGeneration extends BaseModel {
   async inference(params: InferenceParams): Promise<SegmentationResult> {
     const {
       inputs: { polygon, input },
-      postProcessingParams: { maxMasks = 1 } = {},
+      postProcessingParams: { maxMasks = 1, minArea = 20 } = {},
       mapSourceParams,
     } = params;
 
@@ -357,16 +357,52 @@ export class MaskGeneration extends BaseModel {
     );
 
     // Convert masks to GeoJSON
-    const geoJsonMasks = masksArray.map((masks, index) => {
-      const maskGeo = maskToGeoJSON(
+    const geoJsonMasks = masksArray.map((_masks, index) => {
+      const numMasks = _masks[0].dims[1];
+
+      const masks = [];
+
+      for (let i = 0; i < numMasks; i++) {
+        const maskData = _masks[0].data.slice(
+          i * _masks[0].dims[2] * _masks[0].dims[3],
+          (i + 1) * _masks[0].dims[2] * _masks[0].dims[3]
+        );
+        // Binarize the mask at 0.5 threshold
+        for (let j = 0; j < maskData.length; j++) {
+          maskData[j] = maskData[j] >= 0.5 ? 255 : 0;
+        }
+        const tensor = new Tensor("uint8", maskData, [
+          1,
+          1,
+          _masks[0].dims[2],
+          _masks[0].dims[3],
+        ]);
+        masks.push(tensor);
+      }
+
+      const scores = outputsArray[index].iou_scores.data;
+      const sortedMasks = masks
+        .map((mask: any, i: number) => ({ mask, score: scores[i] }))
+        .sort((a: any, b: any) => b.score - a.score)
+        .map((item: any) => item.mask);
+      const maskGeo: GeoJSON.FeatureCollection[] = maskToGeoJSON(
         {
-          mask: masks,
+          mask: sortedMasks.slice(0, (maxMasks as number) || 1),
           scores: outputsArray[index].iou_scores.data,
         },
         geoRawImage,
-        maxMasks as number
+        [128],
+        minArea as number
       );
-      return maskGeo;
+      const combinedFeatures: GeoJSON.Feature[] = [];
+      maskGeo.forEach(mc => {
+        combinedFeatures.push(...mc.features);
+      });
+      const fc: GeoJSON.FeatureCollection = {
+        type: "FeatureCollection",
+        features: combinedFeatures,
+      };
+      return fc;
     });
     // Combine all masks into a single GeoJSON FeatureCollection
     const combinedMasks: GeoJSON.FeatureCollection = {
