@@ -53,21 +53,17 @@ describe("test model geobase/land-cover-classification", () => {
     // Validate basic properties
     expect(results).toHaveProperty("detections");
     expect(results).toHaveProperty("outputImage");
-    expect(results).toHaveProperty("binaryMasks");
+    expect(results).toHaveProperty("geoRawImage");
 
     // Validate detections
-    expect(Array.isArray(results.detections)).toBe(true);
-    results.detections.forEach(async (detection: GeoJSON.FeatureCollection) => {
-      expect(detection.type).toBe("FeatureCollection");
-      expect(Array.isArray(detection.features)).toBe(true);
-
-      // Save output to gist
-      await geoJsonToGist({
-        content: detection,
-        fileName: "landCoverClassification.geojson",
-        description:
-          "result landCoverClassification - should process a polygon for land cover classification",
-      });
+    expect(results.detections.type).toBe("FeatureCollection");
+    expect(Array.isArray(results.detections.features)).toBe(true);
+    // Save output to gist
+    await geoJsonToGist({
+      content: results.detections,
+      fileName: "landCoverClassification.geojson",
+      description:
+        "result landCoverClassification - should process a polygon for land cover classification",
     });
 
     // Validate output image
@@ -76,13 +72,10 @@ describe("test model geobase/land-cover-classification", () => {
     expect(results.outputImage.width).toBeGreaterThan(0);
     expect(results.outputImage.height).toBeGreaterThan(0);
 
-    // Validate binary masks
-    expect(Array.isArray(results.binaryMasks)).toBe(true);
-    results.binaryMasks.forEach((mask: RawImage) => {
-      expect(mask).toBeInstanceOf(RawImage);
-      expect(mask.data).toBeDefined();
-      expect(mask.width).toBeGreaterThan(0);
-      expect(mask.height).toBeGreaterThan(0);
-    });
+    // Validate Reference image
+    expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+    expect(results.geoRawImage.data).toBeDefined();
+    expect(results.geoRawImage.width).toBeGreaterThan(0);
+    expect(results.geoRawImage.height).toBeGreaterThan(0);
   });
 });
