@@ -10,7 +10,7 @@ import { ProviderParams } from "@/geoai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import * as ort from "onnxruntime-web";
 import { InferenceParams, ObjectDetectionResults } from "@/core/types";
-import * as d3 from "d3-contour";
+import { contours } from "d3-contour";
 import { polygonArea } from "d3-polygon";
 
 export class BuildingFootPrintSegmentation extends BaseModel {
@@ -189,8 +189,7 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       if (CONFIDENCE_THRESHOLD > 0 && CONFIDENCE_THRESHOLD < 1) {
         CONFIDENCE_THRESHOLD = Math.floor(CONFIDENCE_THRESHOLD * 255);
       }
-      const contourGen = d3
-        .contours()
+      const contourGen = contours()
         .size([output.width, output.height])
         .thresholds([CONFIDENCE_THRESHOLD]);
 
@@ -198,11 +197,11 @@ export class BuildingFootPrintSegmentation extends BaseModel {
       output.data.forEach((v: number) => {
         data.push(v);
       });
-      const contours = contourGen(data);
+      const generatedContours = contourGen(data);
 
       const features: GeoJSON.Feature[] = [];
 
-      contours.forEach(contour => {
+      generatedContours.forEach(contour => {
         contour.coordinates.forEach(polygon => {
           polygon.forEach(ring => {
             if (ring.length < 3) return; // skip invalid rings

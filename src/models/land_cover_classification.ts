@@ -5,7 +5,7 @@ import { ProviderParams } from "@/geoai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { InferenceParams, onnxModel } from "@/core/types";
-import * as d3 from "d3-contour";
+import { contours } from "d3-contour";
 import { polygonArea } from "d3-polygon";
 
 export class LandCoverClassification extends BaseModel {
@@ -173,8 +173,7 @@ export class LandCoverClassification extends BaseModel {
       1,
       geoRawImage.getBounds()
     );
-    const contourGen = d3
-      .contours()
+    const contourGen = contours()
       .size([width, height])
       .thresholds(binaryThresholds)
       .smooth(true);
@@ -183,10 +182,10 @@ export class LandCoverClassification extends BaseModel {
     grayRawImage.data.forEach((v: number) => {
       data.push(v);
     });
-    const contours = contourGen(data);
+    const generatedContours = contourGen(data);
     const features: GeoJSON.Feature[] = [];
 
-    contours.forEach((contour, idx) => {
+    generatedContours.forEach((contour, idx) => {
       contour.coordinates.forEach(polygon => {
         polygon.forEach(ring => {
           if (ring.length < 3) return; // skip invalid rings
