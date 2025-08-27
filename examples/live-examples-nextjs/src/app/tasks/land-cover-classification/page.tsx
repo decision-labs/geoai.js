@@ -52,7 +52,7 @@ export default function LandCoverClassification() {
   const [classifications, setClassifications] = useState<any>();
   const [zoomLevel, setZoomLevel] = useState<number>(mapInitConfig.zoom);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
-  const [showDetections, setShowDetections] = useState(false);
+  const [showDetections, setShowDetections] = useState(true);
   const [drawWarning, setDrawWarning] = useState<string | null>(null);
   
     // Dynamic optimum zoom computed per provider (used for guiding drawing)
@@ -117,7 +117,7 @@ export default function LandCoverClassification() {
   };
 
   useEffect(() => {
-    if (!map.current || !lastResult?.outputImage) return;
+    if (!map.current || !lastResult?.outputImage || showDetections) return;
   
     const { width, height, data, bounds, channels } = lastResult.outputImage;
     const [west, south, east, north] = [
@@ -301,33 +301,25 @@ export default function LandCoverClassification() {
     if (lastResult?.outputImage?.bounds && map.current) {
       MapUtils.displayInferenceBounds(map.current, lastResult.outputImage.bounds);
     }
-  }, [lastResult]);
+  }, [lastResult, showDetections]);
 
   // Function to display detections on the map
   const displayDetections = (detections: any) => {
     console.log("Received detections:", detections);
-    
-    // Validate that we have an array of FeatureCollections
-    if (!Array.isArray(detections)) {
-      console.error("Expected array of FeatureCollections:", detections);
-      return;
-    }
-
     setClassifications(detections);
     
     if (!map.current) return;
 
-    // Remove existing detection layers if they exist
-    detections.forEach((_: GeoJSON.FeatureCollection, index: number) => {
-      const layerId = `detections-layer-${index}`;
-      const sourceId = `detections-source-${index}`;
+    for(let i = 0; i < 8; i++) {
+      const layerId = `detections-layer-${i}`;
+      const sourceId = `detections-source-${i}`;
       if (map.current?.getLayer(layerId)) {
         map.current.removeLayer(layerId);
-      }
+      }  
       if (map.current?.getSource(sourceId)) {
         map.current.removeSource(sourceId);
       }
-    });
+    }
 
     // Generate a color for each feature collection
     const colors = [
@@ -339,12 +331,35 @@ export default function LandCoverClassification() {
       '#00FFFF', // Cyan
       '#FFA500', // Orange
       '#800080', // Purple
-      '#008000', // Dark Green
-      '#000080', // Navy
     ];
 
-    // Add each feature collection as a separate layer
-    detections.forEach((featureCollection: GeoJSON.FeatureCollection, index: number) => {
+    const classes = [
+      "bareland",
+      "rangeland",
+      "developed space",
+      "road",
+      "tree",
+      "water",
+      "agriculture land",
+      "buildings"
+    ]
+    const features: GeoJSON.Feature[][] = []
+    detections.features.forEach((feature: GeoJSON.Feature) => {
+      const index = classes.indexOf(feature.properties?.class);
+      if(index === -1) return;
+      if(!features[index]) features[index] = [];
+      features[index].push(feature);
+    })
+
+    // Create a GeoJSON FeatureCollection for each class
+    const featureCollections: GeoJSON.FeatureCollection[] = features.map((featureGroup) => {
+      return {
+        type: "FeatureCollection",
+        features: featureGroup,
+      };
+    });
+
+    featureCollections.forEach((featureCollection, index) => {
       const layerId = `detections-layer-${index}`;
       const sourceId = `detections-source-${index}`;
       const color = colors[index % colors.length];
