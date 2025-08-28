@@ -334,8 +334,7 @@ export const getPolygonFromMask = (
 export const maskToGeoJSON = (
   masks: any,
   geoRawImage: GeoRawImage,
-  thresholds: number[] = [128],
-  minArea: number = 50
+  thresholds: number[] = [128]
 ): GeoJSON.FeatureCollection[] => {
   const featureCollections: GeoJSON.FeatureCollection[] = [];
 
@@ -344,38 +343,48 @@ export const maskToGeoJSON = (
       .size([mask.dims[3], mask.dims[2]])
       .thresholds(thresholds)
       .smooth(true);
-    const data: number[] = [];
-    mask.data.forEach((v: number) => {
-      data.push(v);
-    });
+    const data: number[] = Array.from(mask.data);
     const generatedContours = contoursGen(data);
-    const maskFeatures: GeoJSON.Feature[] = [];
+    const polygons: [number, number][][][] = []; // collection of polygons with rings
     generatedContours.forEach(contour => {
       contour.coordinates.forEach(polygon => {
+        const rings: [number, number][][] = [];
         polygon.forEach(ring => {
           if (ring.length < 3) return; // skip invalid rings
-          const area = Math.abs(polygonArea(ring as [number, number][]));
-          if (area < minArea) return;
-          const coordinates = ring.map(coord =>
+          const area = polygonArea(ring as [number, number][]);
+          // map to world coordinates
+          const coordinates = (ring as [number, number][]).map(coord =>
             geoRawImage.pixelToWorld(coord[0], coord[1])
           );
-          maskFeatures.push({
-            type: "Feature",
-            properties: {
-              score: masks.scores[index],
-            },
-            geometry: {
-              type: "Polygon",
-              coordinates: [coordinates],
-            },
-          });
+          if (area > 0) {
+            // CCW → outer ring
+            rings.unshift(coordinates);
+          } else {
+            // CW → hole
+            rings.push(coordinates);
+          }
         });
+
+        if (rings.length > 0) {
+          polygons.push(rings);
+        }
       });
     });
 
+    const maskFeature: GeoJSON.Feature = {
+      type: "Feature",
+      properties: {
+        score: masks.scores[index],
+      },
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: polygons,
+      },
+    };
+
     featureCollections.push({
       type: "FeatureCollection",
-      features: maskFeatures,
+      features: [maskFeature],
     });
   });
 

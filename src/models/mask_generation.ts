@@ -190,7 +190,7 @@ export class MaskGeneration extends BaseModel {
   async inference(params: InferenceParams): Promise<SegmentationResult> {
     const {
       inputs: { polygon, input },
-      postProcessingParams: { maxMasks = 1, minArea = 20 } = {},
+      postProcessingParams: { maxMasks = 1 } = {},
       mapSourceParams,
     } = params;
 
@@ -391,8 +391,7 @@ export class MaskGeneration extends BaseModel {
           scores: outputsArray[index].iou_scores.data,
         },
         geoRawImage,
-        [128],
-        minArea as number
+        [128]
       );
       const combinedFeatures: GeoJSON.Feature[] = [];
       maskGeo.forEach(mc => {
