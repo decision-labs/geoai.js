@@ -1,12 +1,14 @@
 import { BaseModel } from "@/models/base_model";
-import { ImageProcessor, PreTrainedModel } from "@huggingface/transformers";
-import { parametersChanged } from "@/utils/utils";
+import {
+  ImageProcessor,
+  PreTrainedModel,
+  Tensor,
+} from "@huggingface/transformers";
+import { maskToGeoJSON, parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geoai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { InferenceParams, onnxModel } from "@/core/types";
-import { contours } from "d3-contour";
-import { polygonArea } from "d3-polygon";
 
 export class LandCoverClassification extends BaseModel {
   protected static instance: LandCoverClassification | null = null;
@@ -69,7 +71,6 @@ export class LandCoverClassification extends BaseModel {
   async inference(params: InferenceParams): Promise<any> {
     const {
       inputs: { polygon },
-      postProcessingParams: { minArea = 20 } = {},
       mapSourceParams,
     } = params;
 
@@ -138,8 +139,11 @@ export class LandCoverClassification extends BaseModel {
 
     const outputImage = new Uint8Array(height * width * 3);
 
-    const binaryOutput = new Uint8Array(height * width * 1);
-    const binaryThresholds = [0, 32, 64, 96, 128, 160, 192, 224]; // Example thresholds for 8 classes
+    const binaryMasks: Uint8Array[] = [];
+    for (let i = 0; i < (this.classes?.length || 0); i++) {
+      binaryMasks.push(new Uint8Array(height * width));
+    }
+
     // Assign color to each pixel based on class index
     for (let i = 0; i < height * width; i++) {
       const classIndex = argmaxOutput[i];
@@ -149,13 +153,26 @@ export class LandCoverClassification extends BaseModel {
         outputImage[offset] = color[0];
         outputImage[offset + 1] = color[1];
         outputImage[offset + 2] = color[2];
-        binaryOutput[i] = binaryThresholds[classIndex];
+        binaryMasks[classIndex][i] = 255;
       } else {
         // Fallback to black if color is undefined
         outputImage[offset] = 0;
         outputImage[offset + 1] = 0;
         outputImage[offset + 2] = 0;
       }
+    }
+
+    const masksToKeep: number[] = [];
+    const binaryTensors: Tensor[] = [];
+    for (let i = 0; i < (this.classes?.length || 0); i++) {
+      //skip if all zeros
+      if (binaryMasks[i].every(v => v === 0)) {
+        continue;
+      }
+      masksToKeep.push(i);
+      binaryTensors.push(
+        new Tensor("uint8", binaryMasks[i], [1, 1, height, width])
+      );
     }
 
     // Create a new RawImage object with output data
@@ -166,45 +183,14 @@ export class LandCoverClassification extends BaseModel {
       3,
       geoRawImage.getBounds()
     );
-    const grayRawImage = new GeoRawImage(
-      binaryOutput,
-      height,
-      width,
-      1,
-      geoRawImage.getBounds()
-    );
-    const contourGen = contours()
-      .size([width, height])
-      .thresholds(binaryThresholds)
-      .smooth(true);
-
-    const data: number[] = [];
-    grayRawImage.data.forEach((v: number) => {
-      data.push(v);
-    });
-    const generatedContours = contourGen(data);
+    const maskToFC = maskToGeoJSON({ mask: binaryTensors }, geoRawImage);
     const features: GeoJSON.Feature[] = [];
-
-    generatedContours.forEach((contour, idx) => {
-      contour.coordinates.forEach(polygon => {
-        polygon.forEach(ring => {
-          if (ring.length < 3) return; // skip invalid rings
-          const area = Math.abs(polygonArea(ring as [number, number][]));
-          if (area < (minArea as number)) return;
-          const coordinates = ring.map(coord =>
-            grayRawImage.pixelToWorld(coord[0], coord[1])
-          );
-          features.push({
-            type: "Feature",
-            properties: {
-              class: this.classes ? this.classes[idx] : "unknown",
-            },
-            geometry: {
-              type: "Polygon",
-              coordinates: [coordinates],
-            },
-          });
-        });
+    maskToFC.forEach((fc, idx) => {
+      fc.features.forEach(feature => {
+        feature.properties = {
+          class: this.classes ? this.classes[masksToKeep[idx]] : "unknown",
+        };
+        features.push(feature);
       });
     });
 
