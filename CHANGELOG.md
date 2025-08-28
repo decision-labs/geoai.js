@@ -5,6 +5,27 @@ All notable changes to the geoai project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Removed OpenCV.js dependency across all AI models for improved performance and reduced bundle size
+- Migrated building-footprint-segmentation and landcover-classification to use d3-contours for contour processing
+- Replaced OpenCV implementations with native JavaScript solutions
+
+### Added
+- Tile stitching method to GeoRawImage for improved image handling capabilities
+- GeoJSON output option for landcover classification results
+- Result layer type selector for better visualization control
+
+### Fixed
+- Mask generation post-processing improvements
+- Multipolygon issues in mask generation
+- Landcover classification mask to polygon conversion accuracy
+
+### Improved
+- Overall library performance with removal of heavy OpenCV dependency
+- Memory usage optimization in geospatial processing tasks
+
 ## [1.0.0-rc.1] - 2024-01-XX
 
 ### Release Candidate
