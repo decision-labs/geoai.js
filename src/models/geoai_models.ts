@@ -1,10 +1,11 @@
-import { getPolygonFromMask, parametersChanged } from "@/utils/utils";
+import { maskToGeoJSON, parametersChanged } from "@/utils/utils";
 import { ProviderParams } from "@/geoai";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import {
   PreTrainedModel,
   PretrainedModelOptions,
   ImageProcessor,
+  Tensor,
 } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
@@ -46,7 +47,7 @@ abstract class BaseDetectionModel extends BaseModel {
     const maskHeight = maskDims[2];
     const maskWidth = maskDims[3];
 
-    const masksArray: Uint8Array[] = [];
+    const masksArray: Tensor[] = [];
     for (let idx = 0; idx < maskDims[0]; idx++) {
       const maskArray = new Uint8Array(maskHeight * maskWidth);
       const startIdx = idx * maskHeight * maskWidth;
@@ -55,42 +56,27 @@ abstract class BaseDetectionModel extends BaseModel {
         maskArray[i] = maskData[startIdx + i] > 0.5 ? 255 : 0; // Binarize mask
       }
 
-      masksArray.push(maskArray);
+      const tensor = new Tensor("uint8", maskArray, [
+        1,
+        1,
+        maskHeight,
+        maskWidth,
+      ]);
+      masksArray.push(tensor);
     }
 
     const features: GeoJSON.Feature[] = [];
-    if (masksArray.length > 0) {
-      masksArray.forEach(maskArray => {
-        const binaryMask2D: number[][] = [];
-        for (let i = 0; i < maskHeight; i++) {
-          const row: number[] = [];
-          for (let j = 0; j < maskWidth; j++) {
-            const index = i * maskWidth + j;
-            row.push(maskArray[index] > 0 ? 1 : 0); // Convert to binary values
-          }
-          binaryMask2D.push(row);
-        }
-
-        const polygon = getPolygonFromMask(binaryMask2D, geoRawImage);
-        features.push({
-          type: "Feature",
-          geometry: {
-            type: "Polygon",
-            coordinates: [polygon],
-          },
-          properties: {},
+    const masksToFC = maskToGeoJSON({ mask: masksArray }, geoRawImage);
+    if (masksToFC.length > 0) {
+      masksToFC.forEach(fc => {
+        fc.features.forEach(feature => {
+          features.push(feature);
         });
       });
-
-      return {
-        type: "FeatureCollection",
-        features,
-      };
     }
-
     return {
       type: "FeatureCollection",
-      features: [],
+      features,
     };
   }
 
@@ -412,55 +398,43 @@ export class WetLandSegmentation extends BaseModel {
   ): Promise<GeoJSON.FeatureCollection> {
     outputs = Object.values(outputs);
     const masks = outputs[1];
-    const scores = outputs[0].data as Float32Array;
-    const threshold = 0.5;
+    if (!masks || !masks.data || !masks.dims) {
+      throw new Error("Invalid output format: masks not found.");
+    }
 
     const maskData = masks.data as Float32Array;
-    const maskDims = masks.dims; // [masknumber, 1, height, width]
+    const maskDims = masks.dims;
     const maskHeight = maskDims[2];
     const maskWidth = maskDims[3];
 
-    const features: GeoJSON.Feature[] = [];
+    const numMasks = maskDims[0]; // Number of masks
+    const masksArray: Tensor[] = [];
 
-    // Process each mask separately
-    for (let idx = 0; idx < maskDims[0]; idx++) {
-      if (scores[idx] > threshold) {
-        const maskArray = new Uint8Array(maskHeight * maskWidth);
-        const startIdx = idx * maskHeight * maskWidth;
+    for (let idx = 0; idx < numMasks; idx++) {
+      const maskArray = new Uint8Array(maskHeight * maskWidth);
+      const startIdx = idx * maskHeight * maskWidth;
 
-        // Extract single mask
-        for (let i = 0; i < maskHeight * maskWidth; i++) {
-          maskArray[i] = maskData[startIdx + i] > 0.5 ? 1 : 0;
-        }
-
-        // Convert to 2D binary mask
-        const binaryMask2D: number[][] = [];
-        for (let i = 0; i < maskHeight; i++) {
-          const row: number[] = [];
-          for (let j = 0; j < maskWidth; j++) {
-            const index = i * maskWidth + j;
-            row.push(maskArray[index]);
-          }
-          binaryMask2D.push(row);
-        }
-
-        // Convert mask to polygon
-        const polygon = getPolygonFromMask(binaryMask2D, geoRawImage);
-        if (polygon) {
-          features.push({
-            type: "Feature",
-            geometry: {
-              type: "Polygon",
-              coordinates: [polygon],
-            },
-            properties: {
-              score: scores[idx],
-            },
-          });
-        }
+      for (let i = 0; i < maskHeight * maskWidth; i++) {
+        maskArray[i] = maskData[startIdx + i] > 0.5 ? 255 : 0;
       }
+      const tensor = new Tensor("uint8", maskArray, [
+        1,
+        1,
+        maskHeight,
+        maskWidth,
+      ]);
+      masksArray.push(tensor);
     }
 
+    const features: GeoJSON.Feature[] = [];
+    const masksToFC = maskToGeoJSON({ mask: masksArray }, geoRawImage);
+    if (masksToFC.length > 0) {
+      masksToFC.forEach(fc => {
+        fc.features.forEach(feature => {
+          features.push(feature);
+        });
+      });
+    }
     return {
       type: "FeatureCollection",
       features,

@@ -222,115 +222,6 @@ export const detectionsToGeoJSON = (
   };
 };
 
-const getEdges = (binaryMask: number[][]) => {
-  const rows = binaryMask.length;
-  const cols = binaryMask[0].length;
-  const edges = Array.from({ length: rows }, () => Array(cols).fill(0));
-
-  const isEdge = (i: number, j: number) => {
-    if (binaryMask[i][j] === 0) return false;
-    for (const [dx, dy] of [
-      [-1, 0],
-      [1, 0],
-      [0, -1],
-      [0, 1],
-      [-1, -1],
-      [-1, 1],
-      [1, -1],
-      [1, 1],
-    ]) {
-      const ni = i + dx,
-        nj = j + dy;
-      if (
-        ni < 0 ||
-        ni >= rows ||
-        nj < 0 ||
-        nj >= cols ||
-        binaryMask[ni][nj] === 0
-      ) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      edges[i][j] = isEdge(i, j) ? 1 : 0;
-    }
-  }
-  return edges;
-};
-
-export const getPolygonFromMask = (
-  mask: number[][],
-  geoRawImage: GeoRawImage
-) => {
-  const edges = getEdges(mask);
-  const height = edges.length;
-  const width = edges[0].length;
-
-  const isValid = (y: number, x: number) =>
-    y >= 0 && y < height && x >= 0 && x < width;
-
-  const directions = [
-    [0, 1],
-    [1, 1],
-    [1, 0],
-    [1, -1],
-    [0, -1],
-    [-1, -1],
-    [-1, 0],
-    [-1, 1],
-  ];
-
-  const polygon: [number, number][] = [];
-  let start: [number, number] | null = null;
-
-  // Find the first edge pixel
-  outerLoop: for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (edges[y][x] === 1) {
-        start = [y, x];
-        break outerLoop;
-      }
-    }
-  }
-
-  if (!start) return polygon; // No edges found
-
-  let current = start;
-  let prevDirection = 0;
-
-  do {
-    const [cy, cx] = current;
-    polygon.push(geoRawImage.pixelToWorld(cx, cy));
-
-    let found = false;
-    for (let i = 0; i < directions.length; i++) {
-      const dir = (prevDirection + i) % directions.length;
-      const [dy, dx] = directions[dir];
-      const ny = cy + dy,
-        nx = cx + dx;
-
-      if (isValid(ny, nx) && edges[ny][nx] === 1) {
-        current = [ny, nx];
-        prevDirection = (dir + directions.length - 2) % directions.length;
-        found = true;
-        break;
-      }
-    }
-
-    if (!found) break; // Stuck, break loop
-  } while (current[0] !== start[0] || current[1] !== start[1]);
-
-  if (polygon.length > 0) {
-    polygon.push(polygon[0]); // Close the polygon
-  }
-
-  return polygon;
-};
-
 export const maskToGeoJSON = (
   masks: any,
   geoRawImage: GeoRawImage,
@@ -374,7 +265,7 @@ export const maskToGeoJSON = (
     const maskFeature: GeoJSON.Feature = {
       type: "Feature",
       properties: {
-        score: masks.scores[index],
+        score: masks.scores?.[index],
       },
       geometry: {
         type: "MultiPolygon",
