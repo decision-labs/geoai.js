@@ -1,3 +1,4 @@
+// TODO: needs some love to cleanup the separation of raster and vector layers display logic
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -19,6 +20,8 @@ import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
 import { getOptimumZoom } from "@/utils/optimalParamsUtil";
 
 GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/68917a624c782f9c3fbde513/0/68917a624c782f9c3fbde514.tif"
+
+const CLASS_COUNT = 8;
 
 const mapInitConfig = {
   center: [-99.98154044151306,50.642806912434835] as [number, number],
@@ -49,15 +52,26 @@ export default function LandCoverClassification() {
   } = useGeoAIWorker();
 
   const [polygon, setPolygon] = useState<GeoJSON.Feature | null>(null);
-  const [classifications, setClassifications] = useState<any>();
+  const [classifications, setClassifications] = useState<GeoJSON.FeatureCollection[] | null>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(mapInitConfig.zoom);
   const [mapProvider, setMapProvider] = useState<MapProvider>("geobase");
-  const [showDetections, setShowDetections] = useState(true);
+  // const [showDetections, setShowDetections] = useState(false);
+  type DetectionLayerToShow = 'vector' | 'raster';
+  const [detectionLayerToShow, setDetectionLayerToShow] = useState<DetectionLayerToShow>('vector');
   const [drawWarning, setDrawWarning] = useState<string | null>(null);
   
     // Dynamic optimum zoom computed per provider (used for guiding drawing)
-    const optimumZoom = getOptimumZoom("land-cover-classification", mapProvider) ?? mapInitConfig.zoom;
+  const optimumZoom = getOptimumZoom("land-cover-classification", mapProvider) ?? mapInitConfig.zoom;
 
+  const hideVectorLayers = () => {
+    if(!map.current) return;
+    for(let i = 0; i < CLASS_COUNT; i++) {
+      const layerId = `detections-layer-${i}`;
+      if (map.current.getLayer(layerId)) {
+        map.current.setLayoutProperty(layerId, 'visibility', 'none');
+      }
+    }
+  }
 
   const handleReset = () => {
     // Clear all drawn features
@@ -93,7 +107,7 @@ export default function LandCoverClassification() {
 
     // Reset states
     setPolygon(null);
-    setClassifications(undefined);
+    setClassifications(null);
     clearError();
   };
 
@@ -117,7 +131,17 @@ export default function LandCoverClassification() {
   };
 
   useEffect(() => {
-    if (!map.current || !lastResult?.outputImage || showDetections) return;
+    if (!map.current || !lastResult?.outputImage) return;
+    
+    const rawImageLayerId = "geoai-rawimage-layer";
+    
+    if (detectionLayerToShow === 'vector') {
+      // Hide raster layer when vector is selected
+      if (map.current.getLayer(rawImageLayerId)) {
+        map.current.setLayoutProperty(rawImageLayerId, 'visibility', 'none');
+      }
+      return;
+    }
   
     const { width, height, data, bounds, channels } = lastResult.outputImage;
     const [west, south, east, north] = [
@@ -173,9 +197,12 @@ export default function LandCoverClassification() {
       paint: {
         "raster-opacity": 0.85,
       },
+      layout: {
+        "visibility": "visible"
+      }
     });
   
-  }, [lastResult?.outputImage]);
+  }, [lastResult?.outputImage, detectionLayerToShow]);
   
 
   useEffect(() => {
@@ -294,19 +321,27 @@ export default function LandCoverClassification() {
 
   // Handle results from the worker
   useEffect(() => {
-    if (lastResult?.detections && map.current && showDetections) {
-      displayDetections(lastResult.detections);
-      setClassifications(lastResult.detections);
-    }
+    if(!map.current || !lastResult) return;
+
     if (lastResult?.outputImage?.bounds && map.current) {
       MapUtils.displayInferenceBounds(map.current, lastResult.outputImage.bounds);
     }
-  }, [lastResult, showDetections]);
+    
+    if (!lastResult.detections) return;
+
+    setClassifications(lastResult.detections as unknown as GeoJSON.FeatureCollection[]);
+   
+    if (detectionLayerToShow === 'vector') {
+      displayDetections(lastResult.detections);
+    } else {
+      hideVectorLayers();
+    }
+    
+  }, [lastResult, detectionLayerToShow]);
 
   // Function to display detections on the map
   const displayDetections = (detections: any) => {
     console.log("Received detections:", detections);
-    setClassifications(detections);
     
     if (!map.current) return;
 
@@ -380,6 +415,9 @@ export default function LandCoverClassification() {
           "fill-opacity": 0.9,
           "fill-outline-color": color,
         },
+        layout: {
+          "visibility": "visible"
+        }
       });
 
       // Add hover functionality for each layer
@@ -451,6 +489,7 @@ export default function LandCoverClassification() {
             lastResult={lastResult}
             error={error}
             drawWarning={drawWarning}
+            detectionLayerToShow={detectionLayerToShow}
             title="Land Cover Classification"
             description="Advanced geospatial AI powered land cover classification system"
             onStartDrawing={handleStartDrawing}
@@ -458,6 +497,7 @@ export default function LandCoverClassification() {
             onReset={handleReset}
             onZoomChange={handleZoomChange}
             onMapProviderChange={setMapProvider}
+            onDetectionLayerChange={setDetectionLayerToShow}
             optimumZoom={optimumZoom}
           />
         </div>
@@ -473,7 +513,7 @@ export default function LandCoverClassification() {
         {/* Export Button - Floating in top right corner */}
         <div className="absolute top-6 right-6 z-10">
           <ExportButton
-            detections={classifications && Array.isArray(classifications) && classifications.length > 0 
+            detections={classifications && classifications.length > 0 
               ? {
                   type: "FeatureCollection" as const,
                   features: classifications.flatMap((fc: GeoJSON.FeatureCollection) => fc.features)
@@ -483,7 +523,7 @@ export default function LandCoverClassification() {
             geoRawImage={lastResult?.geoRawImage}
             task="land-cover-classification"
             provider={mapProvider}
-            disabled={(!classifications || !Array.isArray(classifications) || classifications.length === 0) && !lastResult?.geoRawImage}
+            disabled={!classifications && !lastResult?.geoRawImage}
             className="shadow-2xl backdrop-blur-lg"
           />
         </div>

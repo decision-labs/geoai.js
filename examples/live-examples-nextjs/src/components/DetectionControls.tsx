@@ -7,6 +7,8 @@ import { MapProviderSelector } from './MapProviderSelector';
 import { StatusMessage } from './ui/StatusMessage';
 import { MapProvider } from "../types"
 
+type DetectionLayerToShow = 'vector' | 'raster';
+
 interface DetectionControlsProps {
   // State props
   polygon: GeoJSON.Feature | null;
@@ -17,6 +19,7 @@ interface DetectionControlsProps {
   lastResult: any;
   error: string | null;
   drawWarning?: string | null;
+  detectionLayerToShow?: DetectionLayerToShow;
 
   // Content props
   title?: string;
@@ -28,6 +31,7 @@ interface DetectionControlsProps {
   onReset: () => void;
   onZoomChange: (zoom: number) => void;
   onMapProviderChange: (provider: MapProvider) => void;
+  onDetectionLayerChange?: (layer: DetectionLayerToShow) => void;
 
   className?: string;
   optimumZoom?: number;
@@ -101,6 +105,7 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
   lastResult,
   error,
   drawWarning = null,
+  detectionLayerToShow = 'vector',
   title = 'AI Detection',
   description = 'Advanced geospatial AI powered detection system',
   onStartDrawing,
@@ -108,6 +113,7 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
   onReset,
   onZoomChange,
   onMapProviderChange,
+  onDetectionLayerChange,
   className = '',
   optimumZoom = 18
 }) => {
@@ -163,6 +169,44 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
             onChange={onMapProviderChange}
           />
         </GlassmorphismCard>
+
+        {/* Detection Layer Display Mode - Only show if we have results and callback */}
+        {lastResult && onDetectionLayerChange && (
+          <GlassmorphismCard glowColor="teal">
+            <h3 className="font-semibold text-gray-700 mb-4 flex items-center">
+              <span className="w-2 h-2 bg-teal-500 rounded-full mr-2 animate-pulse"></span>
+              Display Mode
+            </h3>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => onDetectionLayerChange('vector')}
+                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  detectionLayerToShow === 'vector'
+                    ? 'bg-teal-500 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Vector
+              </button>
+              <button
+                onClick={() => onDetectionLayerChange('raster')}
+                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  detectionLayerToShow === 'raster'
+                    ? 'bg-teal-500 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Raster
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {detectionLayerToShow === 'vector' 
+                ? 'Show classified areas as interactive vector polygons'
+                : 'Show classified areas as an image overlay'
+              }
+            </p>
+          </GlassmorphismCard>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-4">
