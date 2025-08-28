@@ -68,11 +68,10 @@ const pipeline = await geoai.pipeline(
 // Run classification
 const result = await pipeline.inference({
   inputs: { polygon: myPolygon },
-  postProcessingParams: { minArea: 20 },
 });
 
 console.log(
-  `Classified ${result.classifications.features.length} land cover areas`
+  `Detections ${result.detections.features.length}`
 );
 ```
 
@@ -82,14 +81,6 @@ console.log(
 </Callout>
 
 ## Parameters
-
-### Post-Processing
-
-```typescript
-postProcessingParams: {
-  minArea: 20; // Minimum area threshold for classification polygons
-}
-```
 
 ### Map Source
 
@@ -114,15 +105,13 @@ mapSourceParams: {
 
 ## Output
 
-Returns a list of GeoJSON FeatureCollections (one for each land cover class):
+Returns a FeatureCollection (each feature has its own land cover class):
 
 ```typescript
 {
   geoRawImage : GeoRawImage, // Inference image
   outPutImage : GeoRawImage, // combined masks
-  binaryMasks : RawImage // binary mask for each class
-  detections: [   // list of FeatureCollection
-    {
+  detections: {
       type: "FeatureCollection",
       features: [
         {
@@ -132,19 +121,6 @@ Returns a list of GeoJSON FeatureCollections (one for each land cover class):
           }
         }
       ]
-    },
-    {
-      type: "FeatureCollection",
-      features: [
-        {
-          geometry: { /* agriculture polygon */ },
-          properties: {
-            class: "agriculture land"
-          }
-        }
-      ]
     }
-    // ... one FeatureCollection for each detected land cover class
-  ]
 }
 ```
