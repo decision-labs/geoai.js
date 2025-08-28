@@ -17,7 +17,7 @@
     "@techstark/opencv-js": "^4.10.0-release.1",
     "@turf/turf": "^7.2.0",
     "@vercel/analytics": "^1.5.0",
-    "geoai": "1.0.2",
+    "geoai": "1.0.3",
     "lucide-react": "^0.536.0",
     "maplibre-gl": "^5.6.2",
     "maplibre-gl-draw": "^1.6.9",
