@@ -20,6 +20,7 @@ import {
   SolarPanelDetection,
   WetLandSegmentation,
 } from "./models/geoai_models";
+import { CoconutTreeDetection } from "./models/coconut_tree_detection";
 import { OilStorageTankDetection } from "./models/oil_storage_tank_detection";
 import { BuildingFootPrintSegmentation } from "./models/building_footprint_segmentation";
 import { ImageFeatureExtraction } from "./models/image_feature_extraction";
@@ -325,6 +326,31 @@ export const modelRegistry: ModelConfig[] = [
         params,
         modelParams
       );
+    },
+  },
+  {
+    task: "coconut-tree-detection",
+    library: "geoai",
+    description:
+      "Detects coconut trees in high-resolution aerial imagery. Optimized for agricultural monitoring, plantation management, and environmental assessment. Uses YOLOv11n architecture for fast inference.",
+    examples: [
+      "Find all coconut trees in this plantation area.",
+      "Detect coconut palms in this coastal region.",
+      "Count coconut trees in this agricultural zone.",
+      "Identify coconut trees for inventory purposes.",
+      "Monitor coconut tree density in this farm.",
+    ],
+    ioConfig: {} as baseIOConfig,
+    geobase_ai_pipeline: (
+      params: ProviderParams,
+      modelId: string = "geobase/coconut-detection-v1-yolov11n",
+      modelParams: PretrainedModelOptions = {
+        model_file_name: "model",
+      }
+    ): Promise<{
+      instance: CoconutTreeDetection;
+    }> => {
+      return CoconutTreeDetection.getInstance(modelId, params, modelParams);
     },
   },
   {

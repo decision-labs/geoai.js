@@ -4,6 +4,7 @@ export default {
   "building-detection": "Building Detection",
   "building-footprint-segmentation": "Building Footprint Segmentation",
   "car-detection": "Car Detection",
+  "coconut-tree-detection": "Coconut Tree Detection",
   "ship-detection": "Ship Detection",
   "solar-panel-detection": "Solar Panel Detection",
   "oil-storage-tank-detection": "Oil Storage Tank Detection",

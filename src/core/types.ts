@@ -12,6 +12,7 @@ import {
   SolarPanelDetection,
   WetLandSegmentation,
 } from "@/models/geoai_models";
+import { CoconutTreeDetection } from "@/models/coconut_tree_detection";
 import { LandCoverClassification } from "@/models/land_cover_classification";
 import { ObjectDetection } from "@/models/object_detection";
 import { OilStorageTankDetection } from "@/models/oil_storage_tank_detection";
@@ -104,7 +105,8 @@ export type GeobaseAiModelTask =
   | "wetland-segmentation"
   | "building-detection"
   | "oil-storage-tank-detection"
-  | "building-footprint-segmentation";
+  | "building-footprint-segmentation"
+  | "coconut-tree-detection";
 
 export type ModelInstance =
   | MaskGeneration
@@ -119,7 +121,8 @@ export type ModelInstance =
   | BuildingDetection
   | OilStorageTankDetection
   | BuildingFootPrintSegmentation
-  | ImageFeatureExtraction;
+  | ImageFeatureExtraction
+  | CoconutTreeDetection;
 
 export type ModelConfig = {
   task: HuggingFaceModelTask | GeobaseAiModelTask;

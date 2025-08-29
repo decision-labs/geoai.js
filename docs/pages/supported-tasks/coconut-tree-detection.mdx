@@ -1,0 +1,190 @@
+import { Callout } from "nextra/components";
+
+# Coconut Tree Detection
+
+> **Detect coconut trees in high-resolution aerial imagery using YOLOv11n**
+
+The coconut tree detection model identifies coconut palm trees in aerial and satellite imagery. This model is particularly useful for agricultural monitoring, plantation management, and environmental assessment in tropical regions.
+
+<Callout type="info">
+  **Model Architecture**: YOLOv11n (Nano) - optimized for fast inference while maintaining high accuracy for coconut tree detection.
+</Callout>
+
+## Features
+
+- **High Precision**: 88.6% precision with 80.2% recall
+- **Fast Inference**: ~11ms inference time on modern hardware
+- **Small Model Size**: Only ~5.4MB for efficient deployment
+- **Real-time Capable**: Suitable for interactive applications
+
+## Use Cases
+
+### 🌾 Agricultural Monitoring
+- **Plantation Management**: Monitor tree health and density
+- **Crop Inventory**: Automated counting for insurance and assessment
+- **Growth Tracking**: Compare detection results over time
+
+### 🛰️ Remote Sensing
+- **Land Use Analysis**: Classify agricultural vs. natural areas
+- **Environmental Monitoring**: Track deforestation and reforestation
+- **Biodiversity Assessment**: Evaluate forest composition
+
+### 📊 Commercial Applications
+- **Insurance**: Automated crop assessment for agricultural insurance
+- **Investment**: Due diligence for agricultural investments
+- **Supply Chain**: Monitor coconut production capacity
+
+## Example Usage
+
+```javascript
+import { geoai } from "geoai";
+
+// Initialize the pipeline
+const pipeline = await geoai.pipeline([
+  { task: "coconut-tree-detection" }
+], { provider: "geobase", apikey: "your-api-key", cogImagery: "satellite", projectRef: "your-project" });
+
+// Define your area of interest
+const plantationArea = {
+  type: "Feature",
+  geometry: {
+    type: "Polygon",
+    coordinates: [[
+      [-80.1234, 25.7617],
+      [-80.1200, 25.7617], 
+      [-80.1200, 25.7580],
+      [-80.1234, 25.7580],
+      [-80.1234, 25.7617]
+    ]]
+  }
+};
+
+// Run coconut tree detection
+const result = await pipeline.inference({
+  inputs: { polygon: plantationArea },
+  mapSourceParams: { zoomLevel: 18 }
+});
+
+console.log(`Found ${result.detections.features.length} coconut trees! 🌴`);
+
+// Access individual detections
+result.detections.features.forEach((tree, index) => {
+  console.log(`Tree ${index + 1}: ${tree.properties.confidence.toFixed(3)} confidence`);
+});
+```
+
+## Parameters
+
+### Input Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `polygon` | GeoJSON Feature | ✅ | Area of interest for coconut tree detection |
+| `confidenceThreshold` | number | ❌ | Minimum confidence threshold (default: 0.5) |
+| `nmsThreshold` | number | ❌ | Non-maximum suppression threshold (default: 0.5) |
+
+### Map Source Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `zoomLevel` | number | Zoom level for imagery (recommended: 17-19) |
+| `bands` | number[] | Spectral bands to use (default: RGB) |
+
+## Output Format
+
+The model returns a GeoJSON FeatureCollection where each feature represents a detected coconut tree:
+
+```json
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[lng, lat], [lng, lat], ...]]
+      },
+      "properties": {
+        "confidence": 0.89,
+        "class": "coconut_tree"
+      }
+    }
+  ]
+}
+```
+
+## Performance Metrics
+
+| Metric | Value | Description |
+|--------|-------|-------------|
+| **Precision** | 88.6% | Accuracy of positive detections |
+| **Recall** | 80.2% | Percentage of trees successfully detected |
+| **mAP@0.5** | 85.0% | Mean Average Precision at IoU 0.5 |
+| **mAP@0.5:0.95** | 50.7% | Mean Average Precision across IoU thresholds |
+| **Inference Time** | ~11ms | Average processing time per image |
+| **Model Size** | 5.4MB | Optimized for fast loading |
+
+## Best Practices
+
+### Image Quality
+- **Resolution**: Use high-resolution imagery (≤10cm/pixel) for best results
+- **Zoom Level**: Recommended zoom levels 17-19 for optimal tree visibility
+- **Weather**: Clear conditions without cloud cover provide best accuracy
+
+### Area Selection
+- **Size**: Process areas in manageable chunks (< 1 km²) for optimal performance
+- **Overlap**: Use 10-20% overlap between adjacent areas for complete coverage
+- **Terrain**: Model works best on relatively flat terrain typical of plantations
+
+### Confidence Tuning
+- **High Precision**: Use confidenceThreshold > 0.7 to minimize false positives
+- **High Recall**: Use confidenceThreshold < 0.3 to catch more trees (may include false positives)
+- **Balanced**: Default 0.5 provides good balance of precision and recall
+
+## Limitations
+
+<Callout type="warning">
+  **Current Limitations**: 
+  - Trained primarily on aerial imagery from specific geographic regions
+  - Performance may vary with different coconut tree varieties
+  - Dense vegetation may cause occlusion and missed detections
+</Callout>
+
+- **Geographic Bias**: Training data primarily from specific tropical regions
+- **Tree Varieties**: Optimized for common coconut palm varieties
+- **Occlusion**: Dense canopy may hide some trees
+- **Resolution Dependency**: Requires high-resolution imagery for accuracy
+
+## Technical Details
+
+### Model Architecture
+- **Base Model**: YOLOv11n (Ultralytics)
+- **Framework**: ONNX for cross-platform compatibility
+- **Input Size**: 256×256×3 (RGB)
+- **Output**: Bounding boxes with confidence scores
+
+### Training Data
+- **Dataset Size**: 772 high-resolution aerial patches
+- **Spatial Resolution**: ~9cm ground sampling distance
+- **Geographic Coverage**: Multiple tropical regions
+- **Annotation Quality**: Expert-validated coconut tree labels
+
+### Version Information
+- **Current Version**: v1.0 (Baseline)
+- **Model ID**: `geobase/coconut-tree-detection-v1-yolov11n`
+- **Release Date**: August 2024
+- **License**: MIT
+
+## Related Tasks
+
+- [Building Detection](./building-detection) - For identifying structures in agricultural areas
+- [Object Detection](./object-detection) - For general purpose object detection
+- [Land Cover Classification](./land-cover-classification) - For broader landscape analysis
+
+## Support
+
+For questions, issues, or feature requests related to coconut tree detection:
+
+- **Documentation**: [GeoAI.js Docs](https://docs.geobase.app/geoai)
+- **GitHub Issues**: [Report Issues](https://github.com/decision-labs/geoai.js/issues)
+- **Community**: [GitHub Discussions](https://github.com/decision-labs/geoai.js/discussions)
