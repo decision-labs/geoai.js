@@ -40,15 +40,7 @@ class DeckGLDemo {
       this.deck = new Deck({
         container: "map",
         initialViewState: INITIAL_VIEW_STATE,
-        controller: {
-          dragPan: true,
-          dragRotate: true,
-          doubleClickZoom: true,
-          touchZoom: true,
-          touchRotate: true,
-          keyboard: true,
-          scrollZoom: true,
-        },
+        controller: true,
         layers: [this.satelliteLayer],
         onClick: this.handleMapClick.bind(this),
       });
@@ -111,7 +103,6 @@ class DeckGLDemo {
   toggleDrawing() {
     this.isDrawing = !this.isDrawing;
     const button = document.getElementById("draw-polygon");
-    const mapElement = document.getElementById("map");
 
     if (this.isDrawing) {
       button.textContent = "Finish Polygon";
@@ -131,14 +122,17 @@ class DeckGLDemo {
 
     const { coordinate } = info;
     this.currentPolygon.push(coordinate);
-
-    // Update visual feedback
     this.updatePolygonLayer();
   }
 
-  updatePolygonLayer() {
-    console.log("updatePolygonLayer called", this.currentPolygon.length);
+  resetDrawingState() {
+    this.isDrawing = false;
+    const button = document.getElementById("draw-polygon");
+    button.textContent = "Draw Polygon";
+    button.style.background = "#2196f3";
+  }
 
+  updatePolygonLayer() {
     const layers = [this.satelliteLayer];
 
     // Add current polygon being drawn
@@ -175,11 +169,8 @@ class DeckGLDemo {
       layers.push(
         new ScatterplotLayer({
           id: "drawing-points",
-          data: this.currentPolygon.map((coord, index) => ({
-            position: coord,
-            index: index,
-          })),
-          getPosition: d => d.position,
+          data: this.currentPolygon,
+          getPosition: d => d,
           getRadius: 8,
           getFillColor: [255, 255, 255, 255],
           getLineColor: [0, 0, 255, 255],
@@ -214,10 +205,7 @@ class DeckGLDemo {
       return;
     }
 
-    const button = document.getElementById("draw-polygon");
-    button.textContent = "Draw Polygon";
-    button.style.background = "#2196f3";
-    this.isDrawing = false;
+    this.resetDrawingState();
 
     // Create GeoJSON polygon
     const polygon = {
@@ -257,11 +245,7 @@ class DeckGLDemo {
   clearMap() {
     this.currentPolygon = [];
     this.detectionResults = null;
-    this.isDrawing = false;
-
-    const button = document.getElementById("draw-polygon");
-    button.textContent = "Draw Polygon";
-    button.style.background = "#2196f3";
+    this.resetDrawingState();
 
     this.deck.setProps({
       layers: [this.satelliteLayer],
