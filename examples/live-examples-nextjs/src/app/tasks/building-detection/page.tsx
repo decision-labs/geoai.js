@@ -47,6 +47,7 @@ export default function BuildingDetection() {
     initializeModel,
     runInference,
     clearError,
+    onProgressRef
   } = useGeoAIWorker();
 
   const [polygon, setPolygon] = useState<GeoJSON.Feature | null>(null);
@@ -73,6 +74,9 @@ export default function BuildingDetection() {
     setPolygon(null);
     setDetections(undefined);
     clearError();
+    
+    // Clear progress callback
+    onProgressRef.current = null;
   };
 
   const handleZoomChange = (newZoom: number) => {
@@ -86,6 +90,42 @@ export default function BuildingDetection() {
   const handleDetect = () => {
     if (!polygon) return;
     
+    // Set up progress callback to display intermediate detections
+    onProgressRef.current = (payload: { progress: number; detections: GeoJSON.FeatureCollection; features?: GeoJSON.Feature[] }) => {
+      // Handle both the correct type (detections as FeatureCollection) and fallback (features as array)
+      const newDetections = payload.detections || (payload.features ? {
+        type: "FeatureCollection" as const,
+        features: payload.features
+      } : null);
+      
+      if (!newDetections || !newDetections.features || newDetections.features.length === 0) {
+        return;
+      }
+      
+      // Update state with intermediate detections and get the accumulated result
+      setDetections(prevDetections => {
+        let accumulatedDetections: GeoJSON.FeatureCollection;
+        
+        if (prevDetections && Array.isArray(prevDetections.features)) {
+          // Append new features to the existing ones
+          accumulatedDetections = {
+            ...prevDetections,
+            features: [...prevDetections.features, ...newDetections.features]
+          };
+        } else {
+          // If it's the first set of features or prevDetections is invalid, use the new detections
+          accumulatedDetections = newDetections;
+        }
+        
+        // Display ALL accumulated detections on map immediately for interactive feedback
+        if (map.current) {
+          MapUtils.displayDetections(map.current, accumulatedDetections);
+        }
+        
+        return accumulatedDetections;
+      });
+    };
+    
     runInference(
       {
         inputs: {
@@ -94,9 +134,12 @@ export default function BuildingDetection() {
         mapSourceParams: {
          zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
         },
+        inferencePerTile: true,
       }
     );
   };
+
+
 
   const handleStartDrawing = () => {
     if (zoomLevel < optimumZoom - 1) {
@@ -168,6 +211,8 @@ export default function BuildingDetection() {
       if (map.current) {
         map.current.remove();
       }
+      // Clear progress callback on unmount
+      onProgressRef.current = null;
     };
   }, []); // Removed mapProvider dependency
 

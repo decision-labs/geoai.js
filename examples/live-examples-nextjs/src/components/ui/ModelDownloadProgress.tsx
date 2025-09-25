@@ -14,9 +14,9 @@ export function ModelDownloadProgress({
   isEstimating,
   className = '',
 }: ModelDownloadProgressProps) {
-  console.log(`[ModelDownloadProgress] isEstimating=${isEstimating}, progress=${progress}, downloadInfo=`, downloadInfo);
+  // console.log(`[ModelDownloadProgress] isEstimating=${isEstimating}, progress=${progress}, downloadInfo=`, downloadInfo);
   if (!isEstimating || !downloadInfo) {
-    console.log(`[ModelDownloadProgress] Not rendering: isEstimating=${isEstimating}, downloadInfo=`, downloadInfo);
+    // console.log(`[ModelDownloadProgress] Not rendering: isEstimating=${isEstimating}, downloadInfo=`, downloadInfo);
     return null;
   }
 

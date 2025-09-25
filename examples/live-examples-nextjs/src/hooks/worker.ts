@@ -64,12 +64,24 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
           postProcessingParams,
           mapSourceParams,
         });
+        const onProgressCallback = (progressPayload: { progress: number; detections: GeoJSON.FeatureCollection }) => {
+          self.postMessage({
+            type: "inference_progress",
+            payload: {
+              progress: progressPayload.progress,
+              // Send detections as FeatureCollection (correct type)
+              detections: progressPayload.detections,
+              // Also send features array for backward compatibility
+              features: progressPayload.detections?.features || [],
+            },
+          });
+        };
 
         console.log("[Worker] Starting inference");
 
         let result: any;
         try {
-          result = await modelInstance.inference(payload as InferenceParams);
+          result = await modelInstance.inference({...(payload as InferenceParams), onProgress : onProgressCallback});
         } catch (inferErr) {
           console.error("[Worker] Inference error:", inferErr);
           throw inferErr;

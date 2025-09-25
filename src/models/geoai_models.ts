@@ -9,7 +9,7 @@ import {
 } from "@huggingface/transformers";
 import * as ort from "onnxruntime-web";
 import { BaseModel } from "./base_model";
-import { InferenceParams, ObjectDetectionResults } from "@/core/types";
+import { InferenceParams, ObjectDetectionResults, ProgressCallbackPayload } from "@/core/types";
 
 /**
  * Base class for all geo-based detection models
@@ -18,6 +18,7 @@ abstract class BaseDetectionModel extends BaseModel {
   protected model: ort.InferenceSession | undefined;
   protected zoom?: number;
   protected processor: ImageProcessor | undefined;
+  private sessionQueue: Promise<any> = Promise.resolve();
 
   protected constructor(
     model_id: string,
@@ -36,6 +37,27 @@ abstract class BaseDetectionModel extends BaseModel {
     this.model = pretrainedModel.sessions.model;
   }
 
+  /**
+   * Safely run inference with session queuing to prevent concurrent access
+   */
+  private async safeRunInference(singleImageTensor: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.sessionQueue = this.sessionQueue.then(async () => {
+        try {
+          if (!this.model) {
+            throw new Error("Model not initialized");
+          }
+          const result = await this.model.run({ image: singleImageTensor });
+          resolve(result);
+          return result;
+        } catch (error) {
+          reject(error);
+          throw error;
+        }
+      });
+    });
+  }
+
   protected async postProcessor(
     outputs: any,
     geoRawImage: GeoRawImage
@@ -48,12 +70,17 @@ abstract class BaseDetectionModel extends BaseModel {
     const maskWidth = maskDims[3];
 
     const masksArray: Tensor[] = [];
-    for (let idx = 0; idx < maskDims[0]; idx++) {
-      const maskArray = new Uint8Array(maskHeight * maskWidth);
-      const startIdx = idx * maskHeight * maskWidth;
+    const numMasks = maskDims[0];
+    const maskSize = maskHeight * maskWidth;
+    
+    // Pre-allocate array for better performance
+    for (let idx = 0; idx < numMasks; idx++) {
+      const maskArray = new Uint8Array(maskSize);
+      const startIdx = idx * maskSize;
 
-      for (let i = 0; i < maskHeight * maskWidth; i++) {
-        maskArray[i] = maskData[startIdx + i] > 0.5 ? 255 : 0; // Binarize mask
+      // More efficient binarization using bitwise operations
+      for (let i = 0; i < maskSize; i++) {
+        maskArray[i] = maskData[startIdx + i] > 0.5 ? 255 : 0;
       }
 
       const tensor = new Tensor("uint8", maskArray, [
@@ -107,36 +134,141 @@ abstract class BaseDetectionModel extends BaseModel {
       polygon,
       mapSourceParams?.zoomLevel,
       mapSourceParams?.bands,
-      mapSourceParams?.expression
+      mapSourceParams?.expression,
+      true,
+      // (!inferencePerTile && true)
     )) as GeoRawImage;
+    const patches = await geoRawImage.toPatches(512, 512);
+
+    console.log({geoRawImage})
+
+    const flatGeorawImage = (patches as unknown as GeoRawImage[][]).flat()
 
     const task = this.model_id.split("/").pop()?.split(".")[0].split("_")[0];
-    const inferenceStartTime = performance.now();
     console.log(`[${task}] starting inference...`);
     if (!this.processor) {
       throw new Error("Processor not initialized");
     }
-    const inputs = await this.processor(geoRawImage);
-    let outputs;
-    try {
-      if (!this.model) {
-        throw new Error("Model not initialized");
+    const inputs = await this.processor(flatGeorawImage);
+    console.log({inputs});
+    
+    // Note: The processor handles data type conversion (typically to float32 for model input)
+    // The postProcessor converts back to uint8 for mask generation
+    
+    const batchSize = inputs.pixel_values.dims[0];
+    const channels = inputs.pixel_values.dims[1];
+    const side1 = inputs.pixel_values.dims[2];
+    const side2 = inputs.pixel_values.dims[3];
+    
+    // Process images with controlled concurrency (serialized model access)
+    const imageDataSize = channels * side1 * side2;
+    const overallStartTime = performance.now();
+
+    // Process images in chunks - model access is serialized to prevent session conflicts
+    const maxConcurrent = Math.min(batchSize, 4); // Process max 4 images concurrently
+    const allDetections: GeoJSON.Feature[] = [];
+    const inferenceRunTimes: number[] = [];
+
+    // Process images in chunks
+    for (let chunkStart = 0; chunkStart < batchSize; chunkStart += maxConcurrent) {
+      const chunkEnd = Math.min(chunkStart + maxConcurrent, batchSize);
+      
+      // Create promises for this chunk
+      const chunkPromises = [];
+      for (let i = chunkStart; i < chunkEnd; i++) {
+        chunkPromises.push(
+          (async () => {
+            // Create a new tensor for the single image
+            const startIdx = i * imageDataSize;
+            const endIdx = startIdx + imageDataSize;
+            
+            const singleImageTensor: any = new Tensor(
+              'float32',
+              inputs.pixel_values.data.subarray(startIdx, endIdx),
+              [1, channels, side1, side2]
+            );
+            
+            let outputs;
+            try {
+              const singleInferenceStartTime = performance.now();
+              outputs = await this.safeRunInference(singleImageTensor);
+              const singleInferenceEndTime = performance.now();
+              const inferenceTime = singleInferenceEndTime - singleInferenceStartTime;
+              
+              // Perform post-processing for each individual output
+              const postProcessedOutputs = await this.postProcessor(outputs, flatGeorawImage[i]);
+              
+              // Progress callback
+              if(params.onProgress){
+                console.log('[Progress Callback] sending progress')
+                const payload: ProgressCallbackPayload = {
+                  progress : i,
+                  detections : postProcessedOutputs,
+                  geoRawImage : flatGeorawImage[i]
+                }
+                params.onProgress(payload);
+              }
+              
+              return {
+                features: postProcessedOutputs.features,
+                inferenceTime: inferenceTime,
+                imageIndex: i
+              };
+            } catch (error) {
+              console.debug("error", error);
+              throw error;
+            }
+          })()
+        );
       }
-      outputs = await this.model.run({ image: inputs.pixel_values });
-    } catch (error) {
-      console.debug("error", error);
-      throw error;
+
+      // Wait for this chunk to complete
+      const chunkResults = await Promise.all(chunkPromises);
+      
+      // Sort results by image index to maintain order
+      chunkResults.sort((a, b) => a.imageIndex - b.imageIndex);
+      
+      // Collect results from this chunk
+      for (const result of chunkResults) {
+        allDetections.push(...result.features);
+        inferenceRunTimes.push(result.inferenceTime);
+      }
     }
 
-    outputs = await this.postProcessor(outputs, geoRawImage);
-    const inferenceEndTime = performance.now();
+    const overallEndTime = performance.now();
+
+    // Log performance metrics
+    const totalInferenceTime = inferenceRunTimes.reduce((a, b) => a + b, 0);
+    const averageInferenceTime = totalInferenceTime / inferenceRunTimes.length;
+    const totalWallTime = overallEndTime - overallStartTime;
+    
     console.log(
-      `[${task}] inference completed. Time taken: ${(inferenceEndTime - inferenceStartTime).toFixed(2)}ms`
+        `[${task}] processed ${batchSize} images with serialized model access. ` +
+        `Average inference time: ${averageInferenceTime.toFixed(2)}ms, ` +
+        `Total wall time: ${totalWallTime.toFixed(2)}ms, ` +
+        `Efficiency: ${(totalInferenceTime / totalWallTime).toFixed(2)}x`
     );
 
+    const fc: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features : allDetections,
+    }
+    // const north = (patches as any)[0][0].getBounds().north;
+    // const south = (geoRawImage as any)[(geoRawImage as any).length - 1][0].getBounds().south;
+    // const west = (geoRawImage as any)[0][0].getBounds().west;
+    // const east = (geoRawImage as any)[0][(geoRawImage as any)[0].length - 1].getBounds().east;
+
+    // const bounds: Bounds = {
+    //   north: north,
+    //   south: south,
+    //   east: east,
+    //   west: west,
+    // };
+
+
     return {
-      detections: outputs,
-      geoRawImage,
+      detections: fc,
+      geoRawImage//GeoRawImage.fromPatches((geoRawImage as unknown as RawImage[][]),bounds,"EPSG:4326"),
     };
   }
 }

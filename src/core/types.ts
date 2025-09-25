@@ -64,10 +64,18 @@ export interface MapSourceParams {
   expression?: string;
 }
 
+export interface ProgressCallbackPayload {
+  progress: number;
+  detections: GeoJSON.FeatureCollection;
+  geoRawImage?: GeoRawImage;
+}
+
 export interface InferenceParams {
   inputs: InferenceInputs;
   postProcessingParams?: PostProcessingParams;
   mapSourceParams?: MapSourceParams;
+  inferencePerTile?: boolean;
+  onProgress?: (payload: ProgressCallbackPayload) => void;
 }
 
 export interface mapSourceConfig {

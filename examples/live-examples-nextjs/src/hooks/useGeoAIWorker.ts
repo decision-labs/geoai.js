@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 export type WorkerMessageType = "init" | "inference" | "getEmbeddings";
 export type WorkerResponseType =
   | "init_complete"
+  | "inference_progress"
   | "inference_complete"
   | "embeddings_complete"
   | "error";
@@ -41,6 +42,7 @@ export interface UseGeoAIWorkerReturn {
   error: string | null;
   lastResult: GeoAIWorkerResult | null;
   initializedTasks: string[];
+  onProgressRef: any;
 
   // Actions
   initializeModel: (config: PipelineInitConfig) => void;
@@ -57,6 +59,7 @@ export interface UseGeoAIWorkerReturn {
  */
 export function useGeoAIWorker(): UseGeoAIWorkerReturn {
   const workerRef = useRef<Worker | null>(null);
+  const onProgressRef = useRef<any>(null);
 
   const lastInitConfigRef = useRef<PipelineInitConfig | null>(null);
 
@@ -130,6 +133,17 @@ export function useGeoAIWorker(): UseGeoAIWorkerReturn {
         setLastResult(payload || null);
         setError(null);
         console.log("[Hook] Embeddings extraction completed successfully");
+        break;
+
+      case "inference_progress":
+        // Check if an onProgress callback was provided and call it
+        if (onProgressRef.current) {
+          onProgressRef.current({
+            progress: payload.progress,
+            detections: payload.detections,
+            features: payload.features
+          });
+        }
         break;
 
       case "error":
@@ -283,6 +297,7 @@ export function useGeoAIWorker(): UseGeoAIWorkerReturn {
 
   return {
     // State
+    onProgressRef,
     isInitialized,
     isProcessing,
     error,
