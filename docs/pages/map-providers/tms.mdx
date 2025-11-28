@@ -1,0 +1,127 @@
+# TMS (Tile Map Service) Provider
+
+The TMS provider allows you to use custom tile services with GeoAI.js. It supports both Web Mercator (XYZ) and traditional TMS tile schemes.
+
+## Tile Schemes
+
+### WebMercator (Default)
+
+The Web Mercator scheme (also known as XYZ or Google Maps scheme) uses:
+- **Top-left origin**: Coordinates start from the top-left corner
+- **Y axis**: Increases downward
+- **Default for**: Most modern tile services including Cesium, Mapbox, Google Maps
+
+```typescript
+import { Tms } from "geoai";
+
+const provider = new Tms({
+  baseUrl: "https://example.com/tiles/{z}/{x}/{y}.png",
+  scheme: "WebMercator", // This is the default
+});
+```
+
+### TMS (Traditional)
+
+The traditional TMS scheme uses:
+- **Bottom-left origin**: Coordinates start from the bottom-left corner
+- **Y axis**: Increases upward
+- **Default for**: Traditional TMS services
+
+```typescript
+import { Tms } from "geoai";
+
+const provider = new Tms({
+  baseUrl: "https://example.com/tms/{z}/{x}/{y}.png",
+  scheme: "TMS", // Use this for traditional TMS services
+});
+```
+
+## Usage with Cesium
+
+When using with Cesium's `UrlTemplateImageryProvider`, use the `WebMercator` scheme (default):
+
+```typescript
+import { Tms } from "geoai";
+import { UrlTemplateImageryProvider } from "cesium";
+
+// Create the TMS provider for GeoAI.js
+const geoaiProvider = new Tms({
+  baseUrl: "https://example.com/tiles/{z}/{x}/{y}.png",
+  scheme: "WebMercator", // Match Cesium's default
+});
+
+// Create the Cesium imagery provider
+const cesiumProvider = new UrlTemplateImageryProvider({
+  url: "https://example.com/tiles/{z}/{x}/{y}.png",
+  // Cesium uses WebMercator by default
+});
+```
+
+## Configuration Options
+
+```typescript
+interface TmsConfig {
+  baseUrl: string; // Tile URL template
+  extension?: string; // File extension (default: "png")
+  apiKey?: string; // API key (added as query parameter)
+  attribution?: string; // Attribution text (default: "TMS Provider")
+  tileSize?: number; // Tile size in pixels (default: 256)
+  headers?: Record<string, string>; // Custom headers
+  scheme?: "WebMercator" | "TMS"; // Tile scheme (default: "WebMercator")
+}
+```
+
+## Examples
+
+### URL Template with Placeholders
+
+```typescript
+const provider = new Tms({
+  baseUrl: "https://tiles.example.com/{z}/{x}/{y}.png",
+  attribution: "© Example Tiles",
+});
+```
+
+### Traditional Path Construction
+
+```typescript
+const provider = new Tms({
+  baseUrl: "https://tiles.example.com",
+  extension: "jpg",
+  attribution: "© Example Tiles",
+});
+// Generates: https://tiles.example.com/{z}/{x}/{y}.jpg
+```
+
+### With API Key
+
+```typescript
+const provider = new Tms({
+  baseUrl: "https://tiles.example.com/{z}/{x}/{y}.png",
+  apiKey: "your-api-key-here",
+});
+// Generates: https://tiles.example.com/{z}/{x}/{y}.png?apikey=your-api-key-here
+```
+
+### TMS Scheme Example
+
+```typescript
+const provider = new Tms({
+  baseUrl: "https://tms.example.com/{z}/{x}/{y}.png",
+  scheme: "TMS", // Use traditional TMS coordinates
+  attribution: "© TMS Provider",
+});
+```
+
+## Troubleshooting
+
+### Tiles appear flipped or in wrong positions
+
+If your tiles appear in the wrong position, you may need to switch the tile scheme:
+
+- If using with Cesium, Mapbox, or most modern services: use `"WebMercator"` (default)
+- If using a traditional TMS service: use `"TMS"`
+
+### Getting incorrect tile coordinates
+
+The GeoAI.js library uses the Web Mercator scheme by default. Make sure your `scheme` configuration matches your tile service's coordinate system.

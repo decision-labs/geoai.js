@@ -106,12 +106,47 @@ export const getImageFromTiles = async (
   const tileUrlsGrid = tilesGrid.map((row: any) =>
     row.map((tile: any) => tile.tileUrl)
   );
-  // Load all images in parallel
-  const tileImages: RawImage[][] = await Promise.all(
+  // Load all images in parallel with error handling
+  const tileImages: (RawImage | null)[][] = await Promise.all(
     tileUrlsGrid.map((row: any) =>
-      Promise.all(row.map(async (url: string) => await load_image(url)))
+      Promise.all(
+        row.map(async (url: string) => {
+          try {
+            return await load_image(url);
+          } catch (error) {
+            console.warn(`Failed to load image from ${url}:`, error);
+            return null;
+          }
+        })
+      )
     )
   );
+
+  // Check if any images failed to load
+  const failedTiles: string[] = [];
+  tileImages.forEach((row, rowIndex) => {
+    row.forEach((image, colIndex) => {
+      if (image === null) {
+        failedTiles.push(tileUrlsGrid[rowIndex][colIndex]);
+      }
+    });
+  });
+
+  // If all tiles failed, throw an error
+  if (failedTiles.length === tileImages.flat().length) {
+    throw new GeobaseError(
+      ErrorType.ImageLoadFailed,
+      `Failed to load all tiles. Please check your network connection and tile URLs.`
+    );
+  }
+
+  // If some tiles failed, log a warning but continue
+  if (failedTiles.length > 0) {
+    console.warn(
+      `Failed to load ${failedTiles.length} out of ${tileImages.flat().length} tiles. Continuing with available tiles.`
+    );
+  }
+
   const cornerTiles = [
     tilesGrid[0][0], // Top-left
     tilesGrid[0][tilesGrid[0].length - 1], // Top-right
@@ -131,25 +166,31 @@ export const getImageFromTiles = async (
     west: Math.min(...cornerTiles.map((tile: any) => tile.tileGeoJson.bbox[0])),
   };
   if (stitch) {
-    return GeoRawImage.fromPatches(tileImages, bounds, "EPSG:4326");
+    // Filter out null values before passing to fromPatches
+    const validTileImages: RawImage[][] = tileImages.map(row =>
+      row.filter((img): img is RawImage => img !== null)
+    );
+    return GeoRawImage.fromPatches(validTileImages, bounds, "EPSG:4326");
   }
 
   // If not stitching, set bounds for each individual GeoRawImage
   const geoRawImages: GeoRawImage[][] = tilesGrid.map(
-    (row: any, rowIndex: number) =>
-      row.map((tile: any, colIndex: number) => {
-        const tileBounds = {
-          north: tile.tileGeoJson.bbox[1],
-          south: tile.tileGeoJson.bbox[3],
-          east: tile.tileGeoJson.bbox[2],
-          west: tile.tileGeoJson.bbox[0],
-        };
-        return GeoRawImage.fromRawImage(
-          tileImages[rowIndex][colIndex],
-          tileBounds,
-          "EPSG:4326"
-        );
-      })
+    (row: { tileGeoJson: { bbox: number[] } }[], rowIndex: number) =>
+      row
+        .map((tile, colIndex: number) => {
+          const image = tileImages[rowIndex][colIndex];
+          if (image === null) {
+            return null;
+          }
+          const tileBounds = {
+            north: tile.tileGeoJson.bbox[1],
+            south: tile.tileGeoJson.bbox[3],
+            east: tile.tileGeoJson.bbox[2],
+            west: tile.tileGeoJson.bbox[0],
+          };
+          return GeoRawImage.fromRawImage(image, tileBounds, "EPSG:4326");
+        })
+        .filter((img): img is GeoRawImage => img !== null)
   );
 
   return geoRawImages;

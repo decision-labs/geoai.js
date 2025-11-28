@@ -1,4 +1,4 @@
-import { MapSource } from './mapsource';
+import { MapSource } from "./mapsource";
 
 interface TmsConfig {
   baseUrl: string;
@@ -7,6 +7,13 @@ interface TmsConfig {
   attribution?: string;
   tileSize?: number;
   headers?: Record<string, string>;
+  /**
+   * Tile scheme to use.
+   * - 'WebMercator': Web Mercator/XYZ (top-left origin, Y increases downward) - default for most modern services including Cesium
+   * - 'TMS': TMS standard (bottom-left origin, Y increases upward) - traditional TMS
+   * @default 'WebMercator'
+   */
+  scheme?: "WebMercator" | "TMS";
 }
 
 export class Tms extends MapSource {
@@ -16,6 +23,7 @@ export class Tms extends MapSource {
   attribution: string;
   tileSize: number;
   headers?: Record<string, string>;
+  scheme: "WebMercator" | "TMS";
 
   constructor(config: TmsConfig) {
     super();
@@ -25,16 +33,21 @@ export class Tms extends MapSource {
     this.attribution = config.attribution || 'TMS Provider';
     this.tileSize = config.tileSize || 256;
     this.headers = config.headers;
+    this.scheme = config.scheme || "WebMercator";
   }
 
   protected getTileUrlFromTileCoords(
     tileCoords: [number, number, number],
     instance: Tms
   ): string {
-    const [x, y, z] = tileCoords;
-    // TMS uses bottom-left origin, so we need to flip Y coordinate
-    const tmsY = Math.pow(2, z) - 1 - y;
-    
+    const [x, originalY, z] = tileCoords;
+
+    // Convert Y coordinate based on tile scheme
+    // latLngToTileXY in common.ts uses WebMercator/XYZ scheme (top-left origin)
+    // If TMS scheme is requested, we need to flip the Y coordinate
+    const y =
+      instance.scheme === "TMS" ? Math.pow(2, z) - 1 - originalY : originalY;
+
     let url: string;
     
     // Check if baseUrl contains placeholders {x}, {y}, {z}
@@ -43,10 +56,10 @@ export class Tms extends MapSource {
       url = instance.baseUrl
         .replaceAll('{z}', z.toString())
         .replaceAll('{x}', x.toString())
-        .replaceAll('{y}', tmsY.toString());
+        .replaceAll('{y}', y.toString());
     } else {
       // Use traditional baseUrl + path construction for backward compatibility
-      url = `${instance.baseUrl}/${z}/${x}/${tmsY}.${instance.extension}`;
+      url = `${instance.baseUrl}/${z}/${x}/${y}.${instance.extension}`;
     }
     
     // Add API key as query parameter if provided

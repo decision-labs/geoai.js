@@ -158,6 +158,10 @@ export const parametersChanged = (
         return true;
       }
       break;
+    case "tms":
+      if (instance.providerParams?.baseUrl !== providerParams?.baseUrl) {
+        return true;
+      }
   }
 
   // Compare modelParams if they exist
