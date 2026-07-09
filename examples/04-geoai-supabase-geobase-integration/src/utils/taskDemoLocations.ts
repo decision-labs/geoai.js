@@ -1,11 +1,15 @@
 /** Demo map locations aligned with live-examples-nextjs task pages */
 
+import { clampTaskZoom, getProviderMaxZoom, type MapProviderId } from './mapProviderConfig';
+
 export interface TaskDemoLocation {
   task: string;
   label: string;
   placeName: string;
   center: [number, number];
   zoom: number;
+  /** Override zoom for raster providers with limited local tile pyramids (e.g. ESRI). */
+  providerZoom?: Partial<Record<MapProviderId, number>>;
   /** [west, south, east, north] */
   bounds: [number, number, number, number];
   cogImageryUrl: string;
@@ -30,21 +34,42 @@ const ringToBounds = (ring: number[][]): [number, number, number, number] => {
   return [west, south, east, north];
 };
 
+/** Pad tight demo bounds so fitBounds does not over-zoom on sliver polygons. */
+export const padDemoBounds = (
+  bounds: [number, number, number, number],
+  padDegrees = 0.006,
+): [number, number, number, number] => [
+  bounds[0] - padDegrees,
+  bounds[1] - padDegrees,
+  bounds[2] + padDegrees,
+  bounds[3] + padDegrees,
+];
+
+export const getTaskDemoZoom = (demo: TaskDemoLocation, provider: string): number => {
+  const providerId = provider as MapProviderId;
+  const preferred = demo.providerZoom?.[providerId] ?? demo.zoom;
+  return clampTaskZoom(preferred, getProviderMaxZoom(provider));
+};
+
 export const TASK_DEMO_LOCATIONS: Record<string, TaskDemoLocation> = {
   'zero-shot-object-detection': {
     task: 'zero-shot-object-detection',
     label: 'Zero-shot Objects',
-    placeName: 'Cancún, Mexico',
-    center: [-87.06908566748001, 20.653232827552685],
-    zoom: 20,
+    placeName: 'Houston, TX',
+    center: [-95.42142391922613, 29.67899312759792],
+    zoom: 21,
+    providerZoom: {
+      esri: 17,
+      google: 17,
+    },
     bounds: ringToBounds([
-      [-87.0695, 20.6538],
-      [-87.0685, 20.6538],
-      [-87.0685, 20.6526],
-      [-87.0695, 20.6526],
-      [-87.0695, 20.6538],
+      [-95.42148774154262, 29.67906487977089],
+      [-95.42148774154262, 29.678781807220446],
+      [-95.4210323139897, 29.678781807220446],
+      [-95.4210323139897, 29.67906487977089],
+      [-95.42148774154262, 29.67906487977089],
     ]),
-    cogImageryUrl: `${COG_BASE}/zero-shot-object-detection.tif`,
+    cogImageryUrl: `${COG_BASE}/car-detection.tif`,
     accent: '#f46d43',
   },
   'oil-storage-tank-detection': {
@@ -101,6 +126,10 @@ export const TASK_DEMO_LOCATIONS: Record<string, TaskDemoLocation> = {
     placeName: 'Houston, TX',
     center: [-95.42142391922613, 29.67899312759792],
     zoom: 21,
+    providerZoom: {
+      esri: 17,
+      google: 17,
+    },
     bounds: ringToBounds([
       [-95.42148774154262, 29.67906487977089],
       [-95.42148774154262, 29.678781807220446],
@@ -117,6 +146,10 @@ export const TASK_DEMO_LOCATIONS: Record<string, TaskDemoLocation> = {
     placeName: 'Dubai Port, UAE',
     center: [55.13477831801109, 25.111226405681208],
     zoom: 20,
+    providerZoom: {
+      esri: 17,
+      google: 17,
+    },
     bounds: ringToBounds([
       [55.13452909846484, 25.113936913196113],
       [55.13452909846484, 25.11357075780853],
@@ -133,6 +166,10 @@ export const TASK_DEMO_LOCATIONS: Record<string, TaskDemoLocation> = {
     placeName: 'Saskatchewan, Canada',
     center: [-99.98154044151306, 50.642806912434835],
     zoom: 19,
+    providerZoom: {
+      esri: 17,
+      google: 17,
+    },
     bounds: ringToBounds([
       [-99.985, 50.646],
       [-99.985, 50.640],
@@ -149,6 +186,10 @@ export const TASK_DEMO_LOCATIONS: Record<string, TaskDemoLocation> = {
     placeName: 'Balikpapan, Indonesia',
     center: [114.84901, -3.449806],
     zoom: 20,
+    providerZoom: {
+      esri: 17,
+      google: 17,
+    },
     bounds: ringToBounds([
       [114.84807353432808, -3.449255329675921],
       [114.84807353432808, -3.4502955104658923],

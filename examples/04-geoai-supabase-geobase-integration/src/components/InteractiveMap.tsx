@@ -7,7 +7,7 @@ import { useGeoAI } from '../hooks/useGeoAI';
 import { supabase } from '../lib/supabase';
 import { attachDrawSimilarities } from '../utils/embeddingSimilarity';
 import { carbon } from '../utils/carbonTheme';
-import { getTaskDemoLocation, TASK_DEMO_LOCATIONS } from '../utils/taskDemoLocations';
+import { getTaskDemoLocation, TASK_DEMO_LOCATIONS, getTaskDemoZoom, padDemoBounds } from '../utils/taskDemoLocations';
 import { getProviderMaxZoom, clampTaskZoom } from '../utils/mapProviderConfig';
 import { MapWorkflowPanel, getActiveWorkflowStep } from './map/MapWorkflowPanel';
 import { MapDrawToolbar } from './map/MapDrawToolbar';
@@ -454,6 +454,15 @@ export function InteractiveMap({
       const isUsingGeobase = checkIfUsingGeobaseBackend();
       if (isUsingGeobase) {
         addGeobaseTileLayer();
+      }
+
+      // Restore selected task view after provider/style reloads.
+      const activeTask = selectedTaskRef.current;
+      if (activeTask) {
+        const demo = getTaskDemoLocation(activeTask.task);
+        if (demo) {
+          flyToTaskDemo(activeTask, false);
+        }
       }
       
       // Add Geobase imagery layer if using Geobase provider
@@ -1409,20 +1418,27 @@ export function InteractiveMap({
     clearResults();
   }, [clearResults]);
 
-  const flyToTaskDemo = useCallback((task: DetectionTask) => {
+  const flyToTaskDemo = useCallback((task: DetectionTask, animate = true) => {
     const demo = getTaskDemoLocation(task.task);
     if (!demo || !map.current) return;
 
-    const targetZoom = clampTaskZoom(demo.zoom, providerMaxZoom);
+    const targetZoom = getTaskDemoZoom(demo, provider);
+    const mapInstance = map.current;
 
-    // Use explicit center/zoom — fitBounds on small demo polygons over-zooms (e.g. zero-shot).
-    map.current.flyTo({
-      center: demo.center,
-      zoom: targetZoom,
-      duration: 900,
+    const syncZoomFromMap = () => {
+      if (mapInstance) {
+        setZoomLevel(Math.round(mapInstance.getZoom()));
+      }
+      mapInstance.off('moveend', syncZoomFromMap);
+    };
+    mapInstance.on('moveend', syncZoomFromMap);
+
+    mapInstance.fitBounds(padDemoBounds(demo.bounds), {
+      padding: { top: 72, bottom: 140, left: 384, right: 32 },
+      maxZoom: targetZoom,
+      duration: animate ? 900 : 0,
     });
-    setZoomLevel(targetZoom);
-  }, [providerMaxZoom]);
+  }, [provider]);
 
   const handleZoomLevelChange = useCallback((value: number) => {
     const clamped = clampTaskZoom(value, providerMaxZoom);
