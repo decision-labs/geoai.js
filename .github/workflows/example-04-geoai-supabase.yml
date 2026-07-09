@@ -1,0 +1,49 @@
+name: Example 04 - Supabase Geobase Checks
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'examples/04-geoai-supabase-geobase-integration/**'
+      - '.github/workflows/example-04-geoai-supabase.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'examples/04-geoai-supabase-geobase-integration/**'
+      - '.github/workflows/example-04-geoai-supabase.yml'
+  workflow_dispatch:
+
+jobs:
+  test_example_04:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/04-geoai-supabase-geobase-integration
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: examples/04-geoai-supabase-geobase-integration/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Run tests
+        run: pnpm test
