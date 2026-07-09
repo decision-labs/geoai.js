@@ -10,7 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "next": "^15.0.2",
+    "next": "15.5.18",
     "nextra-theme-docs": "^3.2.0",
     "nextra": "^3.2.0",
     "react-dom": "^18.3.1",
