@@ -1,6 +1,7 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { geoai, ProviderParams } from 'geoai';
 import { SupabaseService } from '../lib/supabase';
+import { normalizeGeometryForDatabase } from '../utils/geometry';
 
 // Type for the pipeline instance returned by geoai.pipeline
 interface PipelineInstance {
@@ -118,6 +119,19 @@ export function useGeoAI(options: UseGeoAIOptions) {
   
   const pipelineRef = useRef<{ pipeline: PipelineInstance; cacheKey: string } | null>(null);
   const modelLoadingTimesRef = useRef<Record<string, number>>({});
+  const currentSessionRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    currentSessionRef.current = currentSession;
+  }, [currentSession]);
+
+  const getGeobaseCacheKey = useCallback(() => {
+    if (options.provider !== 'geobase' || !options.geobaseConfig) {
+      return '';
+    }
+    const { projectRef, cogImageryUrl, apiKey } = options.geobaseConfig;
+    return `${projectRef}:${cogImageryUrl}:${apiKey}`;
+  }, [options.provider, options.geobaseConfig]);
 
   const buildEmbeddingFeatures = useCallback((
     result: EmbeddingInferenceOutput,
@@ -207,7 +221,7 @@ export function useGeoAI(options: UseGeoAIOptions) {
     }
 
     // Create a cache key based on provider and tasks
-    const cacheKey = `${options.provider}_${tasks
+    const cacheKey = `${options.provider}_${getGeobaseCacheKey()}_${tasks
       .map((task) => `${task.task}:${task.modelId || 'default'}`)
       .sort()
       .join('_')}`;
@@ -273,7 +287,7 @@ export function useGeoAI(options: UseGeoAIOptions) {
     } finally {
       setIsLoading(false);
     }
-  }, [options.provider, options.providerParams]);
+  }, [getGeobaseCacheKey, options.geobaseConfig, options.provider, options.providerParams]);
 
   // Create a new detection session
   const createSession = useCallback(async (sessionName?: string) => {
@@ -303,6 +317,7 @@ export function useGeoAI(options: UseGeoAIOptions) {
       console.log('✅ Session created successfully:', session);
 
       setCurrentSession(session.id);
+      currentSessionRef.current = session.id;
       return session;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create session';
@@ -311,6 +326,58 @@ export function useGeoAI(options: UseGeoAIOptions) {
       throw err;
     }
   }, [options.provider, options.providerParams, options.sessionName]);
+
+  // Save detection results to Supabase
+  const saveDetectionResults = useCallback(async (result: DetectionResult, sessionId: string) => {
+    if (result.task === 'image-feature-extraction') {
+      return;
+    }
+
+    if (!result.detections.features.length) {
+      return;
+    }
+
+    const detectionResults = result.detections.features.flatMap((feature) => {
+      const geometry = normalizeGeometryForDatabase(feature.geometry);
+      if (!geometry) {
+        console.warn('Skipping unsupported geometry type for database save:', feature.geometry.type);
+        return [];
+      }
+
+      return [{
+        session_id: sessionId,
+        task_type: result.task,
+        confidence_score: feature.properties?.confidence || feature.properties?.score || 0.5,
+        geometry,
+        properties: {
+          ...feature.properties,
+          processing_time_ms: result.processingTime,
+          model_loading_time_ms: result.modelLoadingTime,
+        },
+      }];
+    });
+
+    if (!detectionResults.length) {
+      throw new Error('No detection geometries could be saved to Supabase');
+    }
+
+    await SupabaseService.saveDetectionResults(detectionResults);
+
+    const analytics = {
+      session_id: sessionId,
+      task_type: result.task,
+      processing_time_ms: Math.round(result.processingTime),
+      model_loading_time_ms: result.modelLoadingTime ? Math.round(result.modelLoadingTime) : undefined,
+      detection_count: detectionResults.length,
+      average_confidence: detectionResults.reduce(
+        (sum, row) => sum + (row.confidence_score || 0.5),
+        0
+      ) / detectionResults.length,
+      zoom_level: undefined,
+    };
+
+    await SupabaseService.saveAnalytics(analytics);
+  }, []);
 
   // Run detection on a polygon
   const detectObjects = useCallback(async (params: DetectionParams): Promise<DetectionResult[]> => {
@@ -329,19 +396,14 @@ export function useGeoAI(options: UseGeoAIOptions) {
       const pipeline = await initializePipeline(params.tasks);
 
       // Create session if auto-save is enabled and no current session
-      let sessionToUse = currentSession;
-      if (options.autoSave && !currentSession) {
+      let sessionToUse = currentSessionRef.current;
+      if (options.autoSave && !sessionToUse) {
         console.log('🔄 Auto-save enabled but no session exists - creating new session...');
-        try {
-          const newSession = await createSession();
-          sessionToUse = newSession.id;
-          console.log('✅ New session ready for auto-save:', sessionToUse);
-        } catch (sessionError) {
-          console.error('❌ Failed to create session for auto-save:', sessionError);
-          // Continue with detection even if session creation fails
-        }
-      } else if (options.autoSave && currentSession) {
-        console.log('✅ Auto-save enabled and session exists:', currentSession);
+        const newSession = await createSession();
+        sessionToUse = newSession.id;
+        console.log('✅ New session ready for auto-save:', sessionToUse);
+      } else if (options.autoSave && sessionToUse) {
+        console.log('✅ Auto-save enabled and session exists:', sessionToUse);
       }
 
       const detectionResults: DetectionResult[] = [];
@@ -439,14 +501,11 @@ export function useGeoAI(options: UseGeoAIOptions) {
 
           // Auto-save to Supabase if enabled
           if (options.autoSave && taskConfig.task !== 'image-feature-extraction') {
-            if (sessionToUse) {
-              console.log('💾 Auto-saving detection results to session:', sessionToUse);
-              await saveDetectionResults(detectionResult, sessionToUse);
-            } else {
-              console.warn('⚠️ Auto-save enabled but no session available - results will not be saved');
+            if (!sessionToUse) {
+              throw new Error('No active session available for saving detection results');
             }
-          } else {
-            console.log('ℹ️ Auto-save is disabled - results will not be saved');
+            console.log('💾 Auto-saving detection results to session:', sessionToUse);
+            await saveDetectionResults(detectionResult, sessionToUse);
           }
 
         } catch (taskError) {
@@ -507,15 +566,12 @@ export function useGeoAI(options: UseGeoAIOptions) {
             detectionResults.push(detectionResult);
 
             // Auto-save to Supabase if enabled
-          if (options.autoSave && taskConfig.task !== 'image-feature-extraction') {
-              if (sessionToUse) {
-                console.log('💾 Auto-saving detection results to session:', sessionToUse);
-                await saveDetectionResults(detectionResult, sessionToUse);
-              } else {
-                console.warn('⚠️ Auto-save enabled but no session available - results will not be saved');
+            if (options.autoSave && taskConfig.task !== 'image-feature-extraction') {
+              if (!sessionToUse) {
+                throw new Error('No active session available for saving detection results');
               }
-            } else {
-              console.log('ℹ️ Auto-save is disabled - results will not be saved');
+              console.log('💾 Auto-saving detection results to session:', sessionToUse);
+              await saveDetectionResults(detectionResult, sessionToUse);
             }
 
           } catch (taskError) {
@@ -551,98 +607,7 @@ export function useGeoAI(options: UseGeoAIOptions) {
     } finally {
       setIsLoading(false);
     }
-  }, [buildEmbeddingFeatures, initializePipeline, options.autoSave, currentSession, createSession]);
-
-  // Save detection results to Supabase
-  const saveDetectionResults = useCallback(async (result: DetectionResult, sessionId: string) => {
-    try {
-      if (result.task === 'image-feature-extraction') {
-        console.log('ℹ️ Skipping DB save for image-feature-extraction (embeddings visualization task)');
-        return;
-      }
-
-      console.log('🔄 Attempting to save detection results...', {
-        sessionId,
-        taskType: result.task,
-        detectionCount: result.detections.features.length
-      });
-
-      if (!result.detections.features.length) {
-        console.log('⚠️ No detections to save, skipping...');
-        return;
-      }
-
-      // Convert GeoJSON features to database format
-      const detectionResults = result.detections.features.map(feature => {
-        // Convert geometry to MultiPolygon format if it's a Polygon
-        let geometry = feature.geometry;
-        if (geometry.type === 'Polygon') {
-          console.log('🔄 Converting Polygon to MultiPolygon for database storage');
-          geometry = {
-            type: 'MultiPolygon',
-            coordinates: [geometry.coordinates]
-          };
-        } else if (geometry.type === 'MultiPolygon') {
-          console.log('✅ Geometry is already MultiPolygon format');
-        } else {
-          console.log('⚠️ Unexpected geometry type:', geometry.type);
-        }
-        
-        return {
-          session_id: sessionId,
-          task_type: result.task,
-          confidence_score: feature.properties?.confidence || feature.properties?.score || 0.5,
-          geometry: geometry,
-          properties: {
-            ...feature.properties,
-            processing_time_ms: result.processingTime,
-            model_loading_time_ms: result.modelLoadingTime
-          }
-        };
-      });
-
-      console.log('📊 Detection results to save:', detectionResults);
-
-      // Save detection results
-      const savedResults = await SupabaseService.saveDetectionResults(detectionResults);
-      console.log('✅ Detection results saved successfully:', savedResults);
-
-      // Save analytics
-      const analytics = {
-        session_id: sessionId,
-        task_type: result.task,
-        processing_time_ms: Math.round(result.processingTime),
-        model_loading_time_ms: result.modelLoadingTime ? Math.round(result.modelLoadingTime) : undefined,
-        detection_count: result.detections.features.length,
-        average_confidence: result.detections.features.length > 0 
-          ? result.detections.features.reduce((sum, f) => sum + (f.properties?.confidence || f.properties?.score || 0.5), 0) / result.detections.features.length
-          : 0,
-        zoom_level: undefined
-      };
-
-      const savedAnalytics = await SupabaseService.saveAnalytics(analytics);
-      console.log('✅ Analytics saved successfully:', savedAnalytics);
-
-    } catch (err) {
-      console.error('❌ Failed to save detection results:', err);
-      
-      // Check for specific geometry type errors
-      if (err instanceof Error && err.message.includes('Geometry type')) {
-        console.error('🔧 Geometry type mismatch detected. This usually means:');
-        console.error('   - Database expects POLYGON but received MultiPolygon');
-        console.error('   - Run the geometry type migration in your database');
-        console.error('   - Or update the database schema to accept GEOMETRY(GEOMETRY, 4326)');
-      }
-      
-      console.error('Error details:', {
-        message: err instanceof Error ? err.message : 'Unknown error',
-        sessionId,
-        taskType: result.task,
-        detectionCount: result.detections.features.length
-      });
-      // Don't throw here to avoid breaking the detection flow
-    }
-  }, []);
+  }, [buildEmbeddingFeatures, createSession, initializePipeline, options.autoSave, saveDetectionResults]);
 
   // Get detection history for current session
   const getDetectionHistory = useCallback(async (sessionId?: string) => {
@@ -699,6 +664,7 @@ export function useGeoAI(options: UseGeoAIOptions) {
   const resetPipeline = useCallback(() => {
     pipelineRef.current = null;
     modelLoadingTimesRef.current = {};
+    currentSessionRef.current = null;
     setCurrentSession(null);
     clearResults();
   }, [clearResults]);

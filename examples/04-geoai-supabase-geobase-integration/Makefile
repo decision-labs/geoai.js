@@ -5,8 +5,8 @@
 DB_URL ?=
 MIGRATIONS_DIR := supabase/migrations
 MIG_1 := $(MIGRATIONS_DIR)/20250914214029_create_geoai_tables.sql
-MIG_2 := $(MIGRATIONS_DIR)/20250119000000_fix_geometry_multipolygon.sql
-MIG_3 := $(MIGRATIONS_DIR)/20250119000002_add_search_path_to_functions.sql
+MIG_2 := $(MIGRATIONS_DIR)/20250914214030_fix_geometry_multipolygon.sql
+MIG_3 := $(MIGRATIONS_DIR)/20250914214031_add_search_path_to_functions.sql
 
 help:
 	@echo "Available targets:"

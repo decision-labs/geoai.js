@@ -16,14 +16,17 @@ vi.mock('../src/lib/supabase', () => ({
 
 import { AnalyticsDashboard } from '../src/components/AnalyticsDashboard';
 
+const daysAgo = (days: number): string =>
+  new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
 const mockSessions = [
   {
     id: 's1',
     user_id: 'u1',
     session_name: 'Session One',
     description: 'First session',
-    created_at: '2026-03-01T00:00:00Z',
-    updated_at: '2026-03-01T00:00:00Z',
+    created_at: daysAgo(2),
+    updated_at: daysAgo(2),
     status: 'completed',
     metadata: {}
   },
@@ -32,8 +35,8 @@ const mockSessions = [
     user_id: 'u1',
     session_name: 'Session Two',
     description: 'Second session',
-    created_at: '2026-03-02T00:00:00Z',
-    updated_at: '2026-03-02T00:00:00Z',
+    created_at: daysAgo(1),
+    updated_at: daysAgo(1),
     status: 'active',
     metadata: {}
   }
@@ -47,7 +50,7 @@ const mockResults = [
     confidence_score: 0.9,
     geometry: {},
     properties: {},
-    created_at: '2026-03-01T00:00:00Z'
+    created_at: daysAgo(2)
   },
   {
     id: 'r2',
@@ -56,7 +59,7 @@ const mockResults = [
     confidence_score: 0.8,
     geometry: {},
     properties: {},
-    created_at: '2026-03-02T00:00:00Z'
+    created_at: daysAgo(1)
   }
 ];
 
@@ -68,7 +71,7 @@ const mockMetrics = [
     processing_time_ms: 1234,
     detection_count: 1,
     average_confidence: 0.9,
-    created_at: '2026-03-01T00:00:00Z'
+    created_at: daysAgo(2)
   },
   {
     id: 'm2',
@@ -77,7 +80,7 @@ const mockMetrics = [
     processing_time_ms: 900,
     detection_count: 1,
     average_confidence: 0.8,
-    created_at: '2026-03-02T00:00:00Z'
+    created_at: daysAgo(1)
   }
 ];
 
@@ -154,7 +157,7 @@ describe('AnalyticsDashboard session deletion', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete Selected (2)' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Bulk delete failed')).toBeTruthy();
+      expect(screen.getByText('Failed to delete 1 selected session(s)')).toBeTruthy();
     });
     expect(screen.getByText('Session One')).toBeTruthy();
     expect(screen.getByText('Session Two')).toBeTruthy();

@@ -38,37 +38,6 @@ export const cosineDistance = (a: number[], b: number[]): number => 1 - cosineSi
 const getPolygonRing = (polygon: GeoJSON.Feature<GeoJSON.Polygon>): number[][] =>
   polygon.geometry.coordinates[0] || [];
 
-const getRingBounds = (ring: number[][]): [number, number, number, number] | null => {
-  if (ring.length === 0) return null;
-
-  let minX = Number.POSITIVE_INFINITY;
-  let maxX = Number.NEGATIVE_INFINITY;
-  let minY = Number.POSITIVE_INFINITY;
-  let maxY = Number.NEGATIVE_INFINITY;
-
-  for (const [x, y] of ring) {
-    minX = Math.min(minX, x);
-    maxX = Math.max(maxX, x);
-    minY = Math.min(minY, y);
-    maxY = Math.max(maxY, y);
-  }
-
-  if (![minX, maxX, minY, maxY].every(Number.isFinite)) {
-    return null;
-  }
-
-  return [minX, minY, maxX, maxY];
-};
-
-const boundsIntersect = (
-  a: [number, number, number, number],
-  b: [number, number, number, number]
-): boolean => {
-  const [aMinX, aMinY, aMaxX, aMaxY] = a;
-  const [bMinX, bMinY, bMaxX, bMaxY] = b;
-  return aMinX <= bMaxX && aMaxX >= bMinX && aMinY <= bMaxY && aMaxY >= bMinY;
-};
-
 export function isPointInPolygon(point: [number, number], ring: number[][]): boolean {
   const [px, py] = point;
   let inside = false;
@@ -117,17 +86,9 @@ export function getCoveredEmbeddingFeatures(
 ): EmbeddingFeature[] {
   const ring = getPolygonRing(polygon);
   if (ring.length < 3) return [];
-  const selectionBounds = getRingBounds(ring);
 
   return features.filter((feature) => {
     const center = getPatchCenter(feature);
-    const patchRing = feature.geometry.coordinates[0] || [];
-    const patchBounds = getRingBounds(patchRing);
-
-    if (selectionBounds && patchBounds && boundsIntersect(selectionBounds, patchBounds)) {
-      return true;
-    }
-
     return center ? isPointInPolygon(center, ring) : false;
   });
 }

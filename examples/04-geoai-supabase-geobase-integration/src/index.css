@@ -2,111 +2,161 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles for the GeoAI integration app */
+/* CarbonPlan-inspired theme (https://carbonplan.org/design/color) */
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
   }
-  
+
   body {
-    @apply bg-gray-50 text-gray-900;
+    background-color: #212529;
+    color: #f0f0f0;
+  }
+
+  select,
+  input,
+  textarea {
+    color-scheme: dark;
   }
 }
 
 @layer components {
-  /* Map container styles */
   .map-container {
     @apply relative w-full h-full;
   }
-  
-  /* Custom button styles */
+
+  .carbon-card {
+    @apply rounded-xl border shadow-lg;
+    background-color: #2d3339;
+    border-color: #3a4249;
+    color: #f0f0f0;
+  }
+
+  .carbon-input {
+    @apply w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2;
+    background-color: #2d3339;
+    border-color: #3a4249;
+    color: #f0f0f0;
+    --tw-ring-color: #2ba99a;
+  }
+
+  .carbon-btn-primary {
+    @apply rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2;
+    background-color: #2ba99a;
+    color: #212529;
+    --tw-ring-color: #2ba99a;
+  }
+
+  .carbon-btn-primary:hover {
+    background-color: #239e90;
+  }
+
+  .carbon-btn-secondary {
+    @apply rounded-md px-4 py-2 text-sm font-medium transition-colors;
+    background-color: #2d3339;
+    border: 1px solid #3a4249;
+    color: #f0f0f0;
+  }
+
+  .carbon-btn-secondary:hover {
+    background-color: #353c44;
+  }
+
+  .carbon-select {
+    @apply rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2;
+    background-color: #2d3339;
+    border-color: #3a4249;
+    color: #f0f0f0;
+    --tw-ring-color: #2ba99a;
+  }
+
   .btn-primary {
-    @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
+    @apply carbon-btn-primary;
   }
-  
+
   .btn-secondary {
-    @apply px-4 py-2 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors;
+    @apply carbon-btn-secondary;
   }
-  
-  /* Card styles */
+
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200;
+    @apply carbon-card;
   }
-  
+
   .card-header {
-    @apply px-6 py-4 border-b border-gray-200;
+    @apply border-b px-6 py-4;
+    border-color: #3a4249;
   }
-  
+
   .card-body {
     @apply px-6 py-4;
   }
-  
-  /* Form styles */
+
   .form-input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+    @apply carbon-input;
   }
-  
+
   .form-label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply mb-1 block text-sm font-medium;
+    color: #a3a3a3;
   }
-  
-  /* Status indicators */
+
   .status-indicator {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
-  
+
   .status-success {
-    @apply bg-green-100 text-green-800;
+    background-color: rgba(62, 207, 142, 0.15);
+    color: #3ecf8e;
   }
-  
+
   .status-warning {
-    @apply bg-yellow-100 text-yellow-800;
+    background-color: rgba(246, 173, 85, 0.15);
+    color: #f6ad55;
   }
-  
+
   .status-error {
-    @apply bg-red-100 text-red-800;
+    background-color: rgba(252, 129, 129, 0.15);
+    color: #fc8181;
   }
-  
+
   .status-info {
-    @apply bg-blue-100 text-blue-800;
+    background-color: rgba(43, 169, 154, 0.15);
+    color: #2ba99a;
   }
 }
 
 @layer utilities {
-  /* Animation utilities */
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in-out;
   }
-  
+
   .animate-slide-up {
     animation: slideUp 0.3s ease-out;
   }
-  
-  /* Custom scrollbar */
+
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #cbd5e0 #f7fafc;
+    scrollbar-color: #3a4249 #212529;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-track {
-    background: #f7fafc;
+    background: #212529;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #cbd5e0;
+    background-color: #3a4249;
     border-radius: 3px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: #a0aec0;
+    background-color: #4a545c;
   }
 }
 
-/* Keyframe animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -127,95 +177,119 @@
   }
 }
 
-/* MapLibre GL custom styles */
+.next-step-callout {
+  animation: nextStepReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes nextStepReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.maplibregl-map {
+  background-color: #212529;
+}
+
+.maplibregl-canvas {
+  outline: none;
+}
+
 .maplibregl-ctrl-group {
-  @apply bg-white rounded-lg shadow-lg;
+  background-color: #2d3339 !important;
+  border: 1px solid #3a4249 !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
 }
 
 .maplibregl-ctrl-group button {
-  @apply text-gray-700 hover:bg-gray-100;
+  color: #f0f0f0 !important;
 }
 
-.maplibregl-ctrl-group button:first-child {
-  @apply rounded-t-lg;
+.maplibregl-ctrl-group button:hover {
+  background-color: #353c44 !important;
 }
 
-.maplibregl-ctrl-group button:last-child {
-  @apply rounded-b-lg;
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid #3a4249 !important;
 }
 
-/* MapLibre Draw custom styles */
-.mapboxgl-draw-ctrl-group {
-  @apply bg-white rounded-lg shadow-lg;
+.maplibregl-popup-content {
+  background-color: #2d3339 !important;
+  color: #f0f0f0 !important;
+  border: 1px solid #3a4249;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
 }
 
-.mapboxgl-draw-ctrl-group button {
-  @apply text-gray-700 hover:bg-gray-100;
+.maplibregl-popup-close-button {
+  color: #a3a3a3 !important;
 }
 
-/* Loading spinner */
+.maplibregl-popup-close-button:hover {
+  color: #f0f0f0 !important;
+  background-color: transparent !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #2d3339 !important;
+  border-bottom-color: #2d3339 !important;
+}
+
+.mapbox-gl-ctrl-group.mapboxgl-ctrl-group,
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group {
+  display: none !important;
+}
+
 .spinner {
-  @apply animate-spin rounded-full border-2 border-gray-300 border-t-blue-600;
+  @apply animate-spin rounded-full border-2;
+  border-color: #3a4249;
+  border-top-color: #2ba99a;
 }
 
-/* Detection result colors */
 .detection-oil-tanks {
-  @apply text-red-600;
+  color: #f46d43;
 }
 
 .detection-solar-panels {
-  @apply text-teal-600;
+  color: #2ba99a;
 }
 
 .detection-buildings {
-  @apply text-blue-600;
+  color: #4a9eff;
 }
 
 .detection-cars {
-  @apply text-green-600;
+  color: #3ecf8e;
 }
 
 .detection-ships {
-  @apply text-yellow-600;
+  color: #ecc94b;
 }
 
 .detection-land-cover {
-  @apply text-pink-600;
+  color: #ee5a94;
 }
 
-/* Responsive utilities */
 @media (max-width: 640px) {
   .mobile-hidden {
     @apply hidden;
   }
-  
+
   .mobile-full {
     @apply w-full;
   }
 }
 
-/* Print styles */
 @media print {
   .no-print {
     @apply hidden;
   }
-  
-  .print-full {
-    @apply w-full h-full;
-  }
-}
 
-/* Dark mode support (if needed in future) */
-@media (prefers-color-scheme: dark) {
-  .dark-mode {
-    @apply bg-gray-900 text-gray-100;
-  }
-  
-  .dark-mode .card {
-    @apply bg-gray-800 border-gray-700;
-  }
-  
-  .dark-mode .form-input {
-    @apply bg-gray-700 border-gray-600 text-gray-100;
+  .print-full {
+    @apply h-full w-full;
   }
 }

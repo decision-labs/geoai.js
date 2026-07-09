@@ -239,19 +239,26 @@ CREATE POLICY "Users can insert AIDX analytics to their sessions" ON aidx_analyt
         )
     );
 
--- Create a view for public AIDX statistics (without user data)
-CREATE VIEW aidx_public_stats AS
+-- Table privileges for Supabase API roles (RLS still applies)
+GRANT SELECT, INSERT, UPDATE, DELETE ON aidx_sessions TO authenticated;
+GRANT SELECT, INSERT ON aidx_results TO authenticated;
+GRANT SELECT, INSERT ON aidx_analytics TO authenticated;
+
+-- Create a per-user stats view (scoped via session ownership)
+CREATE VIEW aidx_public_stats
+WITH (security_invoker = true) AS
 SELECT 
-    task_type,
+    dr.task_type,
     COUNT(*) as total_detections,
-    ROUND(AVG(confidence_score)::numeric, 4) as avg_confidence,
-    DATE_TRUNC('day', created_at) as detection_date
-FROM aidx_results
-GROUP BY task_type, DATE_TRUNC('day', created_at)
+    ROUND(AVG(dr.confidence_score)::numeric, 4) as avg_confidence,
+    DATE_TRUNC('day', dr.created_at) as detection_date
+FROM aidx_results dr
+JOIN aidx_sessions s ON s.id = dr.session_id
+WHERE s.user_id = auth.uid()
+GROUP BY dr.task_type, DATE_TRUNC('day', dr.created_at)
 ORDER BY detection_date DESC;
 
--- Grant access to the view
-GRANT SELECT ON aidx_public_stats TO anon, authenticated;
+GRANT SELECT ON aidx_public_stats TO authenticated;
 
 -- Insert some sample data for demonstration (optional)
 -- This can be removed in production

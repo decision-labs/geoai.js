@@ -45,7 +45,7 @@ RETURNS TABLE (
     session_id UUID,
     task_type VARCHAR(100),
     confidence_score DECIMAL(5,4),
-    geometry GEOMETRY(POLYGON, 4326),
+    geometry GEOMETRY(MultiPolygon, 4326),
     properties JSONB,
     created_at TIMESTAMP WITH TIME ZONE
 ) AS $$

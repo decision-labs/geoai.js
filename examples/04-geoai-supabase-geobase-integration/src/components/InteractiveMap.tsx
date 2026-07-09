@@ -1,12 +1,23 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import MaplibreDraw from 'maplibre-gl-draw';
 import 'maplibre-gl-draw/dist/mapbox-gl-draw.css';
-import { MapPin, Download, Trash2, Settings } from 'lucide-react';
 import { useGeoAI } from '../hooks/useGeoAI';
 import { supabase } from '../lib/supabase';
 import { attachDrawSimilarities } from '../utils/embeddingSimilarity';
+import { carbon } from '../utils/carbonTheme';
+import { getTaskDemoLocation, TASK_DEMO_LOCATIONS } from '../utils/taskDemoLocations';
+import { getProviderMaxZoom, clampTaskZoom } from '../utils/mapProviderConfig';
+import { MapWorkflowPanel, getActiveWorkflowStep } from './map/MapWorkflowPanel';
+import { MapDrawToolbar } from './map/MapDrawToolbar';
+import {
+  GEOBASE_TILE_SOURCE_ID,
+  addDetectionResultsLayer,
+  buildGeobaseTileUrl,
+  getGeobaseProjectRef,
+  DETECTION_RESULTS_LAYER_ID,
+} from '../utils/geobaseTileLayer';
 
 interface DetectionResult {
   task: string;
@@ -24,6 +35,8 @@ interface DetectionResult {
 interface InteractiveMapProps {
   provider: 'esri' | 'mapbox' | 'geobase' | 'google';
   geobaseConfig?: GeobaseConfig | null;
+  isAuthenticated?: boolean;
+  selectedSessionId?: string | null;
   onDetectionComplete?: (results: DetectionResult[]) => void;
   onError?: (error: string) => void;
   showDatabaseDebugger?: boolean;
@@ -47,17 +60,17 @@ interface DetectionTask {
 type EmbeddingInteractionMode = 'roi' | 'featureSelection';
 
 const DETECTION_TASKS: DetectionTask[] = [
-  { task: 'zero-shot-object-detection', label: 'Zero-shot Objects', color: '#f97316', enabled: false },
-  { task: 'oil-storage-tank-detection', label: 'Oil Tanks', color: '#ff6b6b', enabled: false },
-  { task: 'solar-panel-detection', label: 'Solar Panels', color: '#4ecdc4', enabled: false },
-  { task: 'building-detection', label: 'Buildings', color: '#45b7d1', enabled: false },
-  { task: 'car-detection', label: 'Cars', color: '#96ceb4', enabled: false },
-  { task: 'ship-detection', label: 'Ships', color: '#feca57', enabled: false },
-  { task: 'land-cover-classification', label: 'Land Cover', color: '#ff9ff3', enabled: false },
+  { task: 'zero-shot-object-detection', label: 'Zero-shot Objects', color: TASK_DEMO_LOCATIONS['zero-shot-object-detection'].accent, enabled: false },
+  { task: 'oil-storage-tank-detection', label: 'Oil Tanks', color: TASK_DEMO_LOCATIONS['oil-storage-tank-detection'].accent, enabled: false },
+  { task: 'solar-panel-detection', label: 'Solar Panels', color: TASK_DEMO_LOCATIONS['solar-panel-detection'].accent, enabled: false },
+  { task: 'building-detection', label: 'Buildings', color: TASK_DEMO_LOCATIONS['building-detection'].accent, enabled: false },
+  { task: 'car-detection', label: 'Cars', color: TASK_DEMO_LOCATIONS['car-detection'].accent, enabled: false },
+  { task: 'ship-detection', label: 'Ships', color: TASK_DEMO_LOCATIONS['ship-detection'].accent, enabled: false },
+  { task: 'land-cover-classification', label: 'Land Cover', color: TASK_DEMO_LOCATIONS['land-cover-classification'].accent, enabled: false },
   {
     task: 'image-feature-extraction',
     label: 'Image Embeddings',
-    color: '#8b5cf6',
+    color: TASK_DEMO_LOCATIONS['image-feature-extraction'].accent,
     enabled: false,
     modelId: 'geobase/dinov3-vitl16-pretrain-sat493m-ONNX',
   },
@@ -188,7 +201,9 @@ const createRoiPolygonAtClick = (
 
 export function InteractiveMap({ 
   provider, 
-  geobaseConfig, 
+  geobaseConfig,
+  isAuthenticated = false,
+  selectedSessionId = null,
   onDetectionComplete, 
   onError,
   showDatabaseDebugger,
@@ -212,7 +227,7 @@ export function InteractiveMap({
   const [currentPolygon, setCurrentPolygon] = useState<GeoJSON.Feature<GeoJSON.Polygon> | null>(null);
   const [detectionResults, setDetectionResults] = useState<DetectionResult[]>([]);
   const [showSettings, setShowSettings] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(18);
+  const [zoomLevel, setZoomLevel] = useState(() => clampTaskZoom(18, getProviderMaxZoom(provider)));
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.5);
   const [zeroShotClassLabel, setZeroShotClassLabel] = useState('car, truck, bus');
   const [embeddingSimilarityThreshold, setEmbeddingSimilarityThreshold] = useState(() =>
@@ -313,16 +328,31 @@ export function InteractiveMap({
     []
   );
 
+  const providerMaxZoom = getProviderMaxZoom(provider);
+
+  const effectiveGeobaseConfig = useMemo(() => {
+    if (!geobaseConfig) return null;
+    if (!selectedTask) return geobaseConfig;
+
+    const demo = getTaskDemoLocation(selectedTask.task);
+    if (!demo?.cogImageryUrl) return geobaseConfig;
+
+    return {
+      ...geobaseConfig,
+      cogImageryUrl: demo.cogImageryUrl,
+    };
+  }, [geobaseConfig, selectedTask]);
+
   const { 
     detectObjects, 
     error, 
     currentSession,
-    createSession,
+    getDetectionHistory,
     clearResults
   } = useGeoAI({
     provider,
-    geobaseConfig,
-    autoSave: true,
+    geobaseConfig: effectiveGeobaseConfig,
+    autoSave: isAuthenticated,
     sessionName: `Interactive Detection - ${new Date().toLocaleString()}`
   });
 
@@ -336,19 +366,19 @@ export function InteractiveMap({
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: mapStyle,
-      center: [54.690310447932006, 24.75763471820723], // Dubai area
-      zoom: 15,
-      maxZoom: 22,
+      center: TASK_DEMO_LOCATIONS['solar-panel-detection'].center,
+      zoom: clampTaskZoom(TASK_DEMO_LOCATIONS['solar-panel-detection'].zoom, providerMaxZoom),
+      maxZoom: providerMaxZoom,
       minZoom: 1,
       transformRequest,
     });
 
-    // Add drawing controls
+    // Drawing (UI hidden — custom toolbar controls modes)
     const draw = new MaplibreDraw({
       displayControlsDefault: false,
       controls: {
-        polygon: true,
-        trash: true
+        polygon: false,
+        trash: false,
       },
       styles: [
         {
@@ -356,20 +386,20 @@ export function InteractiveMap({
           type: 'fill',
           filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
           paint: {
-            'fill-color': '#3fb1ce',
-            'fill-outline-color': '#3fb1ce',
-            'fill-opacity': 0.1
-          }
+            'fill-color': carbon.accent,
+            'fill-outline-color': carbon.accent,
+            'fill-opacity': 0.12,
+          },
         },
         {
           id: 'gl-draw-polygon-fill-active',
           type: 'fill',
           filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
           paint: {
-            'fill-color': '#fbb03b',
-            'fill-outline-color': '#fbb03b',
-            'fill-opacity': 0.1
-          }
+            'fill-color': carbon.warm,
+            'fill-outline-color': carbon.warm,
+            'fill-opacity': 0.16,
+          },
         },
         {
           id: 'gl-draw-polygon-stroke-inactive',
@@ -377,12 +407,12 @@ export function InteractiveMap({
           filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
           layout: {
             'line-cap': 'round',
-            'line-join': 'round'
+            'line-join': 'round',
           },
           paint: {
-            'line-color': '#3fb1ce',
-            'line-width': 2
-          }
+            'line-color': carbon.accent,
+            'line-width': 2,
+          },
         },
         {
           id: 'gl-draw-polygon-stroke-active',
@@ -390,14 +420,14 @@ export function InteractiveMap({
           filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
           layout: {
             'line-cap': 'round',
-            'line-join': 'round'
+            'line-join': 'round',
           },
           paint: {
-            'line-color': '#fbb03b',
-            'line-width': 2
-          }
-        }
-      ]
+            'line-color': carbon.warm,
+            'line-width': 2.5,
+          },
+        },
+      ],
     });
 
     map.current.addControl(draw as unknown as maplibregl.IControl);
@@ -427,7 +457,7 @@ export function InteractiveMap({
       }
       
       // Add Geobase imagery layer if using Geobase provider
-      if (provider === 'geobase' && geobaseConfig && map.current) {
+      if (provider === 'geobase' && effectiveGeobaseConfig && map.current) {
         // Style should be loaded at this point, but add a safety check
         if (map.current.isStyleLoaded()) {
           addGeobaseImageryLayer();
@@ -442,7 +472,7 @@ export function InteractiveMap({
         map.current.remove();
       }
     };
-  }, [provider, transformRequest]);
+  }, [provider, providerMaxZoom, transformRequest]);
 
   // Handle errors
   useEffect(() => {
@@ -475,67 +505,36 @@ export function InteractiveMap({
     if (!map.current) return;
 
     const apiKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    const projectRef = import.meta.env.VITE_SUPABASE_URL?.replace('https://', '').replace('.geobase.app', '') || 'loxsednpecspovfimsxq';
+    const projectRef = getGeobaseProjectRef(import.meta.env.VITE_SUPABASE_URL);
+    if (!apiKey || !projectRef) {
+      console.warn('Missing Geobase tileserver configuration');
+      return;
+    }
 
-    // Add vector tile source for detection results
-    if (!map.current.getSource('geobase_tile_source')) {
-      map.current.addSource('geobase_tile_source', {
+    if (!map.current.getSource(GEOBASE_TILE_SOURCE_ID)) {
+      map.current.addSource(GEOBASE_TILE_SOURCE_ID, {
         type: 'vector',
-        tiles: [`https://${projectRef}.geobase.app/tileserver/v1/public.aidx_results/{z}/{x}/{y}.pbf?apikey=${apiKey}`],
+        tiles: [buildGeobaseTileUrl(projectRef, apiKey)],
       });
     }
 
-    // Add detection results layer with task-based and class-based styling
-    map.current.addLayer({
-      id: 'detection-results-layer',
-      type: 'fill',
-      source: 'geobase_tile_source',
-      'source-layer': 'public.aidx_results',
-      paint: {
-        'fill-color': [
-          'case',
-          // Land cover classification - use class-based colors
-          ['==', ['get', 'task_type'], 'land-cover-classification'], [
-            'case',
-            ['==', ['get', 'class'], 'developed space'], '#8B4513', // Brown for developed
-            ['==', ['get', 'class'], 'vegetation'], '#228B22', // Green for vegetation
-            ['==', ['get', 'class'], 'water'], '#4169E1', // Blue for water
-            ['==', ['get', 'class'], 'bare soil'], '#D2B48C', // Tan for bare soil
-            ['==', ['get', 'class'], 'urban'], '#696969', // Dark gray for urban
-            ['==', ['get', 'class'], 'agricultural'], '#9ACD32', // Yellow-green for agricultural
-            ['==', ['get', 'class'], 'forest'], '#006400', // Dark green for forest
-            ['==', ['get', 'class'], 'grassland'], '#90EE90', // Light green for grassland
-            '#ff9ff3' // Default color for unknown classes
-          ],
-          // Other detection tasks - use task-based colors
-          ['==', ['get', 'task_type'], 'oil-storage-tank-detection'], '#ff6b6b',
-          ['==', ['get', 'task_type'], 'solar-panel-detection'], '#4ecdc4',
-          ['==', ['get', 'task_type'], 'building-detection'], '#45b7d1',
-          ['==', ['get', 'task_type'], 'car-detection'], '#96ceb4',
-          ['==', ['get', 'task_type'], 'ship-detection'], '#feca57',
-          '#ff9ff3' // default color
-        ],
-        'fill-opacity': 0.6,
-        'fill-outline-color': '#ffffff'
-      },
-      filter: ['==', '$type', 'Polygon'],
-    });
+    addDetectionResultsLayer(map.current);
 
     // Add hover effects
-    map.current.on('mouseenter', 'detection-results-layer', () => {
+    map.current.on('mouseenter', DETECTION_RESULTS_LAYER_ID, () => {
       if (map.current) {
         map.current.getCanvas().style.cursor = 'pointer';
       }
     });
 
-    map.current.on('mouseleave', 'detection-results-layer', () => {
+    map.current.on('mouseleave', DETECTION_RESULTS_LAYER_ID, () => {
       if (map.current) {
         map.current.getCanvas().style.cursor = '';
       }
     });
 
     // Add click handler for detection results
-    map.current.on('click', 'detection-results-layer', (e) => {
+    map.current.on('click', DETECTION_RESULTS_LAYER_ID, (e) => {
       if (e.features && e.features.length > 0) {
         const feature = e.features[0];
         const properties = feature.properties;
@@ -550,12 +549,12 @@ export function InteractiveMap({
         new maplibregl.Popup()
           .setLngLat(e.lngLat)
           .setHTML(`
-            <div class="p-3">
-              <h3 class="font-semibold text-sm mb-2">${taskType.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</h3>
-              ${className ? `<p class="text-xs text-gray-600 mb-1"><strong>Class:</strong> ${className}</p>` : ''}
-              <p class="text-xs text-gray-600 mb-1">Confidence: ${confidence}%</p>
-              <p class="text-xs text-gray-600 mb-1">Session: ${sessionId}...</p>
-              <p class="text-xs text-gray-600">Date: ${date}</p>
+            <div class="p-3" style="color: #f0f0f0;">
+              <h3 class="font-semibold text-sm mb-2" style="color: #f0f0f0;">${taskType.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</h3>
+              ${className ? `<p class="text-xs mb-1" style="color: #a3a3a3;"><strong>Class:</strong> ${className}</p>` : ''}
+              <p class="text-xs mb-1" style="color: #a3a3a3;">Confidence: ${confidence}%</p>
+              <p class="text-xs mb-1" style="color: #a3a3a3;">Session: ${sessionId}...</p>
+              <p class="text-xs" style="color: #a3a3a3;">Date: ${date}</p>
             </div>
           `)
           .addTo(map.current!);
@@ -569,50 +568,26 @@ export function InteractiveMap({
   const refreshGeobaseTileLayer = useCallback(() => {
     if (!map.current) return;
 
-    const source = map.current.getSource('geobase_tile_source') as maplibregl.VectorTileSource;
-    if (source) {
-      // Force refresh of the vector tiles by updating the source
-      const apiKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      const projectRef = import.meta.env.VITE_SUPABASE_URL?.replace('https://', '').replace('.geobase.app', '') || 'loxsednpecspovfimsxq';
-      
-      // Add a cache-busting parameter
-      const cacheBuster = Date.now();
-      const newTiles = [`https://${projectRef}.geobase.app/tileserver/v1/public.aidx_results/{z}/{x}/{y}.pbf?apikey=${apiKey}&t=${cacheBuster}`];
-      
-      // Remove and re-add the source to force refresh
-      map.current.removeLayer('detection-results-layer');
-      map.current.removeSource('geobase_tile_source');
-      
-      // Re-add the source and layer
-      map.current.addSource('geobase_tile_source', {
-        type: 'vector',
-        tiles: newTiles,
-      });
-      
-      map.current.addLayer({
-        id: 'detection-results-layer',
-        type: 'fill',
-        source: 'geobase_tile_source',
-        'source-layer': 'public.aidx_results',
-        paint: {
-          'fill-color': [
-            'case',
-            ['==', ['get', 'task_type'], 'oil-storage-tank-detection'], '#ff6b6b',
-            ['==', ['get', 'task_type'], 'solar-panel-detection'], '#4ecdc4',
-            ['==', ['get', 'task_type'], 'building-detection'], '#45b7d1',
-            ['==', ['get', 'task_type'], 'car-detection'], '#96ceb4',
-            ['==', ['get', 'task_type'], 'ship-detection'], '#feca57',
-            '#ff9ff3' // default color
-          ],
-          'fill-opacity': 0.6,
-          'fill-outline-color': '#ffffff'
-        },
-        filter: ['==', '$type', 'Polygon'],
-      });
-      
-      console.log('🔄 Geobase tileserver layer refreshed to show new detections');
+    const source = map.current.getSource(GEOBASE_TILE_SOURCE_ID) as maplibregl.VectorTileSource | undefined;
+    if (!source) return;
+
+    const apiKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const projectRef = getGeobaseProjectRef(import.meta.env.VITE_SUPABASE_URL);
+    if (!apiKey || !projectRef) return;
+
+    if (map.current.getLayer(DETECTION_RESULTS_LAYER_ID)) {
+      map.current.removeLayer(DETECTION_RESULTS_LAYER_ID);
     }
-  }, [provider]);
+    map.current.removeSource(GEOBASE_TILE_SOURCE_ID);
+
+    map.current.addSource(GEOBASE_TILE_SOURCE_ID, {
+      type: 'vector',
+      tiles: [buildGeobaseTileUrl(projectRef, apiKey, Date.now())],
+    });
+
+    addDetectionResultsLayer(map.current);
+    console.log('🔄 Geobase tileserver layer refreshed to show new detections');
+  }, []);
 
   // Fetch COG bounds and zoom to them
   const zoomToCogBounds = useCallback(async (
@@ -653,7 +628,7 @@ export function InteractiveMap({
 
   // Add Geobase imagery layer when using Geobase provider
   const addGeobaseImageryLayer = useCallback(async (options?: { autoZoomToBounds?: boolean; animateZoom?: boolean }) => {
-    if (!map.current || !geobaseConfig) return;
+    if (!map.current || !effectiveGeobaseConfig) return;
     const autoZoomToBounds = options?.autoZoomToBounds ?? true;
     const animateZoom = options?.animateZoom ?? true;
 
@@ -662,26 +637,26 @@ export function InteractiveMap({
       console.log('⏳ Map style not loaded yet, will retry in 100ms...');
       // Retry after a short delay
       setTimeout(() => {
-        if (map.current && geobaseConfig) {
+        if (map.current && effectiveGeobaseConfig) {
           addGeobaseImageryLayer({ autoZoomToBounds, animateZoom });
         }
       }, 100);
       return;
     }
 
-    console.log('🗺️ Adding Geobase imagery layer with config:', geobaseConfig);
+    console.log('🗺️ Adding Geobase imagery layer with config:', effectiveGeobaseConfig);
 
     try {
       // Add Geobase raster tiles source
       if (!map.current.getSource('geobase-imagery')) {
         // Use the titiler service with the COG imagery URL
-        const titilerUrl = getTitilerCogBaseUrl(geobaseConfig.projectRef);
-        const tilesUrl = `${titilerUrl}/tiles/WebMercatorQuad/{z}/{x}/{y}?apikey=${geobaseConfig.apiKey}&url=${encodeURIComponent(geobaseConfig.cogImageryUrl)}`;
+        const titilerUrl = getTitilerCogBaseUrl(effectiveGeobaseConfig.projectRef);
+        const tilesUrl = `${titilerUrl}/tiles/WebMercatorQuad/{z}/{x}/{y}?apikey=${effectiveGeobaseConfig.apiKey}&url=${encodeURIComponent(effectiveGeobaseConfig.cogImageryUrl)}`;
         
         console.log('🔗 Constructed tiles URL:', tilesUrl);
         console.log('🔗 Titiler base URL:', titilerUrl);
-        console.log('🔗 COG imagery URL:', geobaseConfig.cogImageryUrl);
-        console.log('🔗 API key:', geobaseConfig.apiKey ? 'Present' : 'Missing');
+        console.log('🔗 COG imagery URL:', effectiveGeobaseConfig.cogImageryUrl);
+        console.log('🔗 API key:', effectiveGeobaseConfig.apiKey ? 'Present' : 'Missing');
         
         // Test the titiler URL directly
         const testUrl = tilesUrl.replace('{z}', '10').replace('{x}', '500').replace('{y}', '300');
@@ -703,7 +678,7 @@ export function InteractiveMap({
         // Determine attribution based on imagery source
         let isOinHotosmImagery = false;
         try {
-          const urlObj = new URL(geobaseConfig.cogImageryUrl);
+          const urlObj = new URL(effectiveGeobaseConfig.cogImageryUrl);
           isOinHotosmImagery = urlObj.host === 'oin-hotosm-temp.s3.us-east-1.amazonaws.com';
         } catch (e) {
           // Invalid URL or parsing error: treat as not OpenAerialMap
@@ -782,19 +757,19 @@ export function InteractiveMap({
         
         if (autoZoomToBounds) {
           // Optional: initial load can zoom to COG bounds.
-          await zoomToCogBounds(geobaseConfig, { animate: animateZoom });
+          await zoomToCogBounds(effectiveGeobaseConfig, { animate: animateZoom });
         }
       }
     } catch (error) {
       console.error('❌ Error adding Geobase imagery layer:', error);
       // Retry after a longer delay if there was an error
       setTimeout(() => {
-        if (map.current && geobaseConfig) {
+        if (map.current && effectiveGeobaseConfig) {
           addGeobaseImageryLayer({ autoZoomToBounds, animateZoom });
         }
       }, 500);
     }
-  }, [geobaseConfig, zoomToCogBounds]);
+  }, [effectiveGeobaseConfig, zoomToCogBounds]);
 
   // Remove Geobase imagery layer
   const removeGeobaseImageryLayer = useCallback(() => {
@@ -816,20 +791,20 @@ export function InteractiveMap({
 
   // Update Geobase imagery layer (remove old, add new)
   const updateGeobaseImageryLayer = useCallback(async () => {
-    if (!map.current || !geobaseConfig) return;
+    if (!map.current || !effectiveGeobaseConfig) return;
 
-    console.log('🔄 Updating Geobase imagery layer with new config:', geobaseConfig);
+    console.log('🔄 Updating Geobase imagery layer with new config:', effectiveGeobaseConfig);
 
     // Remove existing layer and source
     removeGeobaseImageryLayer();
 
-    // Add new layer with updated configuration
-    await addGeobaseImageryLayer({ autoZoomToBounds: true, animateZoom: false });
-  }, [geobaseConfig, addGeobaseImageryLayer, removeGeobaseImageryLayer]);
+    // Task selection handles map positioning; avoid competing auto-zoom here.
+    await addGeobaseImageryLayer({ autoZoomToBounds: false, animateZoom: false });
+  }, [effectiveGeobaseConfig, addGeobaseImageryLayer, removeGeobaseImageryLayer]);
 
   // Add or update Geobase imagery layer when configuration changes
   useEffect(() => {
-    if (provider === 'geobase' && geobaseConfig && map.current) {
+    if (provider === 'geobase' && effectiveGeobaseConfig && map.current) {
       // If style is loaded, add/update the layer immediately
       if (map.current.isStyleLoaded()) {
         updateGeobaseImageryLayer();
@@ -845,7 +820,7 @@ export function InteractiveMap({
       // Remove Geobase imagery layer when switching away from Geobase
       removeGeobaseImageryLayer();
     }
-  }, [provider, geobaseConfig, updateGeobaseImageryLayer, removeGeobaseImageryLayer]);
+  }, [provider, effectiveGeobaseConfig, updateGeobaseImageryLayer, removeGeobaseImageryLayer]);
 
   const getMapStyle = (provider: string): string | maplibregl.StyleSpecification => {
     const BASE_MAPS = {
@@ -858,15 +833,19 @@ export function InteractiveMap({
               type: 'raster' as const,
             tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
               tileSize: 256,
+              maxzoom: 20,
               attribution: 'ESRI World Imagery'
             }
           },
         layers: [{
+          id: 'carbon-background',
+          type: 'background' as const,
+          paint: { 'background-color': carbon.carbon },
+        }, {
           id: 'World_Street_Map',
               type: 'raster' as const,
           source: 'raster-tiles',
           minzoom: 0,
-          maxzoom: 24
         }]
             }
         };
@@ -889,6 +868,10 @@ export function InteractiveMap({
             }
           },
           layers: [{
+            id: 'carbon-background',
+            type: 'background' as const,
+            paint: { 'background-color': carbon.carbon },
+          }, {
             id: 'osm-tiles',
               type: 'raster' as const,
             source: 'osm',
@@ -1028,13 +1011,15 @@ export function InteractiveMap({
       classLabel: isZeroShotTask ? zeroShotLabel : undefined
     });
 
+    if (!isAuthenticated) {
+      if (onError) {
+        onError('Sign in to run detections and save results to Supabase');
+      }
+      return;
+    }
+
     try {
       setIsProcessing(true);
-      
-      // Create session if needed
-      if (!currentSession) {
-        await createSession();
-      }
 
       const tasks = [{
         task: currentTask.task,
@@ -1046,8 +1031,8 @@ export function InteractiveMap({
       }];
 
       const requestedZoomLevel = currentTask.task === 'image-feature-extraction'
-        ? Math.min(22, Math.max(1, Math.round(zoomLevel + embeddingZoomOffset)))
-        : Math.min(22, Math.max(1, Math.round(zoomLevel)));
+        ? clampTaskZoom(Math.round(zoomLevel + embeddingZoomOffset), providerMaxZoom)
+        : clampTaskZoom(Math.round(zoomLevel), providerMaxZoom);
 
       const results = await detectObjects({
         polygon,
@@ -1093,7 +1078,7 @@ export function InteractiveMap({
     } finally {
       setIsProcessing(false);
     }
-  }, [confidenceThreshold, zoomLevel, embeddingZoomOffset, zeroShotClassLabel, currentSession, createSession, detectObjects, onDetectionComplete, onError]);
+  }, [confidenceThreshold, zoomLevel, embeddingZoomOffset, zeroShotClassLabel, isAuthenticated, detectObjects, checkIfUsingGeobaseBackend, onDetectionComplete, onError, refreshGeobaseTileLayer, providerMaxZoom]);
 
   const handlePolygonCreate = useCallback(async (e: { features: GeoJSON.Feature[] }) => {
     console.log('🎯 Polygon created event triggered', e);
@@ -1327,6 +1312,65 @@ export function InteractiveMap({
     getEmbeddingFillOpacityExpression
   ]);
 
+  useEffect(() => {
+    if (!selectedSessionId || !map.current) return;
+
+    let cancelled = false;
+
+    const loadSessionResults = async () => {
+      try {
+        const rows = await getDetectionHistory(selectedSessionId);
+        if (cancelled) return;
+
+        const grouped = new Map<string, GeoJSON.Feature[]>();
+        for (const row of rows) {
+          const features = grouped.get(row.task_type) || [];
+          features.push({
+            type: 'Feature',
+            geometry: row.geometry as GeoJSON.Geometry,
+            properties: {
+              ...(row.properties as Record<string, unknown> | null),
+              confidence: row.confidence_score,
+              score: row.confidence_score,
+            },
+          });
+          grouped.set(row.task_type, features);
+        }
+
+        const loadedResults: DetectionResult[] = Array.from(grouped.entries()).map(([task, features]) => ({
+          task,
+          detections: { type: 'FeatureCollection', features },
+          geoRawImage: null,
+          processingTime: 0,
+        }));
+
+        setDetectionResults(loadedResults);
+        displayDetectionResults(loadedResults);
+
+        if (checkIfUsingGeobaseBackend()) {
+          refreshGeobaseTileLayer();
+        }
+      } catch (loadError) {
+        if (!cancelled && onError) {
+          onError(loadError instanceof Error ? loadError.message : 'Failed to load session results');
+        }
+      }
+    };
+
+    void loadSessionResults();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    selectedSessionId,
+    getDetectionHistory,
+    displayDetectionResults,
+    checkIfUsingGeobaseBackend,
+    refreshGeobaseTileLayer,
+    onError,
+  ]);
+
   const clearDetectionResults = useCallback(() => {
     const currentMap = map.current;
     if (!currentMap) return;
@@ -1365,9 +1409,33 @@ export function InteractiveMap({
     clearResults();
   }, [clearResults]);
 
+  const flyToTaskDemo = useCallback((task: DetectionTask) => {
+    const demo = getTaskDemoLocation(task.task);
+    if (!demo || !map.current) return;
+
+    const targetZoom = clampTaskZoom(demo.zoom, providerMaxZoom);
+
+    // Use explicit center/zoom — fitBounds on small demo polygons over-zooms (e.g. zero-shot).
+    map.current.flyTo({
+      center: demo.center,
+      zoom: targetZoom,
+      duration: 900,
+    });
+    setZoomLevel(targetZoom);
+  }, [providerMaxZoom]);
+
+  const handleZoomLevelChange = useCallback((value: number) => {
+    const clamped = clampTaskZoom(value, providerMaxZoom);
+    setZoomLevel(clamped);
+    if (map.current) {
+      map.current.setZoom(clamped);
+    }
+  }, [providerMaxZoom]);
+
   const selectTask = useCallback((task: DetectionTask) => {
     console.log('🎯 Task selected:', task);
     setSelectedTask(task);
+    flyToTaskDemo(task);
     if (task.task === 'image-feature-extraction') {
       setEmbeddingInteractionMode('roi');
       setEmbeddingSelectionPolygon(null);
@@ -1376,7 +1444,7 @@ export function InteractiveMap({
       }
     }
     console.log('✅ selectedTask state updated to:', task);
-  }, []);
+  }, [flyToTaskDemo]);
 
   const setEmbeddingMode = useCallback((mode: EmbeddingInteractionMode) => {
     setEmbeddingInteractionMode(mode);
@@ -1455,6 +1523,100 @@ export function InteractiveMap({
   const canExportResults = isEmbeddingTaskSelected
     ? filteredEmbeddingFeatureCount > 0
     : detectionResults.length > 0;
+
+  const activeWorkflowStep = useMemo(
+    () =>
+      getActiveWorkflowStep({
+        selectedTask,
+        isAuthenticated,
+        hasPolygon: Boolean(currentPolygon),
+        hasResults: detectionResults.length > 0,
+        isProcessing,
+      }),
+    [selectedTask, isAuthenticated, currentPolygon, detectionResults.length, isProcessing]
+  );
+
+  const toolbarNextStep = useMemo(() => {
+    if (activeWorkflowStep === 'draw-area') {
+      if (isEmbeddingTaskSelected && embeddingInteractionMode === 'roi') return null;
+      return 'draw' as const;
+    }
+    if (activeWorkflowStep === 'run-detection' && !isProcessing) return 'run' as const;
+    return null;
+  }, [activeWorkflowStep, isProcessing, isEmbeddingTaskSelected, embeddingInteractionMode]);
+
+  const activeStepHint = useMemo(() => {
+    switch (activeWorkflowStep) {
+      case 'choose-task':
+        return 'Select a task card below to load a demo area.';
+      case 'sign-in':
+        return 'Use Sign In in the header to persist detections.';
+      case 'draw-area':
+        if (isEmbeddingTaskSelected && embeddingInteractionMode === 'roi') {
+          return 'Click the map to place a region of interest.';
+        }
+        return 'Use Draw area in the toolbar below the map.';
+      case 'run-detection':
+        return isProcessing ? 'Detection in progress…' : 'Press Run detection when your area is ready.';
+      case 'review':
+        return 'Export results or clear them to start over.';
+      default:
+        return '';
+    }
+  }, [
+    activeWorkflowStep,
+    isEmbeddingTaskSelected,
+    embeddingInteractionMode,
+    isProcessing,
+  ]);
+
+  const workflowStatusMessage = useMemo(() => {
+    if (isProcessing) return 'Running AI detection…';
+    if (!selectedTask) return 'Choose a detection task to begin.';
+    if (!isAuthenticated) return 'Sign in to save results to your Geobase project.';
+    if (selectedTask.task === 'image-feature-extraction') {
+      return embeddingInteractionMode === 'roi'
+        ? 'Click the map to place an ROI, or switch to Draw anchor in settings.'
+        : 'Draw an anchor polygon on the map, then run detection.';
+    }
+    if (currentPolygon) return 'Area drawn — run detection when ready.';
+    return 'Draw an area on the map around the features you want to detect.';
+  }, [
+    isProcessing,
+    selectedTask,
+    isAuthenticated,
+    embeddingInteractionMode,
+    currentPolygon,
+  ]);
+
+  const handleToolbarDrawPolygon = useCallback(() => {
+    if (!drawRef.current || !selectedTask) return;
+
+    if (
+      selectedTask.task === 'image-feature-extraction' &&
+      embeddingInteractionMode === 'featureSelection'
+    ) {
+      drawRef.current.changeMode('draw_polygon');
+      return;
+    }
+
+    if (selectedTask.task !== 'image-feature-extraction') {
+      drawRef.current.changeMode('draw_polygon');
+    }
+  }, [selectedTask, embeddingInteractionMode]);
+
+  const handleToolbarDelete = useCallback(() => {
+    if (!drawRef.current) return;
+    drawRef.current.trash();
+    setCurrentPolygon(null);
+    clearDetectionResults();
+  }, [clearDetectionResults]);
+
+  const handleToolbarRun = useCallback(() => {
+    if (currentPolygon) {
+      void runDetection(currentPolygon);
+    }
+  }, [currentPolygon, runDetection]);
 
   const exportResults = useCallback(() => {
     if (isEmbeddingTaskSelected) {
@@ -1549,264 +1711,85 @@ export function InteractiveMap({
   ]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative h-full w-full" style={{ backgroundColor: carbon.carbon }}>
       {/* Map Container */}
-      <div ref={mapContainer} className="w-full h-full" />
+      <div ref={mapContainer} className="h-full w-full" style={{ backgroundColor: carbon.carbon }} />
       
-      {/* Control Panel */}
-      <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Detection Tasks</h3>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="p-2 hover:bg-gray-100 rounded"
-              title="Settings"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-            <button
-              onClick={exportResults}
-              disabled={!canExportResults}
-              className="p-2 hover:bg-gray-100 rounded disabled:opacity-50"
-              title={isEmbeddingTaskSelected ? 'Export labeled threshold-matching features' : 'Export Results'}
-            >
-              <Download className="w-4 h-4" />
-            </button>
-            <button
-              onClick={clearDetectionResults}
-              className="p-2 hover:bg-gray-100 rounded"
-              title="Clear Results"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+      <MapWorkflowPanel
+        tasks={DETECTION_TASKS}
+        selectedTask={selectedTask}
+        onSelectTask={(task) => selectTask(task as DetectionTask)}
+        isAuthenticated={isAuthenticated}
+        hasPolygon={Boolean(currentPolygon)}
+        hasResults={detectionResults.length > 0}
+        isProcessing={isProcessing}
+        currentSession={currentSession}
+        activeStepHint={activeStepHint}
+        showSettings={showSettings}
+        onToggleSettings={() => setShowSettings((value) => !value)}
+        canExportResults={canExportResults}
+        onExport={exportResults}
+        onClearResults={clearDetectionResults}
+        statusMessage={workflowStatusMessage}
+        zeroShotClassLabel={zeroShotClassLabel}
+        onZeroShotClassLabelChange={setZeroShotClassLabel}
+        zoomLevel={zoomLevel}
+        maxZoomLevel={providerMaxZoom}
+        onZoomLevelChange={handleZoomLevelChange}
+        confidenceThreshold={confidenceThreshold}
+        onConfidenceThresholdChange={setConfidenceThreshold}
+        isEmbeddingTask={isEmbeddingTaskSelected}
+        embeddingInteractionMode={embeddingInteractionMode}
+        onEmbeddingModeChange={setEmbeddingMode}
+        embeddingSimilarityThreshold={embeddingSimilarityThreshold}
+        onEmbeddingSimilarityThresholdChange={setEmbeddingSimilarityThreshold}
+        embeddingLayerOpacity={embeddingLayerOpacity}
+        onEmbeddingLayerOpacityChange={setEmbeddingLayerOpacity}
+        embeddingZoomOffset={embeddingZoomOffset}
+        onEmbeddingZoomOffsetChange={setEmbeddingZoomOffset}
+        embeddingExportLabel={embeddingExportLabel}
+        onEmbeddingExportLabelChange={setEmbeddingExportLabel}
+        filteredEmbeddingFeatureCount={filteredEmbeddingFeatureCount}
+        showDatabaseDebugger={showDatabaseDebugger}
+        onToggleDatabaseDebugger={onToggleDatabaseDebugger}
+      />
 
-        {/* Task Selection */}
-        <div className="space-y-2 mb-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">
-            Select Detection Task:
-            {!selectedTask && <span className="text-red-500 ml-2">(Required)</span>}
-          </h3>
-          {!selectedTask && (
-            <p className="text-xs text-gray-500 mb-2">Please select a detection task before interacting with the map</p>
-          )}
-          {selectedTask && (
-            <p className="text-xs text-green-600 mb-2">✅ Selected: {selectedTask.label}</p>
-          )}
-          {selectedTask?.task === 'zero-shot-object-detection' && (
-            <div className="mb-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Zero-shot classes (comma-separated)
-              </label>
-              <input
-                type="text"
-                value={zeroShotClassLabel}
-                onChange={(e) => setZeroShotClassLabel(e.target.value)}
-                placeholder="car, truck, bus"
-                className="w-full rounded border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-          )}
-          {DETECTION_TASKS.map(task => (
-            <label key={task.task} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-              <input
-                type="radio"
-                name="detectionTask"
-                value={task.task}
-                checked={selectedTask?.task === task.task}
-                onChange={() => selectTask(task)}
-                className="text-blue-600 focus:ring-blue-500"
-              />
-              <div 
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: task.color }}
-              />
-              <span className="text-sm">{task.label}</span>
-            </label>
-          ))}
-        </div>
-
-        {/* Settings Panel */}
-        {showSettings && (
-          <div className="border-t pt-4 space-y-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Zoom Level: {zoomLevel}
-              </label>
-              <input
-                type="range"
-                min="10"
-                max="22"
-                value={zoomLevel}
-                onChange={(e) => setZoomLevel(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Confidence: {confidenceThreshold.toFixed(2)}
-              </label>
-              <input
-                type="range"
-                min="0.1"
-                max="1.0"
-                step="0.1"
-                value={confidenceThreshold}
-                onChange={(e) => setConfidenceThreshold(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            {selectedTask?.task === 'image-feature-extraction' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Embeddings Interaction
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEmbeddingMode('roi')}
-                      className={`rounded px-2 py-1 text-xs font-medium border ${
-                        embeddingInteractionMode === 'roi'
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-700 border-gray-300'
-                      }`}
-                    >
-                      ROI
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEmbeddingMode('featureSelection')}
-                      className={`rounded px-2 py-1 text-xs font-medium border ${
-                        embeddingInteractionMode === 'featureSelection'
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-700 border-gray-300'
-                      }`}
-                    >
-                      Feature Selection
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {embeddingInteractionMode === 'roi'
-                      ? 'Click the map to place ROI. Drag corners or edges to resize, drag center to move.'
-                      : 'Use draw polygon to pick an anchor area and highlight similar embedding patches.'}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Embedding Similarity Threshold: {embeddingSimilarityThreshold.toFixed(2)}
-                  </label>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="1.0"
-                    step="0.05"
-                    value={embeddingSimilarityThreshold}
-                    onChange={(e) => setEmbeddingSimilarityThreshold(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Embeddings Opacity: {embeddingLayerOpacity.toFixed(2)}
-                  </label>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="1.0"
-                    step="0.05"
-                    value={embeddingLayerOpacity}
-                    onChange={(e) => setEmbeddingLayerOpacity(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Embeddings Zoom Offset: +{embeddingZoomOffset.toFixed(1)}
-                  </label>
-                  <input
-                    type="range"
-                    min="0.0"
-                    max="2.0"
-                    step="0.1"
-                    value={embeddingZoomOffset}
-                    onChange={(e) => setEmbeddingZoomOffset(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Export Label
-                  </label>
-                  <input
-                    type="text"
-                    value={embeddingExportLabel}
-                    onChange={(e) => setEmbeddingExportLabel(e.target.value)}
-                    placeholder="target"
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Export includes {filteredEmbeddingFeatureCount} features with draw similarity at or above the threshold.
-                  </p>
-                </div>
-              </>
-            )}
-            {import.meta.env.DEV && onToggleDatabaseDebugger && (
-              <div className="border-t pt-3">
-                <label className="flex items-center justify-between text-sm font-medium cursor-pointer">
-                  <span>Show Database Debugger</span>
-                  <input
-                    type="checkbox"
-                    checked={Boolean(showDatabaseDebugger)}
-                    onChange={(e) => onToggleDatabaseDebugger(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                </label>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Status */}
-        <div className="border-t pt-4">
-          <div className="flex items-center space-x-2 text-sm">
-            <MapPin className="w-4 h-4" />
-            <span>
-              {isProcessing ? 'Processing...' : 
-               selectedTask?.task === 'image-feature-extraction'
-                 ? (embeddingInteractionMode === 'roi'
-                     ? 'Click map to place ROI for embeddings'
-                     : 'Draw polygon to select embedding anchor')
-                 : (currentPolygon ? 'Ready to detect' : 'Draw a polygon to start')}
-            </span>
-          </div>
-          {currentSession && (
-            <div className="text-xs text-gray-500 mt-1">
-              Session: {currentSession.slice(0, 8)}...
-            </div>
-          )}
-        </div>
-      </div>
+      <MapDrawToolbar
+        canDraw={Boolean(selectedTask)}
+        canDelete={Boolean(currentPolygon)}
+        canRun={Boolean(currentPolygon && selectedTask && isAuthenticated)}
+        isProcessing={isProcessing}
+        isEmbeddingTask={isEmbeddingTaskSelected}
+        embeddingMode={embeddingInteractionMode}
+        statusHint={workflowStatusMessage}
+        nextStepHighlight={toolbarNextStep}
+        onDrawPolygon={handleToolbarDrawPolygon}
+        onDelete={handleToolbarDelete}
+        onRun={handleToolbarRun}
+      />
 
       {/* Results Summary */}
       {detectionResults.length > 0 && (
-        <div className="absolute bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm">
-          <h4 className="font-semibold mb-2">Detection Results</h4>
-          <div className="space-y-1">
-            {detectionResults.map(result => {
-              const taskConfig = DETECTION_TASKS.find(t => t.task === result.task);
+        <div
+          className="absolute bottom-28 right-4 z-10 max-w-sm rounded-xl border p-4 shadow-2xl"
+          style={{ backgroundColor: carbon.carbon, borderColor: carbon.border, color: carbon.chalk }}
+        >
+          <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: carbon.secondary }}>
+            Results
+          </h4>
+          <div className="space-y-2">
+            {detectionResults.map((result) => {
+              const taskConfig = DETECTION_TASKS.find((t) => t.task === result.task);
               return (
                 <div key={result.task} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className="w-2 h-2 rounded-full"
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-2 w-2 rounded-full"
                       style={{ backgroundColor: taskConfig?.color }}
                     />
                     <span>{taskConfig?.label}</span>
                   </div>
-                  <span className="font-medium">
+                  <span className="font-medium" style={{ color: carbon.accent }}>
                     {result.embeddingSummary
                       ? `${result.embeddingSummary.numEmbeddings} embeddings`
                       : `${result.detections.features.length} found`}
@@ -1820,12 +1803,18 @@ export function InteractiveMap({
 
       {/* Loading Overlay */}
       {isProcessing && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-lg font-medium">Running AI Detection...</p>
-            <p className="text-sm text-gray-600 mt-2">
-              Processing {selectedTask?.label || 'detection task'}
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60">
+          <div
+            className="rounded-xl border px-8 py-6 text-center shadow-2xl"
+            style={{ backgroundColor: carbon.carbon, borderColor: carbon.border, color: carbon.chalk }}
+          >
+            <div
+              className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2"
+              style={{ borderColor: carbon.border, borderTopColor: carbon.accent }}
+            />
+            <p className="text-lg font-medium">Running AI detection</p>
+            <p className="mt-2 text-sm" style={{ color: carbon.secondary }}>
+              {selectedTask?.label || 'Processing task'}
             </p>
           </div>
         </div>
