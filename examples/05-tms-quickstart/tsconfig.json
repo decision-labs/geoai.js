@@ -14,6 +14,6 @@
     "strict": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "src/types/geoai.d.ts"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,15 +1,4 @@
-import type { ProviderParams } from 'geoai';
-
-export type TmsParams = {
-  provider: 'tms';
-  baseUrl: string;
-  extension?: string;
-  apiKey?: string;
-  attribution?: string;
-  tileSize?: number;
-  headers?: Record<string, string>;
-  scheme?: 'WebMercator' | 'TMS';
-};
+import type { ProviderParams, TmsParams } from 'geoai';
 
 export type QuickstartTask = 'building-detection' | 'car-detection' | 'object-detection';
 
@@ -107,7 +96,9 @@ export function buildTmsConfig(overrides?: {
   const preset =
     presetId === 'custom' ? null : TILE_PRESETS['esri-world-imagery'];
 
-  const scheme = overrides?.scheme || import.meta.env.VITE_TMS_SCHEME || 'WebMercator';
+  const scheme: TmsParams['scheme'] =
+    overrides?.scheme ||
+    (import.meta.env.VITE_TMS_SCHEME === 'TMS' ? 'TMS' : 'WebMercator');
   const attribution =
     overrides?.attribution ||
     import.meta.env.VITE_TMS_ATTRIBUTION ||

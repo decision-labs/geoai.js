@@ -79,6 +79,8 @@ pnpm install
 pnpm dev
 ```
 
+Types (`TmsParams`, `ProviderParams`, etc.) come from the library's `build/index.d.ts` — run `pnpm build` at the repo root before `pnpm install` in this example so TypeScript resolves them from `file:../../build`.
+
 When TMS ships in a published `geoai` release, you can switch `package.json` to `geoai@<version>` instead of the file reference.
 
 ## Scripts

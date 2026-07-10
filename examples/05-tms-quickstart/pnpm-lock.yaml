@@ -3615,8 +3615,8 @@ snapshots:
 
   geojson-rbush@2.1.0:
     dependencies:
-      '@turf/helpers': 6.5.0
-      '@turf/meta': 6.5.0
+      '@turf/helpers': 7.3.5
+      '@turf/meta': 7.3.5
       rbush: 4.0.1
 
   geojson-vt@3.2.1: {}
