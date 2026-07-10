@@ -195,18 +195,7 @@ const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
 });
 ```
 
-OpenStreetMap is also available for basic wiring checks:
-
-```typescript
-const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
-  provider: "tms",
-  baseUrl: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  scheme: "WebMercator",
-  attribution: "© OpenStreetMap contributors",
-});
-```
-
-Draw a small AOI over an area with visible features (buildings, roads) before running detection.
+Draw a small AOI over an area with visible features before running detection.
 
 ## Runnable example
 
