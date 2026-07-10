@@ -2,6 +2,8 @@
 
 A complete full-stack application demonstrating how to integrate GeoAI.js with Supabase and Geobase for storing and managing geospatial AI detection results in real-time.
 
+![GeoAI integration demo — Carbon-themed workflow panel, ESRI map, and detection toolbar](./docs/screenshot.jpg)
+
 ## 🚀 Features
 
 - **Multi-Task AI Detection**: Oil tanks, solar panels, buildings, and more
@@ -149,8 +151,8 @@ Use one of the following methods to initialize the database objects.
 Run these files in order:
 
 1. `supabase/migrations/20250914214029_create_geoai_tables.sql`
-2. `supabase/migrations/20250119000000_fix_geometry_multipolygon.sql`
-3. `supabase/migrations/20250119000002_add_search_path_to_functions.sql`
+2. `supabase/migrations/20250914214030_fix_geometry_multipolygon.sql`
+3. `supabase/migrations/20250914214031_add_search_path_to_functions.sql`
 
 #### Way B: Use Supabase CLI with a direct DB URL
 
@@ -166,8 +168,8 @@ supabase db push --db-url "<YOUR_DB_URL>" --include-all
 
 ```bash
 psql "$DATABASE_URL" -f "examples/04-geoai-supabase-geobase-integration/supabase/migrations/20250914214029_create_geoai_tables.sql"
-psql "$DATABASE_URL" -f "examples/04-geoai-supabase-geobase-integration/supabase/migrations/20250119000000_fix_geometry_multipolygon.sql"
-psql "$DATABASE_URL" -f "examples/04-geoai-supabase-geobase-integration/supabase/migrations/20250119000002_add_search_path_to_functions.sql"
+psql "$DATABASE_URL" -f "examples/04-geoai-supabase-geobase-integration/supabase/migrations/20250914214030_fix_geometry_multipolygon.sql"
+psql "$DATABASE_URL" -f "examples/04-geoai-supabase-geobase-integration/supabase/migrations/20250914214031_add_search_path_to_functions.sql"
 ```
 
 Run in the same order shown above.
