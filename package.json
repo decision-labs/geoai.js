@@ -57,7 +57,7 @@
     "publish:build": "cd build && npm publish --access public --ignore-scripts",
     "publish:pkg": "pnpm prepublish:prep && pnpm publish:build",
     "build:core": "tsc && vite build",
-    "build:types": "dts-bundle-generator --config ./dts-bundle-generator.config.ts",
+    "build:types": "dts-bundle-generator --config ./dts-bundle-generator.config.cjs",
     "build:package": "copyfiles ./package.json build",
     "build:examples": "pnpm build && cp -r ./build ./examples/codepen-geobase",
     "test": "vitest",

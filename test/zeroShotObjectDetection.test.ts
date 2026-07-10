@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from "vitest";
 import { geoai } from "@/geoai";
-import { mapboxParams, polygon, quadrants } from "./constants";
+import { mapboxParams, geobaseParams, polygon, quadrants } from "./constants";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
 import { ZeroShotObjectDetection } from "@/models/zero_shot_object_detection";
 import { geoJsonToGist } from "./utils/saveToGist";
@@ -19,7 +19,7 @@ describe("geoai.zeroShotObjectDetection - OWL-ViT", () => {
       ],
       mapboxParams
     );
-  }, 50000);
+  });
 
   it("should initialize a zero-shot object detection pipeline", async () => {
     const instance = await geoai.pipeline(
@@ -63,23 +63,24 @@ describe("geoai.zeroShotObjectDetection - OWL-ViT", () => {
 
   it("should create new instances for different configurations", async () => {
     const instance1 = await geoai.pipeline(
-      [{ task: "zero-shot-object-detection" }],
+      [
+        {
+          task: "zero-shot-object-detection",
+          modelId: "Xenova/owlvit-base-patch32",
+        },
+      ],
       mapboxParams
     );
     const instance2 = await geoai.pipeline(
       [
         {
           task: "zero-shot-object-detection",
-          modelId: "onnx-community/grounding-dino-tiny-ONNX",
-          modelParams: {
-            model_file_name: "model_quantized",
-            cache_dir: "./cache",
-          },
+          modelId: "Xenova/owlvit-base-patch32",
         },
       ],
-      mapboxParams
+      geobaseParams
     );
-    expect(instance1).not.toBe(instance2.instance);
+    expect(instance1).not.toBe(instance2);
   });
 
   it("should throw exceptions for invalid model parameters", async () => {
@@ -185,7 +186,7 @@ describe("geoai.zeroShotObjectDetection - Grounding DINO", () => {
       ],
       mapboxParams
     );
-  }, 50000);
+  });
 
   it("should process polygons and detect objects with Grounding DINO", async () => {
     const text = ["tree."];

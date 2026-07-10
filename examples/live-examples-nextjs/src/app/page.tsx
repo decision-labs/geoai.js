@@ -50,7 +50,7 @@ export default function Home() {
           "mapbox-satellite": {
             type: "raster",
             tiles: [
-              "https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic2FiIiwiYSI6ImNsNDE3bGR3bzB2MmczaXF5dmxpaTloNmcifQ.NQ-B8jBPtOd53tNYt42Gqw",
+              `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ""}`,
             ],
             tileSize: 256,
           },
@@ -277,16 +277,21 @@ export default function Home() {
                   </div>
                 </div>
                 
-                {/* TMS Format */}
-                <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-3 sm:p-4 opacity-60">
+                {/* TMS — custom XYZ / raster tile URLs */}
+                <a
+                  href="https://docs.geobase.app/geoai/map-providers/tms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 sm:p-4 hover:border-green-500/50 transition-all duration-200 group"
+                >
                   <div className="flex flex-col items-center text-center">
                     <div className="h-6 w-16 sm:h-8 sm:w-20 flex items-center justify-center mb-2 sm:mb-3">
-                      <Grid3X3 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
+                      <Grid3X3 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 group-hover:text-white transition-colors" />
                     </div>
-                    <span className="text-xs text-gray-500 font-medium">TMS</span>
-                    <span className="text-xs text-gray-500 mt-1">Coming Soon</span>
+                    <span className="text-xs text-gray-300 font-medium group-hover:text-white transition-colors">TMS</span>
+                    <span className="text-xs text-green-400 font-medium mt-1">Available</span>
                   </div>
-                </div>
+                </a>
                 
                 {/* WMTS Format */}
                 <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-3 sm:p-4 opacity-60">
@@ -508,7 +513,7 @@ const result = await pipeline.inference(polygon);`}
                 Wetland Detection
               </h3>
               <p className="text-gray-300 text-base">
-                Identifies wetland areas such as marshes and swamps in the imagery.
+                Identifies wetland areas from 4-band multispectral COG imagery (Geobase only).
               </p>
             </a>
             

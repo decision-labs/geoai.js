@@ -36,5 +36,9 @@ jobs:
 
       - name: Build
         run: pnpm build
+      - name: Clear Hugging Face ONNX cache
+        run: |
+          find node_modules -type d -path '*/@huggingface/transformers/.cache' -prune -exec rm -rf {} +
+          rm -rf cache
       - name: Test
         run: pnpm test

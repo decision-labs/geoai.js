@@ -16,11 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tile stitching method to GeoRawImage for improved image handling capabilities
 - GeoJSON output option for landcover classification results
 - Result layer type selector for better visualization control
+- Graceful error handling for tile image loading failures
+- TMS provider now supports both WebMercator (XYZ) and traditional TMS tile schemes
 
 ### Fixed
 - Mask generation post-processing improvements
 - Multipolygon issues in mask generation
 - Landcover classification mask to polygon conversion accuracy
+- Image loading now continues when some tiles fail instead of throwing error immediately
+- Added proper error type `ImageLoadFailed` for when all tiles fail to load
+- TMS provider tile coordinate calculation for Cesium compatibility
 
 ### Improved
 - Overall library performance with removal of heavy OpenCV dependency

@@ -133,7 +133,7 @@ function MyComponent() {
 ## Features
 
 - **Multiple AI Tasks**: Object detection, segmentation, classification, and more
-- **Map Provider Support**: Geobase, Mapbox, ESRI, and Google Maps
+- **Map Provider Support**: Geobase, Mapbox, ESRI, TMS, and Google Maps
 - **React Integration**: Hooks for easy React integration
 - **TypeScript Support**: Full TypeScript definitions
 - **Web Worker Support**: Run AI models in background threads
@@ -157,6 +157,66 @@ function MyComponent() {
 - Image Feature Extraction
 
 For more see the [supported tasks](https://docs.geobase.app/geoai/supported-tasks)
+
+## Map Providers
+
+GeoAI.js supports multiple map tile providers:
+
+### TMS (Tile Map Service)
+TMS is a tile-based map specification that uses a bottom-left origin coordinate system. Perfect for custom tile servers and OpenAerialMap.
+
+```javascript
+// Option 1: Using URL template with placeholders (recommended)
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "tms",
+  baseUrl: "https://tile.example.com/tiles/{z}/{x}/{y}.png",
+  apiKey: "your-api-key", // optional
+  tileSize: 256, // optional, defaults to 256
+  attribution: "Custom TMS Provider", // optional
+});
+
+// Option 2: Using base URL (legacy format, still supported)
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "tms",
+  baseUrl: "https://tile.example.com/tiles",
+  extension: "png", // optional, defaults to "png"
+  apiKey: "your-api-key", // optional
+  tileSize: 256, // optional, defaults to 256
+  attribution: "Custom TMS Provider", // optional
+});
+```
+
+### ESRI
+ESRI World Imagery - no API key required.
+
+```javascript
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "esri",
+});
+```
+
+### Mapbox
+Requires a Mapbox API key.
+
+```javascript
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "mapbox",
+  apiKey: "your-mapbox-api-key",
+  style: "mapbox://styles/mapbox/satellite-v9",
+});
+```
+
+### Geobase
+Requires Geobase project credentials.
+
+```javascript
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "geobase",
+  projectRef: "your-project-ref",
+  apikey: "your-api-key",
+  cogImagery: "https://path-to-your-cog.tif",
+});
+```
 
 ## Talk
 

@@ -1,0 +1,126 @@
+# Serving raster tiles from imagery
+
+GeoAI.js does **not** build tile pyramids. It fetches **raster** `{z}/{x}/{y}` URLs and stitches them for inference. You need an **image or raster tile server** (or a pre-tiled static pyramid) that exposes Web Mercator tiles your models can consume.
+
+This page covers common ways to go from a GeoTIFF or **Cloud Optimized GeoTIFF (COG)** to a `baseUrl` for the [TMS provider](./tms).
+
+## What GeoAI.js needs
+
+| Requirement | Notes |
+| ----------- | ----- |
+| **Raster tiles** | PNG/JPEG imagery — not vector PBF/MVT basemaps |
+| **URL template** | `{z}/{x}/{y}` placeholders or legacy `baseUrl` + `extension` |
+| **Web Mercator** | Default `scheme: "WebMercator"` (XYZ / slippy map) |
+| **Aligned map + inference** | Use the **same** tile URL in MapLibre and `geoai.pipeline()` |
+
+```typescript
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "tms",
+  baseUrl: "https://your-raster-tiles.example.com/tiles/{z}/{x}/{y}.png",
+  scheme: "WebMercator",
+  attribution: "Your imagery source",
+});
+```
+
+See the [TMS provider](./tms) page for URL templates, schemes, and API keys.
+
+## Option 1: Managed platform (Geobase)
+
+**Best fit for this project** — upload or reference a COG, get Web Mercator tile URLs without running your own server.
+
+- [Geobase](https://geobase.app) hosts imagery and exposes raster tile endpoints
+- Used in the [Supabase + Geobase integration example](/geoai/examples/04-geoai-supabase-geobase-integration)
+- Supports multispectral COGs and API-key auth
+
+**Pros:** No tile-server ops; integrates with storage and auth.  
+**Cons:** Requires a Geobase project.
+
+## Option 2: Dynamic COG tile servers
+
+Serve tiles **on demand** from a COG (HTTP range reads, overviews) without pre-rendering a full pyramid.
+
+### Tileserver RS
+
+[Tileserver RS](https://tileserver.app/) is a single-binary server with native **COG** support (`type = "cog"` in config). It serves **raster XYZ tiles** with on-the-fly reprojection, resampling, and colormaps. Paths can be local, HTTP(S), or cloud (`s3://`, etc.). STAC catalog sources are also supported.
+
+**Pros:** Purpose-built slippy raster tiles; good TMS fit.  
+**Cons:** Requires GDAL + `raster` feature at build time; newer project.
+
+### Self-hosted image/raster tile services
+
+You can run any service that reads COGs via GDAL/rio-tiler and exposes `{z}/{x}/{y}` PNG/JPEG URLs — for example a small FastAPI or Node app using [rio-tiler](https://github.com/developmentseed/rio-tiler). URL shape varies by deployment; point `baseUrl` at the template your server documents.
+
+**Pros:** Full control; can colocate with your data.  
+**Cons:** You operate and secure the service.
+
+### MapServer (WMS / WCS — indirect)
+
+[MapServer](https://mapserver.org/) reads COGs through **GDAL** (local files or remote `/vsicurl/...`). It is a strong **WMS/WCS** server, not a native XYZ tile server.
+
+COG support is real for **input**, but wiring GeoAI.js usually means WMS tiled requests or adding **MapCache** (or similar) in front — more glue than Tileserver RS or Geobase.
+
+**Pros:** Mature, flexible OGC services.  
+**Cons:** Extra setup for simple `{z}/{x}/{y}` TMS URLs.
+
+## Option 3: Pre-rendered static pyramid (gdal2tiles)
+
+Bake a `{z}/{x}/{y}` tree offline, then host on S3, nginx, or any static file server.
+
+```bash
+gdal2tiles.py -z 10-18 --xyz your_imagery.tif ./tiles_output/
+```
+
+`--xyz` produces Web Mercator layout matching `scheme: "WebMercator"`.
+
+```typescript
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "tms",
+  baseUrl: "https://your-host.example.com/tiles/{z}/{x}/{y}.png",
+  scheme: "WebMercator",
+});
+```
+
+**Pros:** Simple static hosting; no runtime tile server.  
+**Cons:** Large storage; fixed zoom range; re-tile when source imagery changes.
+
+For traditional TMS Y-flip, omit `--xyz` and set `scheme: "TMS"` in GeoAI.
+
+## Option 4: MBTiles + raster tile server
+
+Package tiles into `.mbtiles`, then serve with [tileserver-gl](https://github.com/maptiler/tileserver-gl) or similar. Point `baseUrl` at the server's `{z}/{x}/{y}` template.
+
+**Pros:** Portable single file; good for demos.  
+**Cons:** Pre-processing step; server must expose raster (not vector-only) tiles.
+
+## Public imagery smoke test
+
+To verify TMS wiring without your own imagery, use **ESRI World Imagery** (satellite, no API key):
+
+```typescript
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "tms",
+  baseUrl:
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  scheme: "WebMercator",
+  attribution: "© Esri, Maxar, Earthstar Geographics",
+});
+```
+
+Note ESRI uses `{z}/{y}/{x}` in the path (Y before X).
+
+## Runnable example
+
+[`examples/05-tms-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/05-tms-quickstart) — draw a polygon on ESRI satellite by default, or paste any raster tile URL in the sidebar.
+
+## Choosing an approach
+
+| Approach | COG on-the-fly | `{z}/{x}/{y}` TMS | Ops burden |
+| -------- | -------------- | ----------------- | ---------- |
+| Geobase | Yes | Yes | Low |
+| Tileserver RS | Yes | Yes | Medium |
+| Self-hosted raster service | Yes | Yes | Medium–high |
+| MapServer (+ tile cache) | Yes (input) | With extra setup | High |
+| gdal2tiles (static) | No (pre-baked) | Yes | Low at runtime |
+| MBTiles + tile server | No (pre-baked) | Yes | Medium |
+
+For production GeoAI workflows on **your own imagery**, start with **Geobase** or a **dynamic raster tile server**; use **gdal2tiles** when you want static hosting only.

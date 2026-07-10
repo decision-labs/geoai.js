@@ -1,8 +1,6 @@
 "use client";
-// TODO: Review this wrapper component - it adds unnecessary complexity.
-// Consider using ModelDownloadProgress directly with useModelDownloadProgress hook.
-// This wrapper was created to handle task-specific model sizes but adds extra indirection.
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useRef } from 'react';
 import { ModelDownloadProgress } from './ModelDownloadProgress';
 import { useTaskDownloadProgress } from '../../hooks/useTaskDownloadProgress';
 import { TaskType } from '../../utils/modelSizes';
@@ -11,9 +9,15 @@ interface TaskDownloadProgressProps {
   task: TaskType;
   className?: string;
   isInitialized?: boolean;
+  error?: string | null;
 }
 
-export function TaskDownloadProgress({ task, className = '', isInitialized = false }: TaskDownloadProgressProps) {
+export function TaskDownloadProgress({
+  task,
+  className = '',
+  isInitialized = false,
+  error = null,
+}: TaskDownloadProgressProps) {
   const {
     downloadInfo,
     isEstimating,
@@ -21,23 +25,28 @@ export function TaskDownloadProgress({ task, className = '', isInitialized = fal
     startDownloadSimulation,
     stopDownloadSimulation,
   } = useTaskDownloadProgress(task);
+  const startedRef = useRef(false);
 
-  // Start simulation when component mounts and model is not initialized
   useEffect(() => {
-    console.log(`[TaskDownloadProgress] ${task}: isInitialized=${isInitialized}, isEstimating=${isEstimating}`);
-    if (!isInitialized && !isEstimating) {
-      console.log(`[TaskDownloadProgress] ${task}: Starting download simulation`);
+    startedRef.current = false;
+  }, [task]);
+
+  useEffect(() => {
+    if (!isInitialized && !error && !startedRef.current) {
+      startedRef.current = true;
       startDownloadSimulation();
     }
-  }, [isInitialized, isEstimating, startDownloadSimulation, task]);
+  }, [isInitialized, error, startDownloadSimulation, task]);
 
-  // Stop simulation when model is initialized
   useEffect(() => {
-    if (isInitialized && isEstimating) {
-      console.log(`[TaskDownloadProgress] ${task}: Stopping download simulation - model initialized`);
+    if ((isInitialized || error) && isEstimating) {
       stopDownloadSimulation();
     }
-  }, [isInitialized, isEstimating, stopDownloadSimulation, task]);
+  }, [isInitialized, error, isEstimating, stopDownloadSimulation]);
+
+  if (isInitialized || error) {
+    return null;
+  }
 
   return (
     <ModelDownloadProgress

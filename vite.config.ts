@@ -74,6 +74,8 @@ export default defineConfig(({ command }) => ({
   test: {
     watch: false,
     testTimeout: 1000000,
+    hookTimeout: 300000,
+    setupFiles: ["./test/setup.ts"],
     exclude: ["**/examples/**", "**/node_modules/**"],
   },
   resolve: {

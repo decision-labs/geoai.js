@@ -19,9 +19,17 @@ export interface ModelDownloadInfo {
  * Uses a small test file to estimate download speed
  */
 export class NetworkSpeedEstimator {
-  private static readonly TEST_FILE_SIZE_BYTES = 1024 * 1024; // 1MB test file
-  private static readonly TEST_FILE_URL = 'https://httpbin.org/bytes/1048576'; // 1MB file
+  private static readonly TEST_FILE_SIZE_BYTES = 427240; // public/geoaijs-meta.png
   private static readonly FALLBACK_SPEED_MBPS = 10; // Fallback speed if test fails
+  private static readonly MAX_SIMULATED_PROGRESS = 95;
+
+  private static getTestFileUrl(): string {
+    const base =
+      typeof window !== 'undefined'
+        ? process.env.NEXT_PUBLIC_BASE_PATH || ''
+        : '';
+    return `${base}/geoaijs-meta.png`;
+  }
 
   /**
    * Estimate network speed by downloading a small test file
@@ -30,7 +38,7 @@ export class NetworkSpeedEstimator {
     try {
       const startTime = performance.now();
       
-      const response = await fetch(this.TEST_FILE_URL, {
+      const response = await fetch(this.getTestFileUrl(), {
         method: 'GET',
         cache: 'no-cache', // Ensure fresh download
       });
@@ -86,8 +94,11 @@ export class NetworkSpeedEstimator {
     const modelSizeBits = modelSizeMB * 8 * 1024 * 1024;
     const downloadedBits = networkSpeedMbps * 1000000 * elapsedTimeSeconds;
     const progress = Math.min((downloadedBits / modelSizeBits) * 100, 100);
-    
-    return Math.max(0, Math.min(100, progress));
+
+    return Math.max(
+      0,
+      Math.min(this.MAX_SIMULATED_PROGRESS, progress)
+    );
   }
 }
 
@@ -124,15 +135,6 @@ export function useModelDownloadProgress(modelSizeMB: number = 100) {
         );
         
         setProgress(currentProgress);
-        
-        // Stop when complete
-        if (currentProgress >= 100) {
-          if (progressIntervalRef.current) {
-            clearInterval(progressIntervalRef.current);
-            progressIntervalRef.current = null;
-          }
-          setIsEstimating(false);
-        }
       }, 100); // Update every 100ms
       
     } catch (error) {

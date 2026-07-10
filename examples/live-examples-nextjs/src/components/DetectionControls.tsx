@@ -35,6 +35,7 @@ interface DetectionControlsProps {
 
   className?: string;
   optimumZoom?: number;
+  allowedMapProviders?: MapProvider[];
 }
 export const PlusIcon = (
   <svg
@@ -115,7 +116,8 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
   onMapProviderChange,
   onDetectionLayerChange,
   className = '',
-  optimumZoom = 18
+  optimumZoom = 18,
+  allowedMapProviders,
 }) => {
   // Icons
   const [hoverWarning, setHoverWarning] = useState<string | null>(null);
@@ -163,12 +165,27 @@ export const DetectionControls: React.FC<DetectionControlsProps> = ({
 
       <div className="space-y-6">
         {/* Map Provider Selection */}
-        <GlassmorphismCard glowColor="emerald">
-          <MapProviderSelector
-            value={mapProvider}
-            onChange={onMapProviderChange}
-          />
-        </GlassmorphismCard>
+        {allowedMapProviders?.length === 1 ? (
+          <GlassmorphismCard glowColor="emerald">
+            <h3 className="text-xs font-semibold text-gray-700 mb-2 flex items-center">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
+              Imagery Source
+            </h3>
+            <div className="flex items-center gap-2 rounded-md bg-white/80 border border-gray-300/60 p-2 text-sm text-gray-800">
+              <img src="/geoai-live/favicon-16x16.png" alt="Geobase" className="w-3 h-3" />
+              <span className="font-medium">Geobase</span>
+              <span className="text-xs text-gray-500">4-band multispectral COG required</span>
+            </div>
+          </GlassmorphismCard>
+        ) : (
+          <GlassmorphismCard glowColor="emerald">
+            <MapProviderSelector
+              value={mapProvider}
+              onChange={onMapProviderChange}
+              allowedProviders={allowedMapProviders}
+            />
+          </GlassmorphismCard>
+        )}
 
         {/* Detection Layer Display Mode - Only show if we have results and callback */}
         {lastResult && onDetectionLayerChange && (
