@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "echo 'geoai.js root is an npm library — deploy docs/ or examples/live-examples-nextjs instead.' && exit 1"
+}
