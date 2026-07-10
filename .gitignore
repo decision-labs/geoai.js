@@ -31,3 +31,4 @@ stats.html
 .env
 talks/*
 !talks/*.md
+.vercel
