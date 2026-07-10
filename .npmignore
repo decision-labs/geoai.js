@@ -19,7 +19,7 @@ node_modules/
 pnpm-lock.yaml
 vite.config.ts
 tsconfig.json
-dts-bundle-generator.config.ts
+dts-bundle-generator.config.cjs
 .prettier*
 .eslint*
 .stylelint*
