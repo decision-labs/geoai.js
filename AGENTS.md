@@ -92,7 +92,7 @@ pnpm format:scripts
 
 - **Test coverage** for new features
 - **Type safety** - No `any` types without justification
-- **Documentation updates** - Update README and examples if needed
+- **Documentation updates** - Update README, examples, and `docs/pages/map-providers/serving-raster-tiles.mdx` when tile-serving options change
 - **Performance impact** - Consider bundle size implications
 - **Backward compatibility** - Maintain existing API contracts
 
@@ -110,6 +110,16 @@ pnpm format:scripts
 2. Handle authentication and rate limiting
 3. Test with various coordinate systems
 4. Add integration tests
+5. Add or update provider docs under `docs/pages/map-providers/`
+
+### Serving raster tiles documentation
+Keep **`docs/pages/map-providers/serving-raster-tiles.mdx`** up to date when you add or change:
+
+- COG → tile workflows (dynamic servers, static pyramids, MBTiles)
+- Image or raster tile servers users can plug into the TMS provider
+- Comparison table rows (Geobase, Tileserver RS, MapServer, gdal2tiles, etc.)
+
+Do **not** name a single vendor as the only option — describe capabilities (Web Mercator `{z}/{x}/{y}` raster URLs). Link from `tms.mdx` and `map-providers.mdx` rather than duplicating long lists there.
 
 ### React Hook Updates
 1. Follow existing state management patterns

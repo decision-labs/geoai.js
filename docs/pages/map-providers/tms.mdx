@@ -115,72 +115,9 @@ const provider = new Tms({
 
 ## Generating tiles from imagery
 
-GeoAI.js consumes tile URLs — it does not build pyramids itself. You have three common paths from a GeoTIFF or COG to a `baseUrl` you can pass to the TMS provider.
+GeoAI.js consumes tile URLs — it does not build pyramids itself. You need **raster** `{z}/{x}/{y}` URLs from an image or raster tile server, or from a pre-tiled static pyramid.
 
-### Option 1: TiTiler (recommended — no pre-tiling)
-
-Serve a **Cloud Optimized GeoTIFF (COG)** on demand. This is what [Geobase](https://geobase.app) uses and what the [Supabase + Geobase example](/geoai/examples/04-geoai-supabase-geobase-integration) uses for custom imagery.
-
-1. Host your COG (S3, Hugging Face, Geobase storage, etc.).
-2. Point a [TiTiler](https://developmentseed.org/titiler/) instance at it.
-3. Use the WebMercator tile template GeoAI expects:
-
-```typescript
-const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
-  provider: "tms",
-  baseUrl: "https://your-titiler.example.com/tiles/WebMercatorQuad/{z}/{x}/{y}?url=https%3A%2F%2Fyour-bucket%2Fimagery.tif",
-  scheme: "WebMercator",
-  attribution: "Your imagery source",
-});
-```
-
-**Pros:** No disk-heavy pyramid; one COG file; zoom levels generated on request.  
-**Cons:** Requires a running TiTiler (or Geobase) endpoint.
-
-### Option 2: GDAL `gdal2tiles` (static XYZ pyramid)
-
-Pre-render a `{z}/{x}/{y}` tree from a GeoTIFF, then host the folder on any static file server (S3, nginx, etc.).
-
-```bash
-# Install GDAL, then build tiles (adjust zoom range to your imagery GSD)
-gdal2tiles.py -z 10-18 --xyz your_imagery.tif ./tiles_output/
-```
-
-`--xyz` produces the **Web Mercator / XYZ** layout (`{z}/{x}/{y}.png`) that matches `scheme: "WebMercator"`.
-
-Upload `tiles_output/` and configure GeoAI:
-
-```typescript
-const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
-  provider: "tms",
-  baseUrl: "https://your-host.example.com/tiles/{z}/{x}/{y}.png",
-  scheme: "WebMercator",
-});
-```
-
-Or use the legacy path style (no placeholders in `baseUrl`):
-
-```typescript
-const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
-  provider: "tms",
-  baseUrl: "https://your-host.example.com/tiles",
-  extension: "png",
-  scheme: "WebMercator",
-});
-// Requests: https://your-host.example.com/tiles/{z}/{x}/{y}.png
-```
-
-**Pros:** Simple static hosting; works offline.  
-**Cons:** Large storage; fixed zoom range; re-run `gdal2tiles` when source imagery changes.
-
-For **traditional TMS** Y-flip (bottom-left origin), omit `--xyz` and set `scheme: "TMS"` in GeoAI.
-
-### Option 3: MBTiles + tile server
-
-Package tiles into a single `.mbtiles` file (e.g. with [gdal_translate](https://gdal.org/programs/gdal_translate.html) + [mb-util](https://github.com/mapbox/mbutil) or [TileMaker](https://github.com/systemed/tilemaker)), then serve with [tileserver-gl](https://github.com/maptiler/tileserver-gl) or similar. Point `baseUrl` at the server's `{z}/{x}/{y}` template.
-
-**Pros:** One portable file; good for demos.  
-**Cons:** Extra server setup; scheme depends on the tile server (usually WebMercator).
+See **[Serving raster tiles from imagery](./serving-raster-tiles)** for COG workflows, Geobase, Tileserver RS, MapServer, gdal2tiles, and MBTiles options.
 
 ### Quick smoke test (no imagery of your own)
 
@@ -199,7 +136,7 @@ Draw a small AOI over an area with visible features before running detection.
 
 ## Runnable example
 
-See [`examples/05-tms-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/05-tms-quickstart) for a minimal Vite + MapLibre app: draw a polygon, run detection against ESRI World Imagery by default, or paste your own TiTiler / gdal2tiles URL in the sidebar.
+See [`examples/05-tms-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/05-tms-quickstart) for a minimal Vite + MapLibre app, or [Serving raster tiles](./serving-raster-tiles) for COG and tile-server options.
 
 ## Troubleshooting
 

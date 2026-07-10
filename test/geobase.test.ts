@@ -83,20 +83,18 @@ describe("Geobase", () => {
     it("should generate correct tile URLs", () => {
       const getTileUrl = testGeobase.getTileUrlFromTileCoords.bind(testGeobase);
       const url = getTileUrl([123, 456, 18], testGeobase);
+      const base = `https://${testGeobase.projectRef}.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/123/456`;
 
-      expect(url).toBe(
-        "https://wmrosdnjsecywfkvxtrw.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/123/456" +
-          "?url=test-imagery&apikey=test-key"
-      );
+      expect(url).toBe(`${base}?url=test-imagery&apikey=test-key`);
     });
 
     it("should generate correct tile URL with bands parameter", () => {
       const getTileUrl = testGeobase.getTileUrlFromTileCoords.bind(testGeobase);
       const url = getTileUrl([123, 456, 18], testGeobase, [1, 2, 3]);
+      const base = `https://${testGeobase.projectRef}.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/123/456`;
 
       expect(url).toBe(
-        "https://wmrosdnjsecywfkvxtrw.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/123/456" +
-          "?url=test-imagery&apikey=test-key&bidx=1&bidx=2&bidx=3"
+        `${base}?url=test-imagery&apikey=test-key&bidx=1&bidx=2&bidx=3`
       );
     });
 
@@ -109,10 +107,10 @@ describe("Geobase", () => {
         undefined,
         expression
       );
+      const base = `https://${testGeobase.projectRef}.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/123/456`;
 
       expect(url).toBe(
-        "https://wmrosdnjsecywfkvxtrw.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/123/456" +
-          `?url=test-imagery&apikey=test-key&expression=${encodeURIComponent(expression)}`
+        `${base}?url=test-imagery&apikey=test-key&expression=${encodeURIComponent(expression)}`
       );
     });
 
@@ -120,10 +118,10 @@ describe("Geobase", () => {
       const getTileUrl = testGeobase.getTileUrlFromTileCoords.bind(testGeobase);
       const expression = "(b3-b2)/(b3+b2)";
       const url = getTileUrl([123, 456, 18], testGeobase, [3, 2], expression);
+      const base = `https://${testGeobase.projectRef}.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/123/456`;
 
       expect(url).toBe(
-        "https://wmrosdnjsecywfkvxtrw.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/123/456" +
-          `?url=test-imagery&apikey=test-key&bidx=3&bidx=2&expression=${encodeURIComponent(expression)}`
+        `${base}?url=test-imagery&apikey=test-key&bidx=3&bidx=2&expression=${encodeURIComponent(expression)}`
       );
     });
   });

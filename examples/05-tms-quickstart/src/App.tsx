@@ -391,7 +391,7 @@ export default function App() {
                 <code>…/World_Imagery/MapServer/tile/{'{z}'}/{'{y}'}/{'{x}'}</code> (note Y before X)
               </li>
               <li>
-                <strong>TiTiler / COG:</strong>{' '}
+                <strong>Image / raster tile server:</strong>{' '}
                 <code>…/tiles/WebMercatorQuad/{'{z}'}/{'{x}'}/{'{y}'}?url=…</code>
               </li>
               <li>

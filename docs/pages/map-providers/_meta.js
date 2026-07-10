@@ -3,4 +3,5 @@ export default {
   geobase: "Geobase",
   esri: "ESRI",
   tms: "TMS",
+  "serving-raster-tiles": "Serving Raster Tiles",
 };

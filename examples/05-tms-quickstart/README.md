@@ -4,7 +4,7 @@ Minimal [GeoAI.js](https://github.com/decision-labs/geoai.js) example that runs 
 
 - MapLibre map with draw tools
 - Default tile source: **ESRI World Imagery** satellite (no API key)
-- Swap in your own TiTiler, gdal2tiles, or static tile pyramid URL
+- Swap in your own image or raster tile server, gdal2tiles, or static tile pyramid URL
 - Tasks: building detection, car detection, object detection
 
 ## Quick start
@@ -42,10 +42,10 @@ VITE_INFERENCE_ZOOM=17
 
 ESRI tile paths use `{z}/{y}/{x}` order (Y before X). The sidebar preset handles this automatically.
 
-### TiTiler / COG
+### Image or raster tile server (COG)
 
 ```bash
-VITE_TMS_BASE_URL=https://your-titiler.example.com/tiles/WebMercatorQuad/{z}/{x}/{y}?url=https%3A%2F%2Fyour-bucket%2Fimagery.tif
+VITE_TMS_BASE_URL=https://your-raster-tiles.example.com/tiles/WebMercatorQuad/{z}/{x}/{y}?url=https%3A%2F%2Fyour-bucket%2Fimagery.tif
 VITE_MAP_CENTER=-121.74,38.54
 VITE_INFERENCE_ZOOM=18
 ```
@@ -64,7 +64,7 @@ VITE_INFERENCE_ZOOM=17
 2. MapLibre raster tiles use the **same** `baseUrl` as GeoAI so the map and inference stay aligned.
 3. On polygon draw, `pipeline.inference()` fetches TMS tiles for the AOI and runs the selected task.
 
-See also: [TMS provider docs](https://docs.geobase.app/geoai/map-providers/tms).
+See also: [TMS provider docs](https://docs.geobase.app/geoai/map-providers/tms) and [Serving raster tiles from imagery](https://docs.geobase.app/geoai/map-providers/serving-raster-tiles).
 
 ## Local library development
 
