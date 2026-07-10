@@ -1,14 +1,15 @@
 import fetch from "node-fetch";
 
+const gistUploadsEnabled = (): boolean =>
+  process.env.GEOAI_SAVE_GISTS === "1" && Boolean(process.env.TOKEN_GITHUB);
+
 export async function geoJsonToGist({
   content,
   fileName = "output.geojson",
   description = "GeoJSON output from test",
   isPublic = true,
 }) {
-  const token = process.env.TOKEN_GITHUB;
-  if (!token) {
-    console.warn("⚠️ No GitHub token found. Skipping Gist creation.");
+  if (!gistUploadsEnabled()) {
     return null;
   }
 
@@ -19,7 +20,7 @@ export async function geoJsonToGist({
     const res = await fetch("https://api.github.com/gists", {
       method: "POST",
       headers: {
-        Authorization: `token ${token}`,
+        Authorization: `token ${process.env.TOKEN_GITHUB}`,
         Accept: "application/vnd.github.v3+json",
         "Content-Type": "application/json",
       },
@@ -34,16 +35,14 @@ export async function geoJsonToGist({
       }),
     });
 
-    const data = (await res.json()) as { html_url: string };
-    if (!res.ok) {
-      console.error("❌ Failed to create Gist:", data);
+    const data = (await res.json()) as { html_url?: string };
+    if (!res.ok || !data.html_url) {
       return null;
     }
 
-    console.log(`✅ Gist created: ${fileName} -  ${data.html_url}`);
+    console.log(`✅ Gist created: ${fileName} - ${data.html_url}`);
     return data.html_url;
-  } catch (err) {
-    console.error("🚨 Error uploading to Gist:", err);
+  } catch {
     return null;
   }
 }

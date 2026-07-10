@@ -7,29 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- Removed OpenCV.js dependency across all AI models for improved performance and reduced bundle size
-- Migrated building-footprint-segmentation and landcover-classification to use d3-contours for contour processing
-- Replaced OpenCV implementations with native JavaScript solutions
+## [1.0.4] - 2026-07-11
 
 ### Added
-- Tile stitching method to GeoRawImage for improved image handling capabilities
-- GeoJSON output option for landcover classification results
-- Result layer type selector for better visualization control
-- Graceful error handling for tile image loading failures
-- TMS provider now supports both WebMercator (XYZ) and traditional TMS tile schemes
+- TMS map provider with `{z}/{x}/{y}` URL templates and WebMercator/TMS tile schemes
+- `examples/05-tms-quickstart` and TMS / serving-raster-tiles documentation
 
 ### Fixed
-- Mask generation post-processing improvements
-- Multipolygon issues in mask generation
-- Landcover classification mask to polygon conversion accuracy
-- Image loading now continues when some tiles fail instead of throwing error immediately
-- Added proper error type `ImageLoadFailed` for when all tiles fail to load
-- TMS provider tile coordinate calculation for Cesium compatibility
+- `dts-bundle-generator` config for ESM package type (`build:types` in CI)
+- CI test stability: Geobase tile mocks, ONNX cache cleanup, and zero-shot test isolation
+- Test gist uploads no longer log errors when GitHub credentials are missing or invalid
 
-### Improved
-- Overall library performance with removal of heavy OpenCV dependency
-- Memory usage optimization in geospatial processing tasks
+### Changed
+- Gist uploads in tests are opt-in via `GEOAI_SAVE_GISTS=1`
+
+## [1.0.3] - 2025-08-28
+
+### Fixed
+- Landuse classification vectorisation bug fix
 
 ## [1.0.0-rc.1] - 2024-01-XX
 
@@ -130,12 +125,6 @@ To migrate from the old package:
 
 ## [1.0.1] - 2025-08-28
 
-### Release Candidate
+### Changed
 - Removed OpenCV.js dependency across all AI models for improved performance and reduced bundle size.
-
-
-## [1.0.3] - 2025-08-28
-
-### Release Candidate
-- Landuse classification vectorisation bug fix
 
