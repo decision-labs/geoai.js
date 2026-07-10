@@ -6,12 +6,12 @@ export default {
   workers: "Web Workers",
   "-- Frontend Frameworks": {
     type: "separator",
-    title: "Frontend Frameworks"
+    title: "Frontend Frameworks",
   },
   "frontend-frameworks": "Frontend Frameworks",
   "-- Development": {
-    type: "separator", 
-    title: "Development"
+    type: "separator",
+    title: "Development",
   },
   developers: "Developers",
   "geoai-live": {
