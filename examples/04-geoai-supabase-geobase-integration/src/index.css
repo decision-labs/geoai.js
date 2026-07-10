@@ -1,0 +1,295 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CarbonPlan-inspired theme (https://carbonplan.org/design/color) */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    background-color: #212529;
+    color: #f0f0f0;
+  }
+
+  select,
+  input,
+  textarea {
+    color-scheme: dark;
+  }
+}
+
+@layer components {
+  .map-container {
+    @apply relative w-full h-full;
+  }
+
+  .carbon-card {
+    @apply rounded-xl border shadow-lg;
+    background-color: #2d3339;
+    border-color: #3a4249;
+    color: #f0f0f0;
+  }
+
+  .carbon-input {
+    @apply w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2;
+    background-color: #2d3339;
+    border-color: #3a4249;
+    color: #f0f0f0;
+    --tw-ring-color: #2ba99a;
+  }
+
+  .carbon-btn-primary {
+    @apply rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2;
+    background-color: #2ba99a;
+    color: #212529;
+    --tw-ring-color: #2ba99a;
+  }
+
+  .carbon-btn-primary:hover {
+    background-color: #239e90;
+  }
+
+  .carbon-btn-secondary {
+    @apply rounded-md px-4 py-2 text-sm font-medium transition-colors;
+    background-color: #2d3339;
+    border: 1px solid #3a4249;
+    color: #f0f0f0;
+  }
+
+  .carbon-btn-secondary:hover {
+    background-color: #353c44;
+  }
+
+  .carbon-select {
+    @apply rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2;
+    background-color: #2d3339;
+    border-color: #3a4249;
+    color: #f0f0f0;
+    --tw-ring-color: #2ba99a;
+  }
+
+  .btn-primary {
+    @apply carbon-btn-primary;
+  }
+
+  .btn-secondary {
+    @apply carbon-btn-secondary;
+  }
+
+  .card {
+    @apply carbon-card;
+  }
+
+  .card-header {
+    @apply border-b px-6 py-4;
+    border-color: #3a4249;
+  }
+
+  .card-body {
+    @apply px-6 py-4;
+  }
+
+  .form-input {
+    @apply carbon-input;
+  }
+
+  .form-label {
+    @apply mb-1 block text-sm font-medium;
+    color: #a3a3a3;
+  }
+
+  .status-indicator {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .status-success {
+    background-color: rgba(62, 207, 142, 0.15);
+    color: #3ecf8e;
+  }
+
+  .status-warning {
+    background-color: rgba(246, 173, 85, 0.15);
+    color: #f6ad55;
+  }
+
+  .status-error {
+    background-color: rgba(252, 129, 129, 0.15);
+    color: #fc8181;
+  }
+
+  .status-info {
+    background-color: rgba(43, 169, 154, 0.15);
+    color: #2ba99a;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #3a4249 #212529;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #212529;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #3a4249;
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: #4a545c;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.next-step-callout {
+  animation: nextStepReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes nextStepReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.maplibregl-map {
+  background-color: #212529;
+}
+
+.maplibregl-canvas {
+  outline: none;
+}
+
+.maplibregl-ctrl-group {
+  background-color: #2d3339 !important;
+  border: 1px solid #3a4249 !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.maplibregl-ctrl-group button {
+  color: #f0f0f0 !important;
+}
+
+.maplibregl-ctrl-group button:hover {
+  background-color: #353c44 !important;
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid #3a4249 !important;
+}
+
+.maplibregl-popup-content {
+  background-color: #2d3339 !important;
+  color: #f0f0f0 !important;
+  border: 1px solid #3a4249;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.maplibregl-popup-close-button {
+  color: #a3a3a3 !important;
+}
+
+.maplibregl-popup-close-button:hover {
+  color: #f0f0f0 !important;
+  background-color: transparent !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #2d3339 !important;
+  border-bottom-color: #2d3339 !important;
+}
+
+.mapbox-gl-ctrl-group.mapboxgl-ctrl-group,
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group {
+  display: none !important;
+}
+
+.spinner {
+  @apply animate-spin rounded-full border-2;
+  border-color: #3a4249;
+  border-top-color: #2ba99a;
+}
+
+.detection-oil-tanks {
+  color: #f46d43;
+}
+
+.detection-solar-panels {
+  color: #2ba99a;
+}
+
+.detection-buildings {
+  color: #4a9eff;
+}
+
+.detection-cars {
+  color: #3ecf8e;
+}
+
+.detection-ships {
+  color: #ecc94b;
+}
+
+.detection-land-cover {
+  color: #ee5a94;
+}
+
+@media (max-width: 640px) {
+  .mobile-hidden {
+    @apply hidden;
+  }
+
+  .mobile-full {
+    @apply w-full;
+  }
+}
+
+@media print {
+  .no-print {
+    @apply hidden;
+  }
+
+  .print-full {
+    @apply h-full w-full;
+  }
+}

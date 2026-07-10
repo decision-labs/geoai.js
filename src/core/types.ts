@@ -56,6 +56,7 @@ export type TmsParams = {
   attribution?: string;
   tileSize?: number;
   headers?: Record<string, string>;
+  scheme?: "WebMercator" | "TMS";
 };
 
 export interface InferenceInputs {

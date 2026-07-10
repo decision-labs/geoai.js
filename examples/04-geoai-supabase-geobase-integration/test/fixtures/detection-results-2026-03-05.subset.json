@@ -1,0 +1,79 @@
+{
+  "session_id": "d2a27e40-30c7-467f-a1e8-2aee46c2e3e5",
+  "timestamp": "2026-03-05T11:46:36.456Z",
+  "provider": "geobase",
+  "zoom_level": 18,
+  "confidence_threshold": 0.5,
+  "results": [
+    {
+      "task": "image-feature-extraction",
+      "detection_count": 3,
+      "processing_time_ms": 4093,
+      "detections": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [-100.452118, 20.675191],
+                  [-100.4520321875, 20.675191],
+                  [-100.4520321875, 20.675110656250002],
+                  [-100.452118, 20.675110656250002],
+                  [-100.452118, 20.675191]
+                ]
+              ]
+            },
+            "properties": {
+              "patch_index": 0,
+              "embedding_norm": 7.762924578913208,
+              "similarities": [1, 0.9775533080101013, 0.9592287540435791]
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [-100.4520321875, 20.675191],
+                  [-100.451946375, 20.675191],
+                  [-100.451946375, 20.675110656250002],
+                  [-100.4520321875, 20.675110656250002],
+                  [-100.4520321875, 20.675191]
+                ]
+              ]
+            },
+            "properties": {
+              "patch_index": 1,
+              "embedding_norm": 7.4881129830921,
+              "similarities": [0.9775533080101013, 1, 0.9482018351554871]
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [-100.451946375, 20.675191],
+                  [-100.4518605625, 20.675191],
+                  [-100.4518605625, 20.675110656250002],
+                  [-100.451946375, 20.675110656250002],
+                  [-100.451946375, 20.675191]
+                ]
+              ]
+            },
+            "properties": {
+              "patch_index": 2,
+              "embedding_norm": 7.290441989898682,
+              "similarities": [0.9592287540435791, 0.9482018351554871, 1]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

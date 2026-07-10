@@ -72,6 +72,7 @@ export abstract class BaseModel {
           attribution: this.providerParams.attribution,
           tileSize: this.providerParams.tileSize,
           headers: this.providerParams.headers,
+          scheme: this.providerParams.scheme,
         });
         break;
       case "sentinel":
