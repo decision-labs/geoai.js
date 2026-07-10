@@ -19,7 +19,7 @@ describe("geoai.zeroShotObjectDetection - OWL-ViT", () => {
       ],
       mapboxParams
     );
-  }, 50000);
+  });
 
   it("should initialize a zero-shot object detection pipeline", async () => {
     const instance = await geoai.pipeline(
@@ -185,7 +185,7 @@ describe("geoai.zeroShotObjectDetection - Grounding DINO", () => {
       ],
       mapboxParams
     );
-  }, 50000);
+  });
 
   it("should process polygons and detect objects with Grounding DINO", async () => {
     const text = ["tree."];

@@ -14,11 +14,11 @@ export function ModelDownloadProgress({
   isEstimating,
   className = '',
 }: ModelDownloadProgressProps) {
-  console.log(`[ModelDownloadProgress] isEstimating=${isEstimating}, progress=${progress}, downloadInfo=`, downloadInfo);
   if (!isEstimating || !downloadInfo) {
-    console.log(`[ModelDownloadProgress] Not rendering: isEstimating=${isEstimating}, downloadInfo=`, downloadInfo);
     return null;
   }
+
+  const isWaitingForModel = progress >= 95;
 
   const formatTime = (seconds: number): string => {
     if (seconds < 60) {
@@ -43,7 +43,7 @@ export function ModelDownloadProgress({
     <div className={`bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-gray-200/50 ${className}`}>
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-medium text-gray-700">
-          Loading AI Model
+          {isWaitingForModel ? 'Downloading AI Model' : 'Loading AI Model'}
         </h3>
         <span className="text-xs text-gray-500">
           {downloadInfo.modelSizeMB}MB
@@ -66,7 +66,9 @@ export function ModelDownloadProgress({
           <span>{formatSpeed(downloadInfo.speedMbps)}</span>
         </div>
         <span>
-          ~{formatTime(downloadInfo.estimatedTimeSeconds)} to load
+          {isWaitingForModel
+            ? 'First visit may take up to a minute'
+            : `~${formatTime(downloadInfo.estimatedTimeSeconds)} to load`}
         </span>
       </div>
       
@@ -74,7 +76,11 @@ export function ModelDownloadProgress({
       <div className="mt-2 text-xs text-gray-500">
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <span>Initializing AI pipeline...</span>
+          <span>
+            {isWaitingForModel
+              ? 'Fetching model weights from Hugging Face...'
+              : 'Preparing AI pipeline...'}
+          </span>
         </div>
       </div>
     </div>

@@ -36,4 +36,20 @@ describe("mockGeobaseTiles", () => {
     expect(mockChannelsFromUrl(url)).toBe(1);
     expect(createMockGeobaseTile(url).channels).toBe(1);
   });
+
+  it("creates a four-channel mock tile for wetland COG URLs", () => {
+    const url =
+      "https://example.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/1/2?url=https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/wetland-segmentation.tif&apikey=test";
+
+    expect(mockChannelsFromUrl(url)).toBe(4);
+    expect(createMockGeobaseTile(url).channels).toBe(4);
+  });
+
+  it("uses bidx count for band-selected tile URLs", () => {
+    const url =
+      "https://example.geobase.app/titiler/v1/cog/tiles/WebMercatorQuad/18/1/2?url=test&apikey=test&bidx=1&bidx=2&bidx=3";
+
+    expect(mockChannelsFromUrl(url)).toBe(3);
+    expect(createMockGeobaseTile(url).channels).toBe(3);
+  });
 });

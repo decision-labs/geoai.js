@@ -27,7 +27,7 @@ describe('NetworkSpeedEstimator', () => {
     );
     
     expect(progress).toBeGreaterThanOrEqual(0);
-    expect(progress).toBeLessThanOrEqual(100);
+    expect(progress).toBeLessThanOrEqual(95);
   });
 
   it('should handle edge cases', () => {
@@ -37,7 +37,7 @@ describe('NetworkSpeedEstimator', () => {
     
     // Test with very fast connection
     const fastProgress = NetworkSpeedEstimator.simulateDownloadProgress(100, 1000, 1);
-    expect(fastProgress).toBeGreaterThanOrEqual(0);
+    expect(fastProgress).toBe(95);
     
     // Test with zero time
     const zeroProgress = NetworkSpeedEstimator.simulateDownloadProgress(100, 10, 0);

@@ -513,7 +513,7 @@ const result = await pipeline.inference(polygon);`}
                 Wetland Detection
               </h3>
               <p className="text-gray-300 text-base">
-                Identifies wetland areas such as marshes and swamps in the imagery.
+                Identifies wetland areas from 4-band multispectral COG imagery (Geobase only).
               </p>
             </a>
             
