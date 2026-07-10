@@ -158,6 +158,19 @@ function MyComponent() {
 
 For more see the [supported tasks](https://docs.geobase.app/geoai/supported-tasks)
 
+## Talk
+
+**[Bringing Earth Observation AI to the Browser with WebGPU](talks/lightning-talk-webgpu-geoai.md)** — lightning talk at Big Data from Space 2025 (Decision Labs).
+
+<div align="center">
+  <a href="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/talks/lightning-talk-webgpu-geoai.pdf">
+    <img src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/talks/geoaijs.png" alt="GeoAI.js talk preview" width="480">
+  </a>
+</div>
+
+- [Slides (PDF)](https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/talks/lightning-talk-webgpu-geoai.pdf)
+- [Slide source (Marp)](talks/lightning-talk-webgpu-geoai.md)
+
 ## Links
 
 - **Documentation**: [docs.geobase.app/geoai](https://docs.geobase.app/geoai) - Comprehensive documentation, examples, and API reference
