@@ -6,6 +6,8 @@ import {
   getTileBbox,
 } from "../src/data_providers/wms";
 import { GeoRawImage } from "../src/types/images/GeoRawImage";
+import { geoai } from "@/geoai";
+import { BuildingDetection } from "@/models/geoai_models";
 import {
   NRW_DOP_WMS_URL,
   NRW_DOP_LAYER,
@@ -220,6 +222,79 @@ describe("Wms", () => {
       expect(instance.headers).toEqual({
         Authorization: "Bearer token123",
       });
+    });
+  });
+
+  describe("pipeline inference", () => {
+    let buildingPipeline: BuildingDetection;
+
+    beforeAll(async () => {
+      buildingPipeline = await geoai.pipeline(
+        [{ task: "building-detection" }],
+        wmsNrwDopParams
+      );
+    });
+
+    it("should initialize a building-detection pipeline with WMS provider", async () => {
+      const instance = await geoai.pipeline(
+        [{ task: "building-detection" }],
+        wmsNrwDopParams
+      );
+
+      expect(instance).toBeInstanceOf(BuildingDetection);
+      expect(instance).toBeDefined();
+    });
+
+    it("should reuse the same pipeline instance for identical WMS config", async () => {
+      const instance1 = await geoai.pipeline(
+        [{ task: "building-detection" }],
+        wmsNrwDopParams
+      );
+      const instance2 = await geoai.pipeline(
+        [{ task: "building-detection" }],
+        wmsNrwDopParams
+      );
+
+      expect(instance1).toBe(instance2);
+    });
+
+    it("should create a new pipeline when WMS layers change", async () => {
+      const instance1 = await geoai.pipeline(
+        [{ task: "building-detection" }],
+        wmsNrwDopParams
+      );
+      const instance2 = await geoai.pipeline([{ task: "building-detection" }], {
+        ...wmsNrwDopParams,
+        layers: "nw_dop_cir",
+      });
+
+      expect(instance1).not.toBe(instance2);
+    });
+
+    it("should run building detection inference on NRW WMS orthophotos", async () => {
+      const results = await buildingPipeline.inference({
+        inputs: { polygon: polygonCologne },
+        mapSourceParams: { zoomLevel: 17 },
+      });
+
+      expect(results.detections).toBeDefined();
+      expect(results.detections.type).toBe("FeatureCollection");
+      expect(Array.isArray(results.detections.features)).toBe(true);
+
+      expect(results.geoRawImage).toBeInstanceOf(GeoRawImage);
+      expect(results.geoRawImage.width).toBeGreaterThan(0);
+      expect(results.geoRawImage.height).toBeGreaterThan(0);
+      expect(results.geoRawImage.channels).toBe(3);
+
+      const bounds = results.geoRawImage.getBounds();
+      const ring = (polygonCologne.geometry as GeoJSON.Polygon).coordinates[0];
+      const lngs = ring.map(([lng]) => lng);
+      const lats = ring.map(([, lat]) => lat);
+
+      expect(bounds.west).toBeLessThanOrEqual(Math.min(...lngs));
+      expect(bounds.east).toBeGreaterThanOrEqual(Math.max(...lngs));
+      expect(bounds.south).toBeLessThanOrEqual(Math.min(...lats));
+      expect(bounds.north).toBeGreaterThanOrEqual(Math.max(...lats));
     });
   });
 });
