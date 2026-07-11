@@ -1,0 +1,124 @@
+# WMS (Web Map Service) Provider
+
+The WMS provider fetches imagery via OGC **GetMap** requests. GeoAI.js maps your area of interest onto the same Web Mercator tile grid used by TMS/XYZ providers, then stitches the returned map images for inference.
+
+## When to use WMS
+
+Use WMS when your imagery server exposes an OGC endpoint (`GetCapabilities`, `GetMap`) rather than `{z}/{x}/{y}` tile URLs. Common sources include GeoServer, MapServer, QGIS Server, and public-sector programs such as [Geobasis NRW orthophotos](https://open.nrw/dataset/56fb584b-10cf-4009-a405-0bef06bb3e00).
+
+If your service already publishes XYZ/TMS tiles, the [TMS provider](./tms) is simpler and usually faster.
+
+## Quick start
+
+```typescript
+import { geoai } from "geoai";
+
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "wms",
+  baseUrl: "https://www.wms.nrw.de/geobasis/wms_nw_dop",
+  layers: "nw_dop_rgb",
+  version: "1.3.0",
+  crs: "EPSG:3857",
+  attribution: "© Geobasis NRW / Bezirksregierung Köln",
+});
+```
+
+Draw a polygon on the map, then run inference as with any other provider.
+
+**Interactive example:** [`examples/06-wms-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/06-wms-quickstart) — MapLibre + NRW orthophotos + draw-to-detect.
+
+## Discovering layer names
+
+Append a capabilities request to your service URL:
+
+```
+https://www.wms.nrw.de/geobasis/wms_nw_dop?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0
+```
+
+Use the `<Name>` values from the XML as the `layers` parameter.
+
+> `wms_nw_bildmittelpunkte` exposes image **metadata** (center points), not orthophoto pixels. For actual DOP imagery use **`wms_nw_dop`**. Request the **`nw_dop_rgb`** sublayer for color RGB orthophotos — the parent layer **`WMS_NW_DOP`** defaults to near-infrared (grayscale).
+
+## Configuration
+
+```typescript
+interface WmsParams {
+  provider: "wms";
+  baseUrl: string; // WMS endpoint (no query string required)
+  layers: string; // Comma-separated layer names
+  version?: "1.1.1" | "1.3.0"; // Default: "1.1.1"
+  crs?: "EPSG:3857" | "EPSG:4326"; // Default: "EPSG:3857"
+  format?: string; // Default: "image/png"
+  styles?: string; // Default: "" (server default style)
+  transparent?: boolean; // Default: false
+  attribution?: string; // Default: "WMS Provider"
+  tileSize?: number; // Default: 256 (WIDTH/HEIGHT per GetMap)
+  headers?: Record<string, string>; // Reserved for future auth support
+  extraParams?: Record<string, string>; // Additional query params (e.g. tokens)
+}
+```
+
+### CRS and WMS version
+
+| Setting | `SRS` / `CRS` param | BBOX axis order |
+| ------- | ------------------- | --------------- |
+| `version: "1.1.1"`, `crs: "EPSG:3857"` | `SRS=EPSG:3857` | minX, minY, maxX, maxY (meters) |
+| `version: "1.3.0"`, `crs: "EPSG:3857"` | `CRS=EPSG:3857` | minX, minY, maxX, maxY (meters) |
+| `version: "1.3.0"`, `crs: "EPSG:4326"` | `CRS=EPSG:4326` | minLat, minLon, maxLat, maxLon |
+
+**EPSG:3857** is recommended for web maps and matches the internal tile grid.
+
+## Examples
+
+### Geobasis NRW orthophotos (public, no API key)
+
+```typescript
+const provider = {
+  provider: "wms" as const,
+  baseUrl: "https://www.wms.nrw.de/geobasis/wms_nw_dop",
+  layers: "nw_dop_rgb",
+  version: "1.3.0",
+  crs: "EPSG:3857",
+  attribution: "© Geobasis NRW / Bezirksregierung Köln",
+};
+```
+
+Open data: [Digitale Orthophotos NW](https://open.nrw/dataset/56fb584b-10cf-4009-a405-0bef06bb3e00).
+
+### GeoServer / MapServer with authentication token
+
+```typescript
+const provider = {
+  provider: "wms" as const,
+  baseUrl: "https://tiles.example.com/geoserver/wms",
+  layers: "workspace:layer_name",
+  version: "1.1.1",
+  crs: "EPSG:3857",
+  extraParams: { authkey: "your-token" },
+};
+```
+
+### MapLibre WMS raster source
+
+MapLibre 4+ supports `{bbox-epsg-3857}` in raster `tiles` URLs ([official example](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-wms-source/)). `06-wms-quickstart` uses MapLibre 4.7+ with:
+
+```
+https://www.wms.nrw.de/geobasis/wms_nw_dop?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=nw_dop_rgb&...&CRS=EPSG:3857&BBOX={bbox-epsg-3857}
+```
+
+Keep the placeholder **literal** in the URL string — do not pass it through `URLSearchParams` (that encodes `{` and `}`).
+
+## Smoke test
+
+Integration tests use NRW DOP orthophotos over Cologne (`test/wms.test.ts`, shared constants in `test/nrwWms.ts`). Run:
+
+```bash
+pnpm test test/wms.test.ts
+```
+
+## See also
+
+- [TMS provider](./tms) — `{z}/{x}/{y}` tile URLs
+- [Serving raster tiles](./serving-raster-tiles) — COG → tile server options
+- [Map providers overview](../map-providers)
+- GitHub issue [#153](https://github.com/decision-labs/geoai.js/issues/153) — WMS + NRW orthophoto tests

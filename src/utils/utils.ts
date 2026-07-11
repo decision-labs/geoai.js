@@ -162,6 +162,17 @@ export const parametersChanged = (
       if (instance.providerParams?.baseUrl !== providerParams?.baseUrl) {
         return true;
       }
+      break;
+    case "wms":
+      if (
+        instance.providerParams?.baseUrl !== providerParams?.baseUrl ||
+        instance.providerParams?.layers !== providerParams?.layers ||
+        instance.providerParams?.version !== providerParams?.version ||
+        instance.providerParams?.crs !== providerParams?.crs
+      ) {
+        return true;
+      }
+      break;
   }
 
   // Compare modelParams if they exist
