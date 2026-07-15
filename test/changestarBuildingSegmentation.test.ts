@@ -1,6 +1,4 @@
 import { describe, expect, it, beforeAll } from 'vitest';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 
 import { geoai } from '@/geoai';
 import { geobaseParamsBuilding, polygonBuilding } from './constants';
@@ -97,18 +95,6 @@ describe('test model changestar building segmentation', () => {
     expect(results.geoRawImage.data).toBeDefined();
     expect(results.geoRawImage.width).toBeGreaterThan(0);
     expect(results.geoRawImage.height).toBeGreaterThan(0);
-
-    const outputDir = join(process.cwd(), 'test', 'output');
-    await mkdir(outputDir, { recursive: true });
-    const outputPath = join(
-      outputDir,
-      'changestarBuildingSegmentation.geojson'
-    );
-    await writeFile(
-      outputPath,
-      JSON.stringify(results.detections, null, 2),
-      'utf-8'
-    );
 
     await geoJsonToGist({
       content: results.detections,
@@ -208,18 +194,6 @@ describe('test model changestar building segmentation with geobase', () => {
     expect(results.geoRawImage.data).toBeDefined();
     expect(results.geoRawImage.width).toBeGreaterThan(0);
     expect(results.geoRawImage.height).toBeGreaterThan(0);
-
-    const outputDir = join(process.cwd(), 'test', 'output');
-    await mkdir(outputDir, { recursive: true });
-    const outputPath = join(
-      outputDir,
-      'changestarBuildingSegmentation-geobase.geojson'
-    );
-    await writeFile(
-      outputPath,
-      JSON.stringify(results.detections, null, 2),
-      'utf-8'
-    );
 
     await geoJsonToGist({
       content: results.detections,
