@@ -23,6 +23,7 @@ import {
 import { OilStorageTankDetection } from "./models/oil_storage_tank_detection";
 import { BuildingFootPrintSegmentation } from "./models/building_footprint_segmentation";
 import { ImageFeatureExtraction } from "./models/image_feature_extraction";
+import { ChangeStarBuildingSegmentation } from "./models/changestar_building_segmentation";
 
 export const modelRegistry: ModelConfig[] = [
   {
@@ -263,6 +264,39 @@ export const modelRegistry: ModelConfig[] = [
       instance: BuildingDetection;
     }> => {
       return BuildingDetection.getInstance(modelId, params, modelParams);
+    },
+  },
+  {
+    task: "changestar-building-segmentation",
+    library: "geoai",
+    description:
+      "Segments buildings with ChangeStar ViT-B dense probability maps. Uses overlapped 1024px tiles with feather blending for large AOIs.",
+    examples: [
+      "Segment all building footprints in this city block.",
+      "Extract building polygons from this aerial image.",
+      "Map built structures with ChangeStar segmentation.",
+    ],
+    ioConfig: {} as {
+      inputs: {
+        polygon: GeoJSON.Feature;
+        confidenceThreshold?: number;
+      };
+      outputs: ObjectDetectionResults;
+    },
+    geobase_ai_pipeline: (
+      params: ProviderParams,
+      modelId: string = "geobase/changestar-building-segmentation-vitb",
+      modelParams: PretrainedModelOptions = {
+        dtype: "fp32",
+      }
+    ): Promise<{
+      instance: ChangeStarBuildingSegmentation;
+    }> => {
+      return ChangeStarBuildingSegmentation.getInstance(
+        modelId,
+        params,
+        modelParams
+      );
     },
   },
   {

@@ -2,6 +2,7 @@
 const mapZoomLookup: Record<string, number> = {
   "geobase:object-detection": 20,
   "geobase:building-detection": 18,
+  "geobase:changestar-building-segmentation": 16,
   "geobase:car-detection": 21,
   "geobase:ship-detection": 20,
   "geobase:solar-panel-detection": 21,

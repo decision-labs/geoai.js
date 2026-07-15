@@ -474,6 +474,27 @@ const result = await pipeline.inference(polygon);`}
                 Identifies and outlines buildings present in the imagery.
               </p>
             </a>
+
+              <a
+                href="/geoai-live/tasks/changestar-building-segmentation"
+              className="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
+            >
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-40 sm:h-48 object-cover rounded-lg mb-4 sm:mb-6"
+              >
+                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/building-detection.mp4" type="video/mp4" />
+              </video>
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">
+                ChangeStar Building Segmentation
+              </h3>
+              <p className="text-gray-300 text-sm sm:text-base">
+                Dense building segmentation with ChangeStar ViT-B probability maps.
+              </p>
+            </a>
             
               <a
                 href="/geoai-live/tasks/car-detection"
