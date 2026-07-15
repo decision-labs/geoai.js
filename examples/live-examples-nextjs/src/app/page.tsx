@@ -5,7 +5,7 @@ import maplibregl from "maplibre-gl";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import GitHubButton from 'react-github-btn'
-import { Grid3X3 } from 'lucide-react';
+import { Grid3X3, Layers } from 'lucide-react';
 import { GITHUB_REPO_URI, NPM_PACKAGE_NAME } from '../config';
 import { MobileNavigation } from '../components';
 import { GitHubStarsButton } from '@/components/ui/shadcn-io/github-stars-button';
@@ -236,7 +236,7 @@ export default function Home() {
               </div>
               
               {/* All Providers - Responsive Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 w-full max-w-4xl">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 w-full max-w-5xl">
                 {/* Geobase */}
                 <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 sm:p-4 hover:border-green-500/50 transition-all duration-200 group">
                   <div className="flex flex-col items-center text-center">
@@ -289,6 +289,22 @@ export default function Home() {
                       <Grid3X3 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 group-hover:text-white transition-colors" />
                     </div>
                     <span className="text-xs text-gray-300 font-medium group-hover:text-white transition-colors">TMS</span>
+                    <span className="text-xs text-green-400 font-medium mt-1">Available</span>
+                  </div>
+                </a>
+
+                {/* WMS — OGC GetMap (e.g. Geobasis NRW orthophotos) */}
+                <a
+                  href="https://docs.geobase.app/geoai/map-providers/wms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 sm:p-4 hover:border-green-500/50 transition-all duration-200 group"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="h-6 w-16 sm:h-8 sm:w-20 flex items-center justify-center mb-2 sm:mb-3">
+                      <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 group-hover:text-white transition-colors" />
+                    </div>
+                    <span className="text-xs text-gray-300 font-medium group-hover:text-white transition-colors">WMS</span>
                     <span className="text-xs text-green-400 font-medium mt-1">Available</span>
                   </div>
                 </a>

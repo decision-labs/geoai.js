@@ -1,5 +1,7 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
+import { TMS_TILE_URL, WMS_MAP_TILE_URL } from './providerConfig';
+
 interface MapConfig {
   projectRef?: string;
   apikey?: string;
@@ -107,6 +109,18 @@ export function createBaseMapStyle(config: MapStyleConfig, options: BaseMapStyle
         tileSize: 256,
         attribution: "ESRI World Imagery",
       },
+      "tms-tiles": {
+        type: "raster",
+        tiles: [TMS_TILE_URL],
+        tileSize: 256,
+        attribution: "© Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+      },
+      "wms-tiles": {
+        type: "raster",
+        tiles: [WMS_MAP_TILE_URL],
+        tileSize: 256,
+        attribution: "© Geobasis NRW / Bezirksregierung Köln",
+      },
     },
     layers: [
       {
@@ -137,6 +151,26 @@ export function createBaseMapStyle(config: MapStyleConfig, options: BaseMapStyle
         maxzoom: maxZoom,
         layout: {
           visibility: mapProvider === "esri" ? "visible" : "none",
+        },
+      },
+      {
+        id: "tms-layer",
+        type: "raster",
+        source: "tms-tiles",
+        minzoom: 0,
+        maxzoom: maxZoom,
+        layout: {
+          visibility: mapProvider === "tms" ? "visible" : "none",
+        },
+      },
+      {
+        id: "wms-layer",
+        type: "raster",
+        source: "wms-tiles",
+        minzoom: 0,
+        maxzoom: maxZoom,
+        layout: {
+          visibility: mapProvider === "wms" ? "visible" : "none",
         },
       },
     ],
