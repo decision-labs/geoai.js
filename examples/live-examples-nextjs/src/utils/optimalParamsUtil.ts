@@ -11,10 +11,25 @@ const mapZoomLookup: Record<string, number> = {
   "geobase:building-footprint-segmentation": 15,
   "geobase:zero-shot-object-detection": 20,
   "geobase:mask-generation": 19,
-  "geobase:oriented-object-detection": 21
+  "geobase:oriented-object-detection": 21,
+  "wms:object-detection": 18,
+  "wms:building-detection": 17,
+  "wms:car-detection": 20,
 };
 
-export const  getOptimumZoom = (task: string, provider: string): number | null => {
+const PROVIDER_ZOOM_FALLBACK: Record<string, string> = {
+  tms: 'esri',
+  wms: 'esri',
+};
+
+export const getOptimumZoom = (task: string, provider: string): number | null => {
   const key = `${provider}:${task}`;
-  return mapZoomLookup[key] ?? null;
-}
+  if (mapZoomLookup[key] != null) {
+    return mapZoomLookup[key];
+  }
+  const fallbackProvider = PROVIDER_ZOOM_FALLBACK[provider];
+  if (fallbackProvider) {
+    return mapZoomLookup[`${fallbackProvider}:${task}`] ?? null;
+  }
+  return null;
+};
