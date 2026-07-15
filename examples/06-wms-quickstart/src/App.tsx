@@ -18,6 +18,7 @@ import {
   formatTaskLabel,
   getPipelineTask,
   getPostProcessingParams,
+  NRW_MAP_MAX_BOUNDS,
   prepareDetectionsForDisplay,
   SUPPORTED_TASKS,
   WMS_LAYER_ID,
@@ -28,6 +29,7 @@ import {
   type WmsPresetId,
   type WmsQuickstartConfig,
 } from './wmsConfig';
+import { createNrwGeocoder } from './nrwGeocoder';
 
 type Status = {
   tone: 'neutral' | 'loading' | 'ready' | 'running' | 'success' | 'error';
@@ -160,6 +162,7 @@ export default function App() {
       style: buildMapStyle(initialConfig),
       center: initialConfig.mapCenter,
       zoom: initialConfig.inferenceZoom,
+      maxBounds: NRW_MAP_MAX_BOUNDS,
     });
 
     const draw = new MaplibreDraw({
@@ -174,6 +177,7 @@ export default function App() {
     drawRef.current = draw;
 
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
+    map.addControl(createNrwGeocoder(), 'top-left');
 
     map.on('load', () => {
       map.addControl(draw as unknown as maplibregl.IControl, 'top-right');

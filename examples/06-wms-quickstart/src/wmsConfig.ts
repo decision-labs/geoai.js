@@ -78,6 +78,27 @@ export const NRW_DOP_WMS_URL = 'https://www.wms.nrw.de/geobasis/wms_nw_dop';
 /** RGB orthophoto sublayer — parent `WMS_NW_DOP` defaults to NIR (grayscale). */
 export const NRW_DOP_LAYER = 'nw_dop_rgb';
 
+/** NRW service extent (Geobasis NRW WMS GetCapabilities). */
+export const NRW_VIEW_BOUNDS = {
+  west: 5.593338,
+  east: 9.741582,
+  south: 50.057798,
+  north: 52.799797,
+} as const;
+
+/** Bounding box for geocoder / map maxBounds: [west, south, east, north]. */
+export const NRW_GEOCODER_BBOX: [number, number, number, number] = [
+  NRW_VIEW_BOUNDS.west,
+  NRW_VIEW_BOUNDS.south,
+  NRW_VIEW_BOUNDS.east,
+  NRW_VIEW_BOUNDS.north,
+];
+
+export const NRW_MAP_MAX_BOUNDS: [[number, number], [number, number]] = [
+  [NRW_VIEW_BOUNDS.west, NRW_VIEW_BOUNDS.south],
+  [NRW_VIEW_BOUNDS.east, NRW_VIEW_BOUNDS.north],
+];
+
 export const WMS_PRESETS: Record<'nrw-dop', WmsPreset> = {
   'nrw-dop': {
     id: 'nrw-dop',

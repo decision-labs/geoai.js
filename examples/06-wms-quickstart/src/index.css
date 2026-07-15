@@ -118,6 +118,15 @@ textarea {
   min-height: 0;
 }
 
+.maplibregl-ctrl-geocoder {
+  min-width: 240px;
+  max-width: 320px;
+}
+
+.maplibregl-ctrl-geocoder--input {
+  font-size: 0.9rem;
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;

@@ -4,6 +4,7 @@ Minimal [GeoAI.js](https://github.com/decision-labs/geoai.js) example that runs 
 
 - MapLibre map with draw tools
 - MapLibre **4.7+** with native `{bbox-epsg-3857}` WMS tiles ([MapLibre WMS example](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-wms-source/))
+- **NRW geocoder** (Nominatim, bounded to Nordrhein-Westfalen) + map `maxBounds`
 - Default imagery: **Geobasis NRW digital orthophotos** (public open data, no API key)
 - Same WMS endpoint for map display and GeoAI inference
 - Tasks: building detection, car detection, object detection
