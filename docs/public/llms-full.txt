@@ -22,9 +22,9 @@ Build your first AI-powered React mapping app in under 5 minutes. Create a React
 - **Code**: [GitHub Repository](https://github.com/decision-labs/geoai.js) - Source code and contributions
 - **Issues**: [GitHub Issues](https://github.com/decision-labs/geoai.js/issues) - Report bugs and request features
 
-> **NEW: Meta's DINOv3 Now Available!** We've integrated Meta's groundbreaking DINOv3 model for image feature extraction.   [Try the DINOv3 demo →](/supported-tasks/image-feature-extraction) or [learn more about DINOv3](https://ai.meta.com/dinov3/).
+&gt; **NEW: Meta's DINOv3 Now Available!** We've integrated Meta's groundbreaking DINOv3 model for image feature extraction.   [Try the DINOv3 demo →](/supported-tasks/image-feature-extraction) or [learn more about DINOv3](https://ai.meta.com/dinov3/).
 
-> This guide uses the latest version of geoai for optimal   performance and compatibility.
+&gt; This guide uses the latest version of  for optimal   performance and compatibility.
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ Before getting started, ensure you have:
 - Node.js 16+ installed
 - A map provider API key (Geobase or Mapbox)
 
-> Make sure your Node.js version is 16 or higher for compatibility with the   latest dependencies.
+&gt; Make sure your Node.js version is 16 or higher for compatibility with the   latest dependencies.
 
 ## Development
 
@@ -106,13 +106,19 @@ const config = {
 };
 ```
 
-> **Getting API Keys:** Visit [Geobase](https://geobase.app) or   [Mapbox](https://mapbox.com) to get your free API keys.
+&gt; **Getting API Keys:** Visit [Geobase](https://geobase.app) or   [Mapbox](https://mapbox.com) to get your free API keys.
 
 ### Step 3: Create Your AI Map Component
 
 Replace the contents of `src/App.tsx` with this React component:
 
 ```typescript
+import React, { useEffect, useRef, useState } from 'react';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import { geoai, ProviderParams } from 'geoai';
+import MaplibreDraw from 'maplibre-gl-draw';
+import 'maplibre-gl-draw/dist/mapbox-gl-draw.css';
 
 const mapProviderConfig = {
   provider: "esri",
@@ -124,10 +130,10 @@ const mapProviderConfig = {
 const inferenceZoomLevel = 15; // The zoom level at which the inference will be run
 
 function App() {
-  const mapContainer = useRef(null);
-  const map = useRef(null);
-  const drawRef = useRef(null);
-  const [pipeline, setPipeline] = useState(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<maplibregl.Map | null>(null);
+  const drawRef = useRef<MaplibreDraw | null>(null);
+  const [pipeline, setPipeline] = useState<any>(null);
   const [status, setStatus] = useState({ color: '#9e9e9e', text: 'Waiting...' });
 
   useEffect(() => {
@@ -233,24 +239,17 @@ function App() {
   };
 
   return (
-    
-
-      
-
-        
-{status.text}
-
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '16px', backgroundColor: status.color, color: 'white', fontSize: '20px', textAlign: 'center', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ flex: 1 }}>{status.text}</div>
         {status.text.includes('Found') && (
-          
+          <button onClick={resetMap} style={{ padding: '8px 16px', backgroundColor: 'rgba(255,255,255,1)', color: 'black', border: '1px solid white', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', marginLeft: '16px' }}>
             Reset
-          
+          </button>
         )}
-      
-
-      
-
-    
-
+      </div>
+      <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
+    </div>
   );
 }
 
@@ -267,7 +266,7 @@ npm start
 
 Your app will open at `http://localhost:3000`. Draw a polygon on the map and watch the AI detect objects in real-time!
 
-> Congratulations! You now have a working AI-powered mapping application. The AI   will analyze satellite imagery within drawn polygons and detect objects like   buildings, vehicles, and infrastructure.
+&gt; Congratulations! You now have a working AI-powered mapping application. The AI   will analyze satellite imagery within drawn polygons and detect objects like   buildings, vehicles, and infrastructure.
 
 ---
 
@@ -280,7 +279,7 @@ For more advanced Web Worker patterns and techniques, see the [Web Worker docume
 
 # Core Concepts
 
-> Understanding the fundamental building blocks of `geoai.js`
+&gt; Understanding the fundamental building blocks of `geoai.js`
 
 ## Overview
 
@@ -290,7 +289,7 @@ For more advanced Web Worker patterns and techniques, see the [Web Worker docume
 
 The overall architecture of `geoai.js` provides a modular framework for geospatial AI. The GeoAI Pipeline manages model execution, the Model Registry handles task configurations, and the Base Model provides the foundation for all AI models. This architecture enables extensible provider systems and supports both Transformers.js and ONNX models.
 
-> **Core Components:** Pipeline execution engine, extensible provider system, and modular model architecture supporting both Transformers.js and ONNX models.
+&gt; **Core Components:** Pipeline execution engine, extensible provider system, and modular model architecture supporting both Transformers.js and ONNX models.
 
 ```mermaid
 graph TD
@@ -323,25 +322,25 @@ graph TD
 
 `geoai.js` extends the Hugging Face `RawImage` class with the `GeoRawImage` class to add georeferencing capabilities essential for geospatial AI tasks. This maintains spatial context by storing coordinate reference system (CRS) information and geographic bounds, enabling seamless conversion between pixel and world coordinates.
 
-> **Key Extension:** `GeoRawImage` extends `RawImage` with geospatial metadata including bounds, transform, and CRS information.
+&gt; **Key Extension:** `GeoRawImage` extends `RawImage` with geospatial metadata including bounds, transform, and CRS information.
 
 ## 3. [Map Source Provider](../map-providers)
 
 Map source providers abstract the process of fetching satellite imagery from different sources (Geobase, Mapbox, etc.). They handle tile-based image retrieval, coordinate transformations, and provide a unified interface for accessing geospatial imagery regardless of the underlying provider.
 
-> **Supported Providers:** Geobase (custom COG imagery), Mapbox (global satellite), with Google Maps and Esri ArcGIS coming soon.
+&gt; **Supported Providers:** Geobase (custom COG imagery), Mapbox (global satellite), with Google Maps and Esri ArcGIS coming soon.
 
 ## 4. [Model Pipeline](./concepts/model-pipeline)
 
 The Model Pipeline is the core execution engine that enables both single task execution and task chaining. It manages model initialization, data flow between tasks, and provides a unified interface for running AI models on geospatial data.
 
-> **Two Patterns:** Single task execution for individual AI models, and task chaining for complex analysis workflows where output from one model becomes input to the next.
+&gt; **Two Patterns:** Single task execution for individual AI models, and task chaining for complex analysis workflows where output from one model becomes input to the next.
 
 ## 5. [Inference Parameters](./concepts/InferenceParams)
 
 Inference parameters configure how AI models process geospatial data, including input specifications (polygons, class labels), post-processing options (confidence thresholds, filtering), and map source parameters (zoom levels, spectral bands).
 
-> **Required:** Geographic polygon defining the analysis area. **Optional:** Post-processing and map source parameters for fine-tuning model behavior.
+&gt; **Required:** Geographic polygon defining the analysis area. **Optional:** Post-processing and map source parameters for fine-tuning model behavior.
 
 ```mermaid
 sequenceDiagram
@@ -419,7 +418,7 @@ Planned backlog (repo): [ROADMAP.md](https://github.com/decision-labs/geoai.js/b
 
 # Map Providers
 
-> Choose your imagery source for geospatial AI analysis
+&gt; Choose your imagery source for geospatial AI analysis
 
 ## Supported Providers
 
@@ -432,7 +431,7 @@ Planned backlog (repo): [ROADMAP.md](https://github.com/decision-labs/geoai.js/b
 | [WMS](./map-providers/wms)         | OGC WMS GetMap (e.g. Geobasis NRW orthophotos) | None (public)  |
 | Google Maps                        | 🚧 Coming Soon - Global satellite imagery | -              |
 
-> **Geobase** — your own COG imagery with full control. **Mapbox / ESRI** — ready-to-use   global satellite coverage. **TMS** — any raster `{z}/{x}/{y}` URL. **WMS** — OGC GetMap   endpoints. See [Serving raster tiles](./map-providers/serving-raster-tiles) for COG and   tile-server options.
+&gt; **Geobase** — your own COG imagery with full control. **Mapbox / ESRI** — ready-to-use   global satellite coverage. **TMS** — any raster `{z}/{x}/{y}` URL. **WMS** — OGC GetMap   endpoints. See [Serving raster tiles](./map-providers/serving-raster-tiles) for COG and   tile-server options.
 
 ---
 
@@ -441,9 +440,9 @@ Planned backlog (repo): [ROADMAP.md](https://github.com/decision-labs/geoai.js/b
 
 # AI Tasks
 
-> Available AI models for geospatial analysis
+&gt; Available AI models for geospatial analysis
 
-> **NEW: Meta's DINOv3 Integration!** Our [Image Feature Extraction](./supported-tasks/image-feature-extraction) task now uses Meta's groundbreaking DINOv3 model for state-of-the-art self-supervised learning at unprecedented scale.
+&gt; **NEW: Meta's DINOv3 Integration!** Our [Image Feature Extraction](./supported-tasks/image-feature-extraction) task now uses Meta's groundbreaking DINOv3 model for state-of-the-art self-supervised learning at unprecedented scale.
 
 ## Generic Tasks
 
@@ -475,7 +474,7 @@ Planned backlog (repo): [ROADMAP.md](https://github.com/decision-labs/geoai.js/b
 
 # Web Workers
 
-> Run AI tasks in background threads to keep your UI responsive.
+&gt; Run AI tasks in background threads to keep your UI responsive.
 
 ### Quick Setup
 
@@ -503,6 +502,7 @@ git subtree add --prefix=examples/02-quickstart-with-workers https://github.com/
 #### Create Worker File `worker.ts`
 
 ```typescript
+import { geoai } from "geoai";
 
 let modelInstance: any = null;
 
@@ -533,9 +533,10 @@ self.onmessage = async e => {
 #### Create Hook `useGeoAIWorker.ts`
 
 ```typescript
+import { useState, useEffect, useRef } from "react";
 
 export function useGeoAIWorker() {
-  const workerRef = useRef(null);
+  const workerRef = useRef<Worker | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState(null);
@@ -587,6 +588,12 @@ export function useGeoAIWorker() {
 #### Use in Component
 
 ```tsx
+import React, { useEffect, useRef, useState } from 'react';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import MaplibreDraw from 'maplibre-gl-draw';
+import 'maplibre-gl-draw/dist/mapbox-gl-draw.css';
+import { useGeoAIWorker } from './useGeoAIWorker';
 
 const config = {
   provider: "esri",
@@ -597,8 +604,8 @@ const config = {
 };
 
 function App() {
-  const mapContainer = useRef(null);
-  const map = useRef(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<maplibregl.Map | null>(null);
   const [detections, setDetections] = useState<any[]>([]);
   const { isReady, result, initialize, runInference } = useGeoAIWorker();
 
@@ -668,19 +675,14 @@ function App() {
   }, [result]);
 
   return (
-     
-
-      
-
-      
-
-        Building Detection
-        Draw a polygon to detect buildings
-        {detections.length > 0 && Found {detections.length} buildings!}
-      
-
-    
-
+     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div ref={mapContainer} style={{ height: '70%', width: '100%' }} />
+      <div style={{ padding: '20px', height: '30%', backgroundColor: '#f5f5f5' }}>
+        <h2>Building Detection</h2>
+        <p>Draw a polygon to detect buildings</p>
+        {detections.length > 0 && <p>Found {detections.length} buildings!</p>}
+      </div>
+    </div>
   );
 }
 
@@ -701,9 +703,9 @@ export default App;
 
 # GeoRawImage
 
-> Georeferenced image data structure for geospatial AI processing
+&gt; Georeferenced image data structure for geospatial AI processing
 
-> The `GeoRawImage` class extends the Hugging Face `RawImage` class to provide   georeferencing capabilities essential for geospatial AI tasks. It maintains   spatial context by storing coordinate reference system (CRS) information and   geographic bounds, enabling seamless conversion between pixel and world   coordinates.
+&gt; The `GeoRawImage` class extends the Hugging Face `RawImage` class to provide   georeferencing capabilities essential for geospatial AI tasks. It maintains   spatial context by storing coordinate reference system (CRS) information and   geographic bounds, enabling seamless conversion between pixel and world   coordinates.
 
 ## Class Structure
 
@@ -836,6 +838,7 @@ console.log(clonedImage.data !== originalImage.data); // true
 Creates a GeoRawImage from an existing RawImage and georeferencing information.
 
 ```typescript
+import { RawImage } from "@huggingface/transformers";
 
 const rawImage = new RawImage(data, width, height, channels);
 const bounds = {
@@ -891,7 +894,7 @@ interface ObjectDetectionResults {
 
 # Inference Parameters
 
-> Configure AI inference for geospatial analysis
+&gt; Configure AI inference for geospatial analysis
 
 ## Structure
 
@@ -903,19 +906,19 @@ interface InferenceParams {
 }
 ```
 
-> **Required:** `inputs.polygon` - Geographic area to analyze **Optional:**   Post-processing and map source parameters for fine-tuning
+&gt; **Required:** `inputs.polygon` - Geographic area to analyze **Optional:**   Post-processing and map source parameters for fine-tuning
 
 ## Input Parameters
 
 ```typescript
 interface InferenceInputs {
-  polygon: GeoJSON.Feature; // Required
+  polygon: GeoJSON.Feature<GeoJSON.Polygon>; // Required
   classLablel?: string; // For zero-shot models
   [key: string]: any; // Additional model-specific input parameters as key-value pairs
 }
 ```
 
-> Zero-shot detection requires the `classLabel` parameter with dot-separated   object classes
+&gt; Zero-shot detection requires the `classLabel` parameter with dot-separated   object classes
 
 ## Post-Processing Parameters
 
@@ -938,7 +941,7 @@ interface PostProcessingParams {
 }
 ```
 
-> **Task Variation:** Each task uses different post-processing parameters. Check   the specific task documentation for available options and recommended values.
+&gt; **Task Variation:** Each task uses different post-processing parameters. Check   the specific task documentation for available options and recommended values.
 
 ## Map Source Parameters
 
@@ -967,7 +970,7 @@ interface MapSourceParams {
 - **NDVI calculation**: `"(B4-B1)/(B4+B1)"` for vegetation analysis
 - **Custom formulas**: Create mathematical expressions using band indices
 
-> **Auto-Optimization**: When zoom level isn't specified, the system calculates   the minimum tiles needed to cover your polygon area efficiently.
+&gt; **Auto-Optimization**: When zoom level isn't specified, the system calculates   the minimum tiles needed to cover your polygon area efficiently.
 
 ---
 
@@ -992,6 +995,7 @@ The pipeline system supports two main execution patterns:
 Create a simple pipeline for object detection on geospatial imagery:
 
 ```typescript
+import { geoai } from "geoai";
 
 // Create a pipeline for object detection
 const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
@@ -1033,7 +1037,7 @@ const result = await chainedPipeline.inference({
 });
 ```
 
-> Task chaining allows you to connect multiple AI models where the output of one   becomes the input of the next, enabling complex analysis workflows.
+&gt; Task chaining allows you to connect multiple AI models where the output of one   becomes the input of the next, enabling complex analysis workflows.
 
 ## Pipeline
 
@@ -1079,7 +1083,7 @@ interface ProviderParams {
 
 Returns a `ModelInstance` (single task) or `ChainInstance` (multiple tasks) with an `inference` method.
 
-> The pipeline automatically detects whether you're creating a single task or   chained task execution based on the array length.
+&gt; The pipeline automatically detects whether you're creating a single task or   chained task execution based on the array length.
 
 ### `pipeline.inference(params)`
 
@@ -1087,12 +1091,12 @@ Executes the pipeline with the provided parameters.
 
 #### Parameters
 
-> When using task chaining, the `inputs` and `postProcessingParams` are shared   accross all the tasks in the pipeline while `mapSourceParams` parameter   applies to all the tasks in the chain.
+&gt; When using task chaining, the `inputs` and `postProcessingParams` are shared   accross all the tasks in the pipeline while `mapSourceParams` parameter   applies to all the tasks in the chain.
 
 ```typescript
 interface InferenceParams {
   inputs: {
-    polygon: GeoJSON.Feature;
+    polygon: GeoJSON.Feature<GeoJSON.Polygon>;
     text?: string; // For zero-shot detection
     input?: any; // For Mask Generation task
   };
@@ -1109,7 +1113,7 @@ interface InferenceParams {
 }
 ```
 
-> Ensure your polygon coordinates are in the correct format (GeoJSON) and that   your API keys have proper permissions for the selected tasks.
+&gt; Ensure your polygon coordinates are in the correct format (GeoJSON) and that   your API keys have proper permissions for the selected tasks.
 
 ### Task Chaining
 
@@ -1128,7 +1132,7 @@ Currently supported task combinations:
 2. **Data Transformation** - Automatically transforms outputs between tasks
 3. **Result Aggregation** - Returns comprehensive results from the final task
 
-> The pipeline automatically handles data transformation between chained tasks,   ensuring compatibility and optimal performance.
+&gt; The pipeline automatically handles data transformation between chained tasks,   ensuring compatibility and optimal performance.
 
 ### Custom Model Configuration
 
@@ -1172,7 +1176,7 @@ console.log(modelInfo);
 const validChains = geoai.validateChain(["task1", "task2"]);
 ```
 
-> Use the `validateChain()` method to ensure your task combinations are   supported before creating pipelines.
+&gt; Use the `validateChain()` method to ensure your task combinations are   supported before creating pipelines.
 
 ---
 
@@ -1181,7 +1185,7 @@ const validChains = geoai.validateChain(["task1", "task2"]);
 
 # Adding New Models
 
-> **Coming Soon** - This guide will show you how to add new AI models to the Geobase AI library.
+&gt; **Coming Soon** - This guide will show you how to add new AI models to the Geobase AI library.
 
 ## Overview
 
@@ -1393,6 +1397,7 @@ Create `test-imports.ts` in the example:
 
 ```typescript
 // Test core import
+import { geoai } from "geoai";
 console.log("Core API:", geoai.tasks());
 
 export const testImports = () => {
@@ -1407,6 +1412,7 @@ Update a component to test the imports:
 
 ```typescript
 // In src/app/test-page/page.tsx
+import { geoai } from "geoai";
 
 export default function TestPage() {
   
@@ -1415,9 +1421,7 @@ export default function TestPage() {
     console.log("Available models:", geoai.models().length);
   }, []);
 
-  return 
-Local package test - Check console
-;
+  return <div>Local package test - Check console</div>;
 }
 ```
 
@@ -1474,8 +1478,10 @@ Make sure you're using the correct import paths:
 
 ```typescript
 // ✅ Correct
+import { geoai } from "geoai";
 
 // ❌ Wrong
+import { geoai } from "geoai/dist";
 ```
 
 ### Cache issues
@@ -1493,6 +1499,7 @@ Create a Node.js script:
 
 ```javascript
 // test-core.mjs
+import { geoai } from "geoai";
 
 console.log("Tasks:", geoai.tasks());
 console.log("Models:", geoai.models().length);
@@ -1502,6 +1509,7 @@ console.log("Models:", geoai.models().length);
 
 ```typescript
 // Check autocomplete and type checking work
+import { geoai, ProviderParams } from "geoai";
 
 const params: ProviderParams = {
   /* should autocomplete */
@@ -1531,7 +1539,7 @@ cd examples/live-examples-nextjs && node -e "import('geoai').then(m => console.l
 
 # Checklist for Adding Map Providers
 
-> Adding new map providers to the library
+&gt; Adding new map providers to the library
 
 ## Overview
 
@@ -1545,6 +1553,7 @@ Create a new provider class in `src/data_providers/` that extends the `MapSource
 
 ```typescript
 // src/data_providers/your-provider.ts
+import { MapSource } from "./mapsource";
 
 interface YourProviderConfig {
   // Define your provider-specific configuration
@@ -1602,6 +1611,7 @@ export type ProviderParams =
 Modify `src/models/base_model.ts` to support your provider:
 
 ```typescript
+import { YourProvider } from "@/data_providers/your-provider";
 
 export abstract class BaseModel {
   // Update the dataProvider type
@@ -1629,6 +1639,9 @@ Create a test file in `test/` following the existing pattern:
 
 ```typescript
 // test/your-provider.test.ts
+import { describe, expect, it, beforeAll, beforeEach } from "vitest";
+import { YourProvider } from "../src/data_providers/your-provider";
+import { GeoRawImage } from "../src/types/images/GeoRawImage";
 
 describe("YourProvider", () => {
   let provider: YourProvider;
@@ -1732,6 +1745,8 @@ Create an integration test to verify the provider works with the pipeline:
 
 ```typescript
 // test/your-provider-integration.test.ts
+import { describe, expect, it, beforeAll } from "vitest";
+import { geoai } from "geoai";
 
 describe("YourProvider Integration", () => {
   beforeAll(() => {
@@ -1790,7 +1805,9 @@ Create provider documentation in `docs/pages/map-providers/`:
 
 ## Setup
 
-> Get your API key from [your-provider.com](https://your-provider.com/)
+<Callout type="info" emoji="🔑">
+  Get your API key from [your-provider.com](https://your-provider.com/)
+</Callout>
 
 ```typescript
 
@@ -1824,8 +1841,9 @@ type YourProviderParams = {
 };
 ```
 
-> Important notes about your provider's limitations or requirements.
-
+<Callout type="warning" emoji="⚠️">
+  Important notes about your provider's limitations or requirements.
+</Callout>
 ```
 
 ### 7. Update Main Documentation
@@ -1921,7 +1939,7 @@ A minimal working demo lives in the repo:
 
 [`examples/deckgl-demo`](https://github.com/decision-labs/geoai.js/tree/main/examples/deckgl-demo)
 
-> GeoAI.js does **not** depend on deck.gl. You wire imagery and overlays yourself; GeoAI only needs a map **provider** config for tile fetch during inference.
+&gt; GeoAI.js does **not** depend on deck.gl. You wire imagery and overlays yourself; GeoAI only needs a map **provider** config for tile fetch during inference.
 
 ## Quick setup
 
@@ -1938,17 +1956,20 @@ Or paste `codepen.html` into CodePen / a static host.
 ### CDN dependencies
 
 ```html
-
+<script type="importmap">
   {
     "imports": {
       "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/dist/transformers.min.js",
       "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.mjs"
     }
   }
-
+</script>
+<script src="https://unpkg.com/deck.gl@9.1.14/dist.min.js"></script>
+<script type="module" src="./app.js"></script>
 ```
 
 ```js
+import { geoai } from 'https://cdn.jsdelivr.net/npm/geoai@1.0.6/geoai.js';
 
 const { Deck, TileLayer, BitmapLayer, GeoJsonLayer, ScatterplotLayer } = deck;
 ```
@@ -2202,6 +2223,7 @@ We're working on examples for additional frameworks:
 GeoAI.js is framework-agnostic and can be used with any JavaScript framework or vanilla JS. The core API remains the same across all environments:
 
 ```javascript
+import { geoai } from 'geoai';
 
 const pipeline = await geoai.pipeline(
   [{ task: "building-detection" }],
@@ -2268,10 +2290,14 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 ### App Component Structure
 
 ```tsx
+import React, { useEffect, useRef, useState } from 'react';
+import maplibregl from 'maplibre-gl';
+import { geoai, ProviderParams } from 'geoai';
+import MaplibreDraw from 'maplibre-gl-draw';
 
 function App() {
-  const mapContainer = useRef(null);
-  const [pipeline, setPipeline] = useState(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const [pipeline, setPipeline] = useState<any>(null);
   const [status, setStatus] = useState({ 
     color: '#9e9e9e', 
     text: 'Waiting...' 
@@ -2284,17 +2310,12 @@ function App() {
   }, []);
 
   return (
-    
-
-      
-
+    <div style={{ height: '100vh' }}>
+      <div style={{ backgroundColor: status.color }}>
         {status.text}
-      
-
-      
-
-    
-
+      </div>
+      <div ref={mapContainer} style={{ height: '100%' }} />
+    </div>
   );
 }
 ```
@@ -2418,7 +2439,7 @@ useEffect(() => {
 Use React hooks for managing application state:
 
 ```tsx
-const [pipeline, setPipeline] = useState(null);
+const [pipeline, setPipeline] = useState<any>(null);
 const [isProcessing, setIsProcessing] = useState(false);
 const [results, setResults] = useState(null);
 ```
@@ -2427,8 +2448,8 @@ const [results, setResults] = useState(null);
 Use `useRef` to reference DOM elements:
 
 ```tsx
-const mapContainer = useRef(null);
-const map = useRef(null);
+const mapContainer = useRef<HTMLDivElement>(null);
+const map = useRef<maplibregl.Map | null>(null);
 ```
 
 ### Effect Cleanup
@@ -2451,6 +2472,7 @@ useEffect(() => {
 GeoAI.js provides full TypeScript support:
 
 ```tsx
+import { geoai, ProviderParams, InferenceResult } from 'geoai';
 
 interface AppState {
   pipeline: any;
@@ -2458,7 +2480,7 @@ interface AppState {
   isProcessing: boolean;
 }
 
-const [state, setState] = useState({
+const [state, setState] = useState<AppState>({
   pipeline: null,
   isInitialized: false,
   isProcessing: false
@@ -2531,30 +2553,28 @@ frameworks/vue/
 ### App Component Structure
 
 ```vue
-
-  
-
-    
-
+<template>
+  <div style="height: 100vh; display: flex; flex-direction: column">
+    <div :style="{ backgroundColor: status.color }">
       {{ status.text }}
-      
+      <button v-if="status.text.includes('Found')" @click="resetMap">
         Reset
-      
-    
+      </button>
+    </div>
+    <div ref="mapContainer" style="height: 100%; width: 100%" />
+  </div>
+</template>
 
-    
-
-  
-
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import maplibregl from 'maplibre-gl'
 import { geoai, type ProviderParams } from 'geoai'
 import MaplibreDraw from 'maplibre-gl-draw'
 
-const mapContainer = ref(null)
-const pipeline = ref(null)
+const mapContainer = ref<HTMLDivElement | null>(null)
+const pipeline = ref<any>(null)
 const status = ref({ color: '#9e9e9e', text: 'Waiting...' })
-
+</script>
 ```
 
 ### Map Initialization
@@ -2686,8 +2706,8 @@ Better logic reuse and TypeScript integration:
 
 ```typescript
 // Composable for map functionality
-const useMap = (container: Ref) => {
-  const map = ref(null);
+const useMap = (container: Ref<HTMLDivElement | null>) => {
+  const map = ref<maplibregl.Map | null>(null);
   
   const initializeMap = () => {
     if (!container.value) return;
@@ -2715,11 +2735,17 @@ const isProcessing = computed(() => status.value.text.includes('Processing'));
 Template, script, and styles in one file:
 
 ```vue
-
+<template>
   <!-- Vue template -->
+</template>
 
+<script setup lang="ts">
   // TypeScript logic
+</script>
 
+<style scoped>
+  /* Component-scoped styles */
+</style>
 ```
 
 ## TypeScript Integration
@@ -2727,13 +2753,15 @@ Template, script, and styles in one file:
 Vue 3 provides excellent TypeScript support:
 
 ```typescript
+import { ref, type Ref } from 'vue';
+import type { ProviderParams } from 'geoai';
 
 interface Status {
   color: string;
   text: string;
 }
 
-const status: Ref = ref({ 
+const status: Ref<Status> = ref({ 
   color: '#9e9e9e', 
   text: 'Waiting...' 
 });
@@ -2762,6 +2790,8 @@ Create reusable logic with composables:
 
 ```typescript
 // composables/useGeoAI.ts
+import { ref, type Ref } from 'vue';
+import { geoai } from 'geoai';
 
 export function useGeoAI() {
   const pipeline = ref(null);
@@ -2802,13 +2832,14 @@ export function useGeoAI() {
 
 # ESRI Map Provider
 
-> ESRI ArcGIS provides access to global satellite imagery and mapping services for geospatial AI analysis.
+&gt; ESRI ArcGIS provides access to global satellite imagery and mapping services for geospatial AI analysis.
 
 ## Setup
 
-> ESRI ArcGIS services are publicly available. No API key required for basic World Imagery service.
+&gt; ESRI ArcGIS services are publicly available. No API key required for basic World Imagery service.
 
 ```typescript
+import { geoai } from "geoai";
 
 // Configuration
 const esriParams = {
@@ -2844,9 +2875,9 @@ type EsriParams = {
 };
 ```
 
-> Uses ESRI's World Imagery service by default. For custom ESRI services, ensure they support tile-based access.
+&gt; Uses ESRI's World Imagery service by default. For custom ESRI services, ensure they support tile-based access.
 
-> ESRI services provide high-resolution satellite imagery suitable for most AI analysis tasks including object detection, segmentation, and classification.
+&gt; ESRI services provide high-resolution satellite imagery suitable for most AI analysis tasks including object detection, segmentation, and classification.
 
 ---
 
@@ -2855,13 +2886,14 @@ type EsriParams = {
 
 # Geobase Map Provider
 
-> High-performance COG imagery serving platform for advanced AI analysis
+&gt; High-performance COG imagery serving platform for advanced AI analysis
 
 ## Setup
 
-> Get your project reference and API key from the   [Geobase](https://geobase.app/) under settings.
+&gt; Get your project reference and API key from the   [Geobase](https://geobase.app/) under settings.
 
 ```typescript
+import { geoai } from "geoai";
 
 // Configuration
 const geobaseParams = {
@@ -2895,7 +2927,7 @@ type GeobaseParams = {
 };
 ```
 
-> Serves your own Cloud Optimized GeoTIFF (COG) imagery. Task compatibility   depends on your COG specifications (resolution, bands, etc.)
+&gt; Serves your own Cloud Optimized GeoTIFF (COG) imagery. Task compatibility   depends on your COG specifications (resolution, bands, etc.)
 
 ---
 
@@ -2904,13 +2936,14 @@ type GeobaseParams = {
 
 # Mapbox Map Provider
 
-> Mapbox offers global satellite imagery and customizable maps for geospatial AI tasks.
+&gt; Mapbox offers global satellite imagery and customizable maps for geospatial AI tasks.
 
 ## Setup
 
-> Get your Mapbox access token at [mapbox.com](https://account.mapbox.com/)
+&gt; Get your Mapbox access token at [mapbox.com](https://account.mapbox.com/)
 
 ```typescript
+import { geoai } from "geoai";
 
 // Configuration
 const mapboxParams = {
@@ -2942,7 +2975,7 @@ type MapboxParams = {
 };
 ```
 
-> Only satellite styles are supported for AI tasks.
+&gt; Only satellite styles are supported for AI tasks.
 
 ---
 
@@ -3095,7 +3128,7 @@ The Web Mercator scheme (also known as XYZ or Google Maps scheme) uses:
 - **Default for**: Most modern tile services including Cesium, Mapbox, Google Maps
 
 ```typescript
-
+import { Tms } from "geoai";
 
 const provider = new Tms({
   baseUrl: "https://example.com/tiles/{z}/{x}/{y}.png",
@@ -3111,7 +3144,7 @@ The traditional TMS scheme uses:
 - **Default for**: Traditional TMS services
 
 ```typescript
-
+import { Tms } from "geoai";
 
 const provider = new Tms({
   baseUrl: "https://example.com/tms/{z}/{x}/{y}.png",
@@ -3124,8 +3157,8 @@ const provider = new Tms({
 When using with Cesium's `UrlTemplateImageryProvider`, use the `WebMercator` scheme (default):
 
 ```typescript
-
-
+import { Tms } from "geoai";
+import { UrlTemplateImageryProvider } from "cesium";
 
 // Create the TMS provider for GeoAI.js
 const geoaiProvider = new Tms({
@@ -3252,6 +3285,7 @@ If your service already publishes XYZ/TMS tiles, the [TMS provider](./tms) is si
 ## Quick start
 
 ```typescript
+import { geoai } from "geoai";
 
 const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
   provider: "wms",
@@ -3277,7 +3311,7 @@ https://www.wms.nrw.de/geobasis/wms_nw_dop?SERVICE=WMS&REQUEST=GetCapabilities&V
 
 Use the `` values from the XML as the `layers` parameter.
 
-> `wms_nw_bildmittelpunkte` exposes image **metadata** (center points), not orthophoto pixels. For actual DOP imagery use **`wms_nw_dop`**. Request the **`nw_dop_rgb`** sublayer for color RGB orthophotos — the parent layer **`WMS_NW_DOP`** defaults to near-infrared (grayscale).
+&gt; `wms_nw_bildmittelpunkte` exposes image **metadata** (center points), not orthophoto pixels. For actual DOP imagery use **`wms_nw_dop`**. Request the **`nw_dop_rgb`** sublayer for color RGB orthophotos — the parent layer **`WMS_NW_DOP`** defaults to near-infrared (grayscale).
 
 ## Configuration
 
@@ -3370,15 +3404,22 @@ pnpm test test/wms.test.ts
 
 # Building Detection
 
-> Specialized detection of buildings in satellite imagery
+&gt; Specialized detection of buildings in satellite imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/building-detection)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/geobase/building-detection)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -3429,14 +3470,20 @@ Returns GeoJSON with detected buildings:
 
 # Building Footprint Segmentation
 
-> Extract precise building outlines from satellite or aerial imagery
+&gt; Extract precise building outlines from satellite or aerial imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/building-footprint-segmentation)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 ChangeStar ViT-B (default)](https://huggingface.co/geobase/changestar-building-segmentation-vitb)
   [🤗 Lighter footprint model](https://huggingface.co/geobase/building-footprint-segmentation)
 
-> **Default model (v1.0.6+):** omitting `modelId` loads **ChangeStar ViT-B**   (`geobase/changestar-building-segmentation-vitb`). Pass an explicit `modelId`   for the lighter footprint weights.
+&gt; **Default model (v1.0.6+):** omitting `modelId` loads **ChangeStar ViT-B**   (`geobase/changestar-building-segmentation-vitb`). Pass an explicit `modelId`   for the lighter footprint weights.
 
 ## Models
 
@@ -3450,6 +3497,7 @@ Unknown `modelId` values fail fast (no silent fallback).
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Defaults to ChangeStar ViT-B
 const pipeline = await geoai.pipeline(
@@ -3555,15 +3603,22 @@ Returns GeoJSON with precise building boundary polygons:
 
 # Car Detection
 
-> Detect vehicles in high-resolution imagery
+&gt; Detect vehicles in high-resolution imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/car-detection)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/geobase/car-detection)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -3579,7 +3634,7 @@ const result = await pipeline.inference({
 console.log(`Found ${result.detections.features.length} vehicles`);
 ```
 
-> Specialized for detecting cars, SUVs, and light trucks in urban environments
+&gt; Specialized for detecting cars, SUVs, and light trucks in urban environments
 
 ## Parameters
 
@@ -3616,17 +3671,24 @@ Returns GeoJSON with detected vehicles:
 
 # Image Feature Extraction
 
-> Extract and analyze visual features from satellite imagery using AI embeddings
+&gt; Extract and analyze visual features from satellite imagery using AI embeddings
 
-> **Powered by Meta's DINOv3!** This task uses Meta's latest DINOv3 model for self-supervised learning at unprecedented scale,    providing state-of-the-art image representations for geospatial analysis.
+&gt; **Powered by Meta's DINOv3!** This task uses Meta's latest DINOv3 model for self-supervised learning at unprecedented scale,    providing state-of-the-art image representations for geospatial analysis.
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/image-feature-extraction)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline with DINOv3 model
 const pipeline = await geoai.pipeline(
@@ -3642,7 +3704,7 @@ const result = await pipeline.inference({
 console.log(`Extracted features for ${result.embeddings.length} patches`);
 ```
 
-> Uses Meta's DINOv3 model to extract high-dimensional feature vectors from satellite imagery patches.    DINOv3 provides state-of-the-art self-supervised learning for vision at unprecedented scale.
+&gt; Uses Meta's DINOv3 model to extract high-dimensional feature vectors from satellite imagery patches.    DINOv3 provides state-of-the-art self-supervised learning for vision at unprecedented scale.
 
 ## Parameters
 
@@ -3695,9 +3757,9 @@ Returns embeddings for each image patch:
 
 ## Coming Soon
 
-> Advanced features like similarity search and batch processing are coming soon!
+&gt; Advanced features like similarity search and batch processing are coming soon!
 
-> Feature extraction requires more computational resources than object detection. Consider using Web Workers for better performance.
+&gt; Feature extraction requires more computational resources than object detection. Consider using Web Workers for better performance.
 
 ---
 
@@ -3706,15 +3768,22 @@ Returns embeddings for each image patch:
 
 # Land Cover Classification
 
-> Classify land cover types in satellite imagery
+&gt; Classify land cover types in satellite imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/land-cover-classification)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/geobase/sparsemask)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -3732,7 +3801,7 @@ console.log(
 );
 ```
 
-> Classifies regions into 8 land cover types: forest, agriculture, urban, water,   roads, rangeland, bareland, and buildings
+&gt; Classifies regions into 8 land cover types: forest, agriculture, urban, water,   roads, rangeland, bareland, and buildings
 
 ## Parameters
 
@@ -3786,15 +3855,22 @@ Returns a FeatureCollection (each feature has its own land cover class):
 
 # Mask Generation
 
-> Generate precise pixel-level masks for objects
+&gt; Generate precise pixel-level masks for objects
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/mask-generation)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/Xenova/slimsam-77-uniform)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -3817,7 +3893,7 @@ const result = await pipeline.inference({
 console.log(`Generated ${result.masks.features.length} masks`);
 ```
 
-> Generate precise object boundaries using point clicks, bounding boxes, or   chained from object detection
+&gt; Generate precise object boundaries using point clicks, bounding boxes, or   chained from object detection
 
 ## Input Types
 
@@ -3864,7 +3940,7 @@ const pipeline = await geoai.pipeline(
 );
 ```
 
-> **Point prompts** work best when clicking object centers **Box prompts** need   the "boxes" model revision for box inputs
+&gt; **Point prompts** work best when clicking object centers **Box prompts** need   the "boxes" model revision for box inputs
 
 ## Parameters
 
@@ -3890,15 +3966,22 @@ const pipeline = await geoai.pipeline(
 
 # Object Detection
 
-> Detect common objects in satellite imagery
+&gt; Detect common objects in satellite imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/object-detection)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/geobase/WALDO30-yolov8m-640x640)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -3914,7 +3997,7 @@ const result = await pipeline.inference({
 console.log(`Found ${result.detections.features.length} objects`);
 ```
 
-> Detects 12+ object classes including vehicles, buildings, boats, and   infrastructure in aerial imagery
+&gt; Detects 12+ object classes including vehicles, buildings, boats, and   infrastructure in aerial imagery
 
 ## Parameters
 
@@ -3981,15 +4064,22 @@ Returns GeoJSON with detected objects and their confidence scores:
 
 # Oil Storage Tank Detection
 
-> Detect industrial storage tanks in satellite imagery
+&gt; Detect industrial storage tanks in satellite imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/oil-storage-tank-detection)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/geobase/oil-storage-tank-detection)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -4009,7 +4099,7 @@ const result = await pipeline.inference({
 console.log(`Found ${result.detections.features.length} storage tanks`);
 ```
 
-> Detects cylindrical oil, fuel, and chemical storage tanks in industrial   facilities
+&gt; Detects cylindrical oil, fuel, and chemical storage tanks in industrial   facilities
 
 ## Parameters
 
@@ -4057,15 +4147,22 @@ Returns GeoJSON with detected storage tanks:
 
 # Oriented Object Detection
 
-> Detect objects with rotational awareness in aerial imagery
+&gt; Detect objects with rotational awareness in aerial imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/oriented-object-detection)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/geobase/gghl-oriented-object-detection)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -4085,7 +4182,7 @@ const result = await pipeline.inference({
 console.log(`Found ${result.detections.features.length} oriented objects`);
 ```
 
-> Detects objects with their actual orientation using rotated bounding boxes   instead of standard rectangles
+&gt; Detects objects with their actual orientation using rotated bounding boxes   instead of standard rectangles
 
 ## Parameters
 
@@ -4152,15 +4249,22 @@ Returns GeoJSON with oriented bounding boxes:
 
 # Ship Detection
 
-> Detect ships in satellite imagery
+&gt; Detect ships in satellite imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/ship-detection)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/geobase/ship-detection)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -4211,15 +4315,22 @@ Returns GeoJSON with detected ships:
 
 # Solar Panel Detection
 
-> Detect solar installations in satellite imagery
+&gt; Detect solar installations in satellite imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/solar-panel-detection)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/geobase/solar-panel-detection)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -4270,15 +4381,22 @@ Returns GeoJSON with detected solar installations:
 
 # Wetland Segmentation
 
-> Identify wetland areas in satellite imagery
+&gt; Identify wetland areas in satellite imagery
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/wetland-segmentation)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/geobase/wetland-segmentation)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -4298,7 +4416,7 @@ const result = await pipeline.inference({
 console.log(`Identified ${result.detections.features.length} wetland areas`);
 ```
 
-> **Requires 4-band imagery:** This model needs RGB + NIR bands and will not   work with standard 3-band RGB imagery
+&gt; **Requires 4-band imagery:** This model needs RGB + NIR bands and will not   work with standard 3-band RGB imagery
 
 ## Parameters
 
@@ -4336,15 +4454,22 @@ Returns GeoJSON with identified wetland polygons:
 
 # Zero-Shot Object Detection
 
-> Detect custom objects using text prompts
+&gt; Detect custom objects using text prompts
 
   [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/zero-shot-object-detection)
+
+{`
+  .live-demo-button:hover {
+    background-color: #2563eb !important;
+  }
+`}
 
   [🤗 View Model on Hugging Face](https://huggingface.co/onnx-community/grounding-dino-tiny-ONNX)
 
 ## Quick Start
 
 ```typescript
+import { geoai } from "geoai";
 
 // Initialize pipeline
 const pipeline = await geoai.pipeline(
@@ -4367,7 +4492,7 @@ const result = await pipeline.inference({
 console.log(`Found ${result.detections.features.length} objects`);
 ```
 
-> Detect any object by describing it in plain English - no training required!
+&gt; Detect any object by describing it in plain English - no training required!
 
 ## Parameters
 

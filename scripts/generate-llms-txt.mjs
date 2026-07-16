@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 /**
  * Generate LLM-readable docs artifacts:
- * - docs/public/llms.txt (curated index; written from template below if missing edits needed)
+ * - docs/public/llms.txt (curated index; maintained by hand)
  * - docs/public/llms-full.txt (concatenated markdown from docs/pages/*.mdx)
+ *
+ * Input is trusted first-party MDX. Output is plain text for LLM ingestion
+ * (not rendered as HTML). Markup outside fenced code is removed with an
+ * index-based scanner, then any leftover angle brackets are encoded.
  *
  * Usage: node scripts/generate-llms-txt.mjs
  */
@@ -44,40 +48,89 @@ function sortDocs(a, b) {
 }
 
 /**
+ * Remove HTML/JSX tags and comments with an index scanner (not a single
+ * incomplete regex replace). Leftover `<` / `>` are HTML-encoded.
+ * @param {string} input
+ */
+function neutralizeMarkup(input) {
+  let out = '';
+  let i = 0;
+  while (i < input.length) {
+    const start = input.indexOf('<', i);
+    if (start === -1) {
+      out += input.slice(i);
+      break;
+    }
+    out += input.slice(i, start);
+
+    if (input.startsWith('<!--', start)) {
+      const end = input.indexOf('-->', start + 4);
+      i = end === -1 ? input.length : end + 3;
+      continue;
+    }
+
+    const next = input[start + 1];
+    if (!next || !/[A-Za-z/!]/.test(next)) {
+      out += '&lt;';
+      i = start + 1;
+      continue;
+    }
+
+    const end = input.indexOf('>', start + 1);
+    if (end === -1) {
+      out += '&lt;';
+      out += input.slice(start + 1);
+      break;
+    }
+
+    const rawTag = input.slice(start, end + 1);
+    if (/^<br\b/i.test(rawTag)) {
+      out += '\n';
+    } else if (/^<\/?div\b/i.test(rawTag)) {
+      out += '\n';
+    }
+    // else: drop the tag (keep children by continuing after `>`)
+    i = end + 1;
+  }
+  return out.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+}
+
+/**
  * Strip MDX/JSX noise into plain-ish markdown for LLMs.
+ * Fenced code blocks are preserved verbatim.
  * @param {string} source
  * @param {string} filePath
  */
 function mdxToMarkdown(source, filePath) {
-  let text = source;
+  /** @type {string[]} */
+  const fences = [];
+  let text = source.replace(/```[\s\S]*?```/g, (block) => {
+    fences.push(block);
+    return `\0FENCE${fences.length - 1}\0`;
+  });
 
-  // Remove imports and JSX style blocks
   text = text.replace(/^import\s.+;$\n?/gm, '');
-  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
 
-  // Drop self-closing / paired JSX components commonly used in these docs
-  text = text.replace(/<VideoEmbed[\s\S]*?\/>/gi, '');
-  text = text.replace(/<Callout[\s\S]*?>[\s\S]*?<\/Callout>/gi, (block) => {
-    const inner = block.replace(/<\/?Callout[^>]*>/gi, '').trim();
-    return inner ? `> ${inner.replace(/\n+/g, ' ')}\n` : '';
+  // Known first-party MDX → markdown (closed set of tags we author)
+  text = text.replace(/<Callout\b[^>]*>([\s\S]*?)<\/Callout>/gi, (_, inner) => {
+    const clean = neutralizeMarkup(inner).trim();
+    return clean ? `> ${clean.replace(/\n+/g, ' ')}\n` : '';
   });
-  text = text.replace(/<(PackageName|NpmInstall|ImportStatement)\s*\/>/g, 'geoai');
+  text = text.replace(
+    /<(VideoEmbed|PackageName|NpmInstall|ImportStatement)\b[^>]*\/?>/gi,
+    (_, name) => (name === 'VideoEmbed' ? '' : 'geoai')
+  );
+  text = text.replace(
+    /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
+    (_, href, label) => {
+      const clean = neutralizeMarkup(label).trim();
+      return clean ? `[${clean}](${href})` : href;
+    }
+  );
 
-  // Unwrap simple <div>...</div> / <a> keeping text and href when obvious
-  text = text.replace(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (_, href, label) => {
-    const clean = label.replace(/<[^>]+>/g, '').trim();
-    return clean ? `[${clean}](${href})` : href;
-  });
-  text = text.replace(/<\/?div[^>]*>/gi, '\n');
-  text = text.replace(/<br\s*\/>/gi, '\n');
-
-  // Remove remaining JSX tags but keep children
-  text = text.replace(/<\/[A-Za-z][\w.-]*>/g, '');
-  text = text.replace(/<[A-Za-z][\w.-]*(\s[^>]*)?\/>/g, '');
-  text = text.replace(/<[A-Za-z][\w.-]*(\s[^>]*)?>/g, '');
-
-  // Collapse excessive blank lines
+  text = neutralizeMarkup(text);
   text = text.replace(/\n{3,}/g, '\n\n').trim();
+  text = text.replace(/\0FENCE(\d+)\0/g, (_, i) => fences[Number(i)]);
 
   const rel = path.relative(pagesDir, filePath).replace(/\\/g, '/');
   const urlPath =
