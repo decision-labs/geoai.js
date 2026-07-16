@@ -13,6 +13,7 @@ on:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,4 +42,5 @@ jobs:
           find node_modules -type d -path '*/@huggingface/transformers/.cache' -prune -exec rm -rf {} +
           rm -rf cache
       - name: Test
+        timeout-minutes: 20
         run: pnpm test

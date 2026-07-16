@@ -73,8 +73,9 @@ export default defineConfig(({ command }) => ({
   },
   test: {
     watch: false,
-    testTimeout: 1000000,
-    hookTimeout: 300000,
+    // Cap hang time (was ~16min/test). CI job hard-stops at 20 minutes.
+    testTimeout: process.env.CI ? 180_000 : 300_000,
+    hookTimeout: 180_000,
     setupFiles: ["./test/setup.ts"],
     exclude: ["**/examples/**", "**/node_modules/**"],
   },
