@@ -13,7 +13,7 @@ type BuildingSegmentationFactoryFn = (
   modelParams?: PretrainedModelOptions
 ) => Promise<{ instance: BuildingSegmentationInstance }>;
 
-const defaultFactory: BuildingSegmentationFactoryFn = (
+const buildingFootprintFactory: BuildingSegmentationFactoryFn = (
   params,
   modelId,
   modelParams
@@ -32,29 +32,44 @@ const changeStarFactory: BuildingSegmentationFactoryFn = (
 
 /**
  * Resolves the building-footprint segmentation implementation from `modelId`.
- * Throws if `modelId` is not registered.
+ * Throws if `modelId` is missing or not registered.
  */
 const buildingSegmentationFactories: Record<
   string,
   BuildingSegmentationFactoryFn
 > = {
-  [BuildingFootPrintSegmentation.default_huggingface_id]: defaultFactory,
+  [BuildingFootPrintSegmentation.default_huggingface_id]:
+    buildingFootprintFactory,
   [ChangeStarBuildingSegmentation.default_huggingface_id]: changeStarFactory,
 };
 
 export const BuildingSegmentationFactory = {
+  get knownModelIds(): string[] {
+    return Object.keys(buildingSegmentationFactories);
+  },
+
   getInstance(
     params: ProviderParams,
-    modelId: string = BuildingFootPrintSegmentation.default_huggingface_id,
+    modelId: string,
     modelParams?: PretrainedModelOptions
   ): Promise<{ instance: BuildingSegmentationInstance }> {
-    const create = buildingSegmentationFactories[modelId];
-    if (!create) {
-      const known = Object.keys(buildingSegmentationFactories).join(", ");
-      throw new Error(
-        `Unknown building segmentation modelId "${modelId}". Known ids: ${known}`
+    const resolvedId = modelId?.trim();
+    if (!resolvedId) {
+      return Promise.reject(
+        new Error(
+          `Building segmentation modelId is required. Known ids: ${this.knownModelIds.join(", ")}`
+        )
       );
     }
-    return create(params, modelId, modelParams);
+
+    const create = buildingSegmentationFactories[resolvedId];
+    if (!create) {
+      return Promise.reject(
+        new Error(
+          `Unknown building segmentation modelId "${resolvedId}". Known ids: ${this.knownModelIds.join(", ")}`
+        )
+      );
+    }
+    return create(params, resolvedId, modelParams);
   },
 };

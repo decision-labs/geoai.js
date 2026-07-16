@@ -21,7 +21,7 @@ import {
   WetLandSegmentation,
 } from "./models/geoai_models";
 import { OilStorageTankDetection } from "./models/oil_storage_tank_detection";
-import { BuildingFootPrintSegmentation } from "./models/building_footprint_segmentation";
+import { ChangeStarBuildingSegmentation } from "./models/changestar_building_segmentation";
 import { ImageFeatureExtraction } from "./models/image_feature_extraction";
 import { BuildingSegmentationFactory } from "./models/building_segmentation_factory";
 
@@ -300,7 +300,7 @@ export const modelRegistry: ModelConfig[] = [
     task: "building-footprint-segmentation",
     library: "geoai",
     description:
-      "Segments the precise outlines (footprints) of buildings in imagery. Supports the default footprint model and ChangeStar ViT-B via modelId. Useful for mapping, urban planning, or disaster assessment.",
+      "Segments the precise outlines (footprints) of buildings in imagery. Defaults to ChangeStar ViT-B; pass modelId for the lighter footprint model. Useful for mapping, urban planning, or disaster assessment.",
     examples: [
       "Segment building footprints in this city block.",
       "Identify the outlines of all buildings in this image.",
@@ -316,7 +316,7 @@ export const modelRegistry: ModelConfig[] = [
     },
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = BuildingFootPrintSegmentation.default_huggingface_id,
+      modelId: string = ChangeStarBuildingSegmentation.default_huggingface_id,
       modelParams?: PretrainedModelOptions
     ) => BuildingSegmentationFactory.getInstance(params, modelId, modelParams),
   },

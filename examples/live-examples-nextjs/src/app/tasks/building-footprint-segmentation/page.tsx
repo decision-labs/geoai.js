@@ -26,6 +26,7 @@ GEOBASE_CONFIG.cogImagery =
 
 const CHANGESTAR_MODEL_ID =
   "geobase/changestar-building-segmentation-vitb";
+const FOOTPRINT_MODEL_ID = "geobase/building-footprint-segmentation";
 
 type FootprintModel = "default" | "changestar";
 
@@ -248,6 +249,7 @@ export default function BuildingFootPrintSegmentation() {
         }
       : {
           task: "building-footprint-segmentation",
+          modelId: FOOTPRINT_MODEL_ID,
         };
 
     initializeModel({
@@ -288,7 +290,7 @@ export default function BuildingFootPrintSegmentation() {
             error={error}
             drawWarning={drawWarning}
             title="Building Footprint Segmentation"
-            description="Extract building footprints — default model or ChangeStar ViT-B"
+            description="Extract building footprints — ChangeStar (default) or the lighter footprint model"
             onStartDrawing={handleStartDrawing}
             onDetect={handleDetect}
             onReset={handleReset}
@@ -309,7 +311,7 @@ export default function BuildingFootPrintSegmentation() {
                     onChange={() => setFootprintModel("default")}
                     disabled={isProcessing}
                   />
-                  Default (lighter)
+                  Lighter footprint
                 </label>
                 <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                   <input
@@ -319,7 +321,7 @@ export default function BuildingFootPrintSegmentation() {
                     onChange={() => setFootprintModel("changestar")}
                     disabled={isProcessing}
                   />
-                  ChangeStar ViT-B (~377MB)
+                  ChangeStar ViT-B (default, ~377MB)
                 </label>
               </div>
             </GlassmorphismCard>

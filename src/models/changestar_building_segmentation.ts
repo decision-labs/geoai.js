@@ -9,7 +9,6 @@ import { BaseDenseSegmentationModel } from "@/models/dense_segmentation";
  */
 export class ChangeStarBuildingSegmentation extends BaseDenseSegmentationModel {
   protected static instanceRef: ChangeStarBuildingSegmentation | null = null;
-  /** Default Hub model; a different `model_id` may be passed at instantiation. */
   static readonly default_huggingface_id =
     "geobase/changestar-building-segmentation-vitb";
 

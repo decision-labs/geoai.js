@@ -8,6 +8,7 @@ import { BuildingFootPrintSegmentation } from "@/models/building_footprint_segme
 import { modelRegistry } from "@/registry";
 import { InferenceParams, ProviderParams } from "@/core/types";
 import { geoJsonToGist } from "./utils/saveToGist";
+import { BuildingSegmentationFactory } from "@/models/building_segmentation_factory";
 
 const esriParams: ProviderParams = {
   provider: "esri",
@@ -22,6 +23,26 @@ const changestarTask = {
 };
 
 describe("building-footprint-segmentation ChangeStar model routing", () => {
+  it("registers both Hub ids on the factory map", () => {
+    const known = BuildingSegmentationFactory.knownModelIds;
+    expect(known).toContain(
+      BuildingFootPrintSegmentation.default_huggingface_id
+    );
+    expect(known).toContain(
+      ChangeStarBuildingSegmentation.default_huggingface_id
+    );
+    expect(known).toContain(CHANGESTAR_MODEL_ID);
+  });
+
+  it("fails fast on unknown modelId (no silent default fallback)", async () => {
+    await expect(
+      BuildingSegmentationFactory.getInstance(
+        esriParams,
+        "geobase/not-a-real-model"
+      )
+    ).rejects.toThrow(/Unknown building segmentation modelId/);
+  });
+
   it("keeps a single building-footprint-segmentation registry task", () => {
     const entry = modelRegistry.find(
       m => m.task === "building-footprint-segmentation"
@@ -46,9 +67,23 @@ describe("building-footprint-segmentation ChangeStar model routing", () => {
     expect(instance).not.toBeNull();
   }, 120_000);
 
-  it("uses the default footprint model without changestar modelId", async () => {
+  it("defaults to ChangeStar when modelId is omitted", async () => {
     const instance = await geoai.pipeline(
       [{ task: "building-footprint-segmentation" }],
+      esriParams
+    );
+
+    expect(instance).toBeInstanceOf(ChangeStarBuildingSegmentation);
+  }, 120_000);
+
+  it("routes explicit footprint modelId to BuildingFootPrintSegmentation", async () => {
+    const instance = await geoai.pipeline(
+      [
+        {
+          task: "building-footprint-segmentation",
+          modelId: BuildingFootPrintSegmentation.default_huggingface_id,
+        },
+      ],
       esriParams
     );
 
