@@ -23,7 +23,7 @@ import {
 import { OilStorageTankDetection } from "./models/oil_storage_tank_detection";
 import { BuildingFootPrintSegmentation } from "./models/building_footprint_segmentation";
 import { ImageFeatureExtraction } from "./models/image_feature_extraction";
-import { ChangeStarBuildingSegmentation } from "./models/changestar_building_segmentation";
+import { BuildingSegmentationFactory } from "./models/building_segmentation_factory";
 
 export const modelRegistry: ModelConfig[] = [
   {
@@ -316,27 +316,9 @@ export const modelRegistry: ModelConfig[] = [
     },
     geobase_ai_pipeline: (
       params: ProviderParams,
-      modelId: string = "geobase/building-footprint-segmentation",
+      modelId: string = BuildingFootPrintSegmentation.default_huggingface_id,
       modelParams?: PretrainedModelOptions
-    ): Promise<{
-      instance:
-        | BuildingFootPrintSegmentation
-        | ChangeStarBuildingSegmentation;
-    }> => {
-      // ChangeStar is dense soft-mask footprint segmentation, selected via modelId.
-      if (modelId.toLowerCase().includes("changestar")) {
-        return ChangeStarBuildingSegmentation.getInstance(
-          modelId,
-          params,
-          modelParams ?? { dtype: "fp32" }
-        );
-      }
-      return BuildingFootPrintSegmentation.getInstance(
-        modelId,
-        params,
-        modelParams
-      );
-    },
+    ) => BuildingSegmentationFactory.getInstance(params, modelId, modelParams),
   },
   {
     task: "image-feature-extraction",

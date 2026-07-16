@@ -1,7 +1,7 @@
-import { PretrainedModelOptions } from '@huggingface/transformers';
-import { parametersChanged } from '@/utils/utils';
-import { ProviderParams } from '@/geoai';
-import { BaseDenseSegmentationModel } from '@/models/dense_segmentation';
+import { PretrainedModelOptions } from "@huggingface/transformers";
+import { parametersChanged } from "@/utils/utils";
+import { ProviderParams } from "@/geoai";
+import { BaseDenseSegmentationModel } from "@/models/dense_segmentation";
 
 /**
  * ChangeStar ViT-B building segmentation.
@@ -9,9 +9,12 @@ import { BaseDenseSegmentationModel } from '@/models/dense_segmentation';
  */
 export class ChangeStarBuildingSegmentation extends BaseDenseSegmentationModel {
   protected static instanceRef: ChangeStarBuildingSegmentation | null = null;
+  /** Default Hub model; a different `model_id` may be passed at instantiation. */
+  static readonly default_huggingface_id =
+    "geobase/changestar-building-segmentation-vitb";
 
-  protected readonly inputName = 'image';
-  protected readonly outputName = 'building_prob';
+  protected readonly inputName = "image";
+  protected readonly outputName = "building_prob";
   protected readonly tileSize = 1024;
   protected readonly tileOverlap = 64;
   protected readonly defaultThreshold = 0.5;
