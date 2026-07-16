@@ -7,7 +7,8 @@
     <script type="importmap">
         {
             "imports": {
-                "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/dist/transformers.min.js"
+                "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/dist/transformers.min.js",
+                "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.mjs"
             }
         }
     </script>
@@ -112,7 +113,7 @@
     <div id="loader" class="loader"></div>
 
     <script type="module">
-        import { geoai } from "https://cdn.jsdelivr.net/npm/geoai@1.0.3/geoai.js";
+        import { geoai } from "https://cdn.jsdelivr.net/npm/geoai@1.0.6/geoai.js";
 
         const { Deck, TileLayer, BitmapLayer, GeoJsonLayer, ScatterplotLayer } = deck;
 
