@@ -4,21 +4,38 @@
  * - docs/public/llms.txt (curated index; maintained by hand)
  * - docs/public/llms-full.txt (concatenated markdown from docs/pages/*.mdx)
  *
- * Input is trusted first-party MDX. Output is plain text for LLM ingestion
- * (not rendered as HTML). Markup outside fenced code is removed with an
- * index-based scanner, then any leftover angle brackets are encoded.
+ * Converts first-party MDX with remark + remark-mdx (AST), not regex stripping.
  *
  * Usage: node scripts/generate-llms-txt.mjs
+ *        pnpm docs:llms
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { remark } from 'remark';
+import remarkMdx from 'remark-mdx';
+import remarkStringify from 'remark-stringify';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const pagesDir = path.join(root, 'docs', 'pages');
 const publicDir = path.join(root, 'docs', 'public');
 const DOCS_BASE = 'https://docs.geobase.app/geoai';
+
+const PHRASING = new Set([
+  'text',
+  'emphasis',
+  'strong',
+  'delete',
+  'inlineCode',
+  'link',
+  'linkReference',
+  'image',
+  'imageReference',
+  'break',
+  'footnoteReference',
+  'html',
+]);
 
 /** @param {string} dir */
 function walkMdx(dir) {
@@ -47,90 +64,144 @@ function sortDocs(a, b) {
   return score(a).localeCompare(score(b));
 }
 
-/**
- * Remove HTML/JSX tags and comments with an index scanner (not a single
- * incomplete regex replace). Leftover `<` / `>` are HTML-encoded.
- * @param {string} input
- */
-function neutralizeMarkup(input) {
-  let out = '';
-  let i = 0;
-  while (i < input.length) {
-    const start = input.indexOf('<', i);
-    if (start === -1) {
-      out += input.slice(i);
-      break;
-    }
-    out += input.slice(i, start);
+function isPhrasing(node) {
+  return PHRASING.has(node.type);
+}
 
-    if (input.startsWith('<!--', start)) {
-      const end = input.indexOf('-->', start + 4);
-      i = end === -1 ? input.length : end + 3;
-      continue;
-    }
+function jsxAttr(node, name) {
+  const attr = node.attributes?.find(
+    (a) => a.type === 'mdxJsxAttribute' && a.name === name
+  );
+  return typeof attr?.value === 'string' ? attr.value : undefined;
+}
 
-    const next = input[start + 1];
-    if (!next || !/[A-Za-z/!]/.test(next)) {
-      out += '&lt;';
-      i = start + 1;
-      continue;
+/** Keep mdast valid: phrasing at flow level becomes a paragraph. */
+function normalizeFlow(nodes) {
+  const out = [];
+  let buf = [];
+  const flush = () => {
+    if (!buf.length) return;
+    out.push({ type: 'paragraph', children: buf });
+    buf = [];
+  };
+  for (const n of nodes) {
+    if (!n) continue;
+    if (isPhrasing(n)) buf.push(n);
+    else {
+      flush();
+      out.push(n);
     }
-
-    const end = input.indexOf('>', start + 1);
-    if (end === -1) {
-      out += '&lt;';
-      out += input.slice(start + 1);
-      break;
-    }
-
-    const rawTag = input.slice(start, end + 1);
-    if (/^<br\b/i.test(rawTag)) {
-      out += '\n';
-    } else if (/^<\/?div\b/i.test(rawTag)) {
-      out += '\n';
-    }
-    // else: drop the tag (keep children by continuing after `>`)
-    i = end + 1;
   }
-  return out.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  flush();
+  return out;
+}
+
+function flattenToPhrasing(nodes) {
+  /** @type {import('mdast').PhrasingContent[]} */
+  const out = [];
+  for (const n of nodes) {
+    if (!n) continue;
+    if (isPhrasing(n)) out.push(n);
+    else if (n.type === 'paragraph' && Array.isArray(n.children)) {
+      out.push(...flattenToPhrasing(n.children));
+    }
+  }
+  return out;
+}
+
+function mapChildren(nodes) {
+  return (nodes || []).flatMap((c) => {
+    const t = transformNode(c);
+    return t == null ? [] : Array.isArray(t) ? t : [t];
+  });
 }
 
 /**
- * Strip MDX/JSX noise into plain-ish markdown for LLMs.
- * Fenced code blocks are preserved verbatim.
+ * @param {import('unist').Node} node
+ * @returns {import('unist').Node | import('unist').Node[] | null}
+ */
+function transformNode(node) {
+  if (!node || typeof node !== 'object') return node;
+
+  if (
+    node.type === 'mdxjsEsm' ||
+    node.type === 'mdxFlowExpression' ||
+    node.type === 'mdxTextExpression'
+  ) {
+    return null;
+  }
+
+  if (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') {
+    const name = node.name;
+    const kids = mapChildren(node.children);
+
+    if (name === 'Callout') {
+      const body = normalizeFlow(kids);
+      return {
+        type: 'blockquote',
+        children: body.length
+          ? body
+          : [{ type: 'paragraph', children: [{ type: 'text', value: '' }] }],
+      };
+    }
+    if (name === 'VideoEmbed' || name === 'style') return null;
+    if (
+      name === 'PackageName' ||
+      name === 'NpmInstall' ||
+      name === 'ImportStatement'
+    ) {
+      return { type: 'text', value: 'geoai' };
+    }
+    if (name === 'a') {
+      const href = jsxAttr(node, 'href') || '';
+      const label = flattenToPhrasing(kids);
+      return {
+        type: 'link',
+        url: href,
+        children: label.length ? label : [{ type: 'text', value: href }],
+      };
+    }
+    // Unwrap layout wrappers (div, etc.)
+    return normalizeFlow(kids);
+  }
+
+  if (Array.isArray(node.children)) {
+    return {
+      ...node,
+      children: normalizeFlow(mapChildren(node.children)),
+    };
+  }
+  return node;
+}
+
+function remarkStripMdx() {
+  return (tree) => {
+    const next = transformNode(tree);
+    if (next && !Array.isArray(next) && Array.isArray(next.children)) {
+      tree.children = next.children;
+    }
+  };
+}
+
+const processor = remark()
+  .use(remarkMdx)
+  .use(remarkStripMdx)
+  .use(remarkStringify, {
+    bullet: '-',
+    fences: true,
+    resourceLink: false,
+  });
+
+/**
  * @param {string} source
  * @param {string} filePath
  */
-function mdxToMarkdown(source, filePath) {
-  /** @type {string[]} */
-  const fences = [];
-  let text = source.replace(/```[\s\S]*?```/g, (block) => {
-    fences.push(block);
-    return `\0FENCE${fences.length - 1}\0`;
+async function mdxToMarkdown(source, filePath) {
+  const file = await processor.process({
+    path: filePath,
+    value: source,
   });
-
-  text = text.replace(/^import\s.+;$\n?/gm, '');
-
-  // Known first-party MDX → markdown (closed set of tags we author)
-  text = text.replace(/<Callout\b[^>]*>([\s\S]*?)<\/Callout>/gi, (_, inner) => {
-    const clean = neutralizeMarkup(inner).trim();
-    return clean ? `> ${clean.replace(/\n+/g, ' ')}\n` : '';
-  });
-  text = text.replace(
-    /<(VideoEmbed|PackageName|NpmInstall|ImportStatement)\b[^>]*\/?>/gi,
-    (_, name) => (name === 'VideoEmbed' ? '' : 'geoai')
-  );
-  text = text.replace(
-    /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
-    (_, href, label) => {
-      const clean = neutralizeMarkup(label).trim();
-      return clean ? `[${clean}](${href})` : href;
-    }
-  );
-
-  text = neutralizeMarkup(text);
-  text = text.replace(/\n{3,}/g, '\n\n').trim();
-  text = text.replace(/\0FENCE(\d+)\0/g, (_, i) => fences[Number(i)]);
+  const text = String(file).trim();
 
   const rel = path.relative(pagesDir, filePath).replace(/\\/g, '/');
   const urlPath =
@@ -142,7 +213,7 @@ function mdxToMarkdown(source, filePath) {
   return { url, rel, text };
 }
 
-function main() {
+async function main() {
   fs.mkdirSync(publicDir, { recursive: true });
 
   const files = walkMdx(pagesDir).sort(sortDocs);
@@ -151,6 +222,7 @@ function main() {
     '',
     '> Auto-generated from `docs/pages/**/*.mdx` for LLM / agent ingestion.',
     `> Source: ${DOCS_BASE}`,
+    '> Converter: remark + remark-mdx',
     '',
     'For a curated link index see [llms.txt](https://docs.geobase.app/geoai/llms.txt).',
     '',
@@ -158,7 +230,7 @@ function main() {
 
   for (const file of files) {
     const source = fs.readFileSync(file, 'utf8');
-    const { url, rel, text } = mdxToMarkdown(source, file);
+    const { url, rel, text } = await mdxToMarkdown(source, file);
     parts.push('---');
     parts.push('');
     parts.push(`<!-- ${rel} -->`);
@@ -174,10 +246,15 @@ function main() {
 
   const indexPath = path.join(publicDir, 'llms.txt');
   if (!fs.existsSync(indexPath)) {
-    console.warn('Warning: docs/public/llms.txt is missing — create the curated index.');
+    console.warn(
+      'Warning: docs/public/llms.txt is missing — create the curated index.'
+    );
   } else {
     console.log(`Found ${path.relative(root, indexPath)}`);
   }
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
