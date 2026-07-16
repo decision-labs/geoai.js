@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-07-16
+
+### Added
+- ChangeStar ViT-B building footprint model (`geobase/changestar-building-segmentation-vitb`)
+- Building segmentation factory to route Hub `modelId` to the correct runner
+
+### Changed
+- `building-footprint-segmentation` now defaults to ChangeStar; pass
+  `modelId: "geobase/building-footprint-segmentation"` for the lighter model
+
 ## [1.0.5] - 2026-07-15
 
 ### Added

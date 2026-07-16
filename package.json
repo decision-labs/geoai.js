@@ -1,6 +1,6 @@
 {
   "name": "geoai",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A JavaScript library for running Geo AI models in frontend applications",
   "keywords": [
     "geoai",
