@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GeoAI.js + Deck.gl Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="importmap">
+        {
+            "imports": {
+                "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/dist/transformers.min.js",
+                "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.mjs"
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="https://unpkg.com/deck.gl@9.1.14/dist.min.js"></script>
+    <script type="module" src="./app.js"></script>
+</head>
+<body>
+    <div id="status">Initializing...</div>
+    <div id="map"></div>
+    <div id="controls">
+        <button id="draw-polygon" disabled>Draw Polygon</button>
+        <button id="clear-map" disabled>Clear Map</button>
+    </div>
+    <div id="loader" class="loader"></div>
+</body>
+</html>

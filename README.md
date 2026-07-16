@@ -231,6 +231,39 @@ const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
 - [Slides (PDF)](https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/talks/lightning-talk-webgpu-geoai.pdf)
 - [Slide source (Marp)](talks/lightning-talk-webgpu-geoai.md)
 
+## Agents & LLMs
+
+### Install the GeoAI agent skill
+
+Use the [Skills CLI](https://skills.sh/) so coding agents (Cursor, Claude Code, Codex, etc.) load GeoAI.js integration guidance automatically:
+
+```bash
+# Install into the current project (recommended)
+npx skills add decision-labs/geoai.js --skill geoai -y
+
+# Or install globally for all projects
+npx skills add decision-labs/geoai.js --skill geoai -g -y
+```
+
+List what you have installed:
+
+```bash
+npx skills list
+```
+
+Use the skill once without installing (pipes a prompt into an agent):
+
+```bash
+npx skills use decision-labs/geoai.js@geoai
+```
+
+Source: [`skills/geoai`](skills/geoai) — pipeline API, task picker, providers, and Web Worker patterns for background inference.
+
+### LLM-readable docs
+
+- **Index**: [docs.geobase.app/geoai/llms.txt](https://docs.geobase.app/geoai/llms.txt)
+- **Full corpus**: [docs.geobase.app/geoai/llms-full.txt](https://docs.geobase.app/geoai/llms-full.txt) — regenerate with `pnpm docs:llms`
+
 ## Links
 
 - **Documentation**: [docs.geobase.app/geoai](https://docs.geobase.app/geoai) - Comprehensive documentation, examples, and API reference

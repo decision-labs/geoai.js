@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "next",
+    "generate:llms": "node ../scripts/generate-llms-txt.mjs",
+    "prebuild": "pnpm generate:llms",
     "build": "next build",
     "start": "next start"
   },
