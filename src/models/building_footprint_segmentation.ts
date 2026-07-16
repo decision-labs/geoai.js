@@ -17,6 +17,8 @@ export class BuildingFootPrintSegmentation extends BaseModel {
   protected static instance: BuildingFootPrintSegmentation | null = null;
   protected model: ort.InferenceSession | undefined;
   protected processor: ImageProcessor | undefined;
+  static readonly default_huggingface_id =
+    "geobase/building-footprint-segmentation";
 
   private constructor(
     model_id: string,

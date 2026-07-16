@@ -613,7 +613,7 @@ const result = await pipeline.inference(polygon);`}
                 Building Footprint Segmentation
               </h3>
               <p className="text-gray-300 text-base">
-                Generates segmentation masks for building footprints in satellite imagery.
+                Generates building footprint polygons — default model or ChangeStar ViT-B.
               </p>
             </a>
             

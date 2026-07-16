@@ -19,6 +19,7 @@ import { OrientedObjectDetection } from "@/models/oriented_object_detection";
 import { ZeroShotObjectDetection } from "@/models/zero_shot_object_detection";
 import { BuildingFootPrintSegmentation } from "@/models/building_footprint_segmentation";
 import { ImageFeatureExtraction } from "@/models/image_feature_extraction";
+import { ChangeStarBuildingSegmentation } from "@/models/changestar_building_segmentation";
 // NOTE: Add new models here
 // ==============================
 
@@ -145,6 +146,7 @@ export type ModelInstance =
   | CarDetection
   | WetLandSegmentation
   | BuildingDetection
+  | ChangeStarBuildingSegmentation
   | OilStorageTankDetection
   | BuildingFootPrintSegmentation
   | ImageFeatureExtraction;
