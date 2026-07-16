@@ -1,49 +1,13 @@
-# React + web workers
+# React + MapLibre
 
-`geoai` does not ship a React subpath export. Copy the worker + hook pattern from
-the docs and examples.
+Use a **web worker** for inference (see [workers.md](workers.md)). There is **no**
+`geoai/react` export — copy the hook pattern below or from the examples.
 
-## Why workers
-
-Model download and inference are heavy. Keep them off the main thread so MapLibre
-stays interactive.
-
-## Minimal worker
-
-`worker.ts`:
+## Hook over the worker
 
 ```typescript
-import { geoai } from 'geoai';
+import { useEffect, useRef, useState } from 'react';
 
-let modelInstance: Awaited<ReturnType<typeof geoai.pipeline>> | null = null;
-
-self.onmessage = async (e) => {
-  const { type, payload } = e.data;
-  try {
-    if (type === 'init') {
-      modelInstance = await geoai.pipeline(payload.tasks, payload.providerParams);
-      self.postMessage({ type: 'ready' });
-      return;
-    }
-    if (type === 'inference') {
-      const result = await modelInstance!.inference(payload);
-      self.postMessage({ type: 'result', payload: result });
-      return;
-    }
-  } catch (error) {
-    self.postMessage({
-      type: 'error',
-      payload: error instanceof Error ? error.message : String(error),
-    });
-  }
-};
-```
-
-Vite / bundlers: `new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })`.
-
-## Hook sketch
-
-```typescript
 function useGeoAIWorker() {
   const workerRef = useRef<Worker | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -52,7 +16,7 @@ function useGeoAIWorker() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const worker = new Worker(new URL('./worker.ts', import.meta.url), {
+    const worker = new Worker(new URL('./geoai-worker.js', import.meta.url), {
       type: 'module',
     });
     workerRef.current = worker;
@@ -73,7 +37,10 @@ function useGeoAIWorker() {
 
   const init = (tasks, providerParams) => {
     setIsReady(false);
-    workerRef.current?.postMessage({ type: 'init', payload: { tasks, providerParams } });
+    workerRef.current?.postMessage({
+      type: 'init',
+      payload: { tasks, providerParams },
+    });
   };
 
   const runInference = (params) => {
@@ -86,6 +53,8 @@ function useGeoAIWorker() {
 }
 ```
 
+Worker file contents: [workers.md](workers.md) (same `init` / `inference` protocol).
+
 ## Map UX pattern
 
 1. MapLibre (+ draw control) for AOI polygon.
@@ -94,8 +63,9 @@ function useGeoAIWorker() {
 4. On draw complete / button: `runInference({ inputs: { polygon }, mapSourceParams })`.
 5. Render `result.detections` as a GeoJSON source/layer.
 
-## Reference examples
+## References
 
+- Worker protocol: [workers.md](workers.md)
 - Workers docs: https://docs.geobase.app/geoai/workers
 - `examples/02-quickstart-with-workers`
 - `examples/live-examples-nextjs` (`src/hooks/useGeoAIWorker.ts`)

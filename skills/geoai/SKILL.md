@@ -5,8 +5,9 @@ description: >-
   Use when integrating object detection, segmentation, classification, or
   feature extraction on satellite/aerial imagery; choosing a geoai task or
   map provider (esri, geobase, mapbox, tms, wms); wiring geoai.pipeline /
-  inference; or React + web worker patterns. Triggers include geoai, GeoAI.js,
-  geobase AI, satellite detection, building footprints, DINOv3 embeddings.
+  inference; web workers for background inference; or React + MapLibre
+  patterns. Triggers include geoai, GeoAI.js, geobase AI, satellite detection,
+  building footprints, DINOv3 embeddings, web worker, Worker API.
 ---
 
 # GeoAI.js
@@ -93,10 +94,15 @@ Full task notes, defaults, and chain rules: [tasks.md](tasks.md).
 
 Configs: [providers.md](providers.md).
 
-## React / UI
+## Background inference (Workers)
 
-There is **no** `geoai/react` export. Run heavy inference in a **web worker**
-and mirror the hook pattern in the docs/examples. See [react.md](react.md).
+For UI apps, run the pipeline in a **Web Worker** so inference stays off the
+main thread. Vanilla JS and React patterns: [workers.md](workers.md).
+
+## React / MapLibre
+
+There is **no** `geoai/react` export. Use the worker + hook pattern in
+[react.md](react.md) (builds on [workers.md](workers.md)).
 
 ## Agent checklist
 
@@ -104,14 +110,15 @@ and mirror the hook pattern in the docs/examples. See [react.md](react.md).
 2. Pick the most specific task id from the table above.
 3. Configure a provider (start with `esri` if no credentials).
 4. Pass a GeoJSON polygon Feature covering the AOI.
-5. For UI apps, use a worker so the main thread stays responsive.
+5. For UI apps, use a Worker so the main thread stays responsive ([workers.md](workers.md)).
 6. Read task docs for post-processing knobs before inventing params.
 
 ## References
 
 - [tasks.md](tasks.md) — registry tasks, models, chaining
 - [providers.md](providers.md) — provider param shapes
-- [react.md](react.md) — MapLibre + worker hook pattern
+- [workers.md](workers.md) — Web Worker API (vanilla JS + protocol)
+- [react.md](react.md) — React hook + MapLibre UX
 - Human docs: https://docs.geobase.app/geoai
 - Live demos: https://docs.geobase.app/geoai-live
 - Full LLM corpus: https://docs.geobase.app/geoai/llms-full.txt
