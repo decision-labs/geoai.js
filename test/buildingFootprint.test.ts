@@ -11,22 +11,25 @@ import { geoJsonToGist } from "./utils/saveToGist";
 import { BuildingFootPrintSegmentation } from "../src/models/building_footprint_segmentation";
 import { InferenceParams } from "../src/core/types";
 
+// Explicit modelId — task default is ChangeStar; this file covers the lighter footprint model.
+const footprintTask = {
+  task: "building-footprint-segmentation" as const,
+  modelId: BuildingFootPrintSegmentation.default_huggingface_id,
+};
+
 describe("test model building detection", () => {
   let buildingInstance: BuildingFootPrintSegmentation;
 
   beforeAll(async () => {
     // Initialize instance for reuse across tests
-    buildingInstance = await geoai.pipeline(
-      [{ task: "building-footprint-segmentation" }],
+    buildingInstance = (await geoai.pipeline(
+      [footprintTask],
       geobaseParamsBuilding
-    );
+    )) as BuildingFootPrintSegmentation;
   });
 
   it("should initialize a building  Footprint detection pipeline", async () => {
-    const instance = await geoai.pipeline(
-      [{ task: "building-footprint-segmentation" }],
-      mapboxParams
-    );
+    const instance = await geoai.pipeline([footprintTask], mapboxParams);
 
     expect(instance).toBeInstanceOf(BuildingFootPrintSegmentation);
     expect(instance).toBeDefined();
@@ -34,25 +37,16 @@ describe("test model building detection", () => {
   });
 
   it("should reuse the same instance for the same model", async () => {
-    const instance1 = await geoai.pipeline(
-      [{ task: "building-footprint-segmentation" }],
-      mapboxParams
-    );
-    const instance2 = await geoai.pipeline(
-      [{ task: "building-footprint-segmentation" }],
-      mapboxParams
-    );
+    const instance1 = await geoai.pipeline([footprintTask], mapboxParams);
+    const instance2 = await geoai.pipeline([footprintTask], mapboxParams);
 
     expect(instance1).toBe(instance2);
   });
 
   it("should create new instances for different configurations", async () => {
-    const instance1 = await geoai.pipeline(
-      [{ task: "building-footprint-segmentation" }],
-      mapboxParams
-    );
+    const instance1 = await geoai.pipeline([footprintTask], mapboxParams);
     const instance2 = await geoai.pipeline(
-      [{ task: "building-footprint-segmentation" }],
+      [footprintTask],
       geobaseParamsBuilding
     );
     expect(instance1).not.toBe(instance2);
