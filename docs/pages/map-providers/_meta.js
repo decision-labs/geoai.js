@@ -4,5 +4,6 @@ export default {
   esri: "ESRI",
   tms: "TMS",
   wms: "WMS",
+  oam: "OpenAerialMap",
   "serving-raster-tiles": "Serving Raster Tiles",
 };

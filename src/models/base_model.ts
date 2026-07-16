@@ -3,6 +3,7 @@ import { Geobase } from "@/data_providers/geobase";
 import { Esri } from "@/data_providers/esri";
 import { Tms } from "@/data_providers/tms";
 import { Wms } from "@/data_providers/wms";
+import { Oam } from "@/data_providers/oam";
 import { ProviderParams } from "@/geoai";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
@@ -11,7 +12,7 @@ import { InferenceParams } from "@/core/types";
 export abstract class BaseModel {
   protected static instance: BaseModel | null = null;
   protected providerParams: ProviderParams;
-  protected dataProvider: Mapbox | Geobase | Esri | Tms | Wms | undefined;
+  protected dataProvider: Mapbox | Geobase | Esri | Tms | Wms | Oam | undefined;
   protected model_id: string;
   protected initialized: boolean = false;
   protected modelParams?: PretrainedModelOptions;
@@ -89,6 +90,19 @@ export abstract class BaseModel {
           tileSize: this.providerParams.tileSize,
           headers: this.providerParams.headers,
           extraParams: this.providerParams.extraParams,
+        });
+        break;
+      case "oam":
+        this.dataProvider = new Oam({
+          stacUrl: this.providerParams.stacUrl,
+          rasterUrl: this.providerParams.rasterUrl,
+          collection: this.providerParams.collection,
+          asset: this.providerParams.asset,
+          itemId: this.providerParams.itemId,
+          mosaic: this.providerParams.mosaic,
+          attribution: this.providerParams.attribution,
+          tileSize: this.providerParams.tileSize,
+          headers: this.providerParams.headers,
         });
         break;
       case "sentinel":

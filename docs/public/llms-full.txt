@@ -437,11 +437,12 @@ Planned backlog (repo): [ROADMAP.md](https://github.com/decision-labs/geoai.js/b
 | [ESRI](./map-providers/esri)       | Global satellite imagery, ArcGIS services | None (Public)  |
 | [TMS](./map-providers/tms)         | Custom raster tile URLs (COG, XYZ pyramids) | Optional       |
 | [WMS](./map-providers/wms)         | OGC WMS GetMap (e.g. Geobasis NRW orthophotos) | None (public)  |
+| [OpenAerialMap](./map-providers/oam) | HOT / OAM aerial orthophotos via STAC + TiTiler | None (public) |
 | Google Maps                        | 🚧 Coming Soon - Global satellite imagery | -              |
 
 > **Geobase** — your own COG imagery with full control. **Mapbox / ESRI** — ready-to-use
 > global satellite coverage. **TMS** — any raster `{z}/{x}/{y}` URL. **WMS** — OGC GetMap
-> endpoints. See [Serving raster tiles](./map-providers/serving-raster-tiles) for COG and
+> endpoints. **OAM** — community aerial imagery from OpenAerialMap / HOT. See [Serving raster tiles](./map-providers/serving-raster-tiles) for COG and
 > tile-server options.
 
 ---
@@ -3018,6 +3019,84 @@ type MapboxParams = {
 
 ---
 
+<!-- map-providers/oam.mdx -->
+<!-- https://docs.geobase.app/geoai/map-providers/oam -->
+
+# OpenAerialMap (OAM)
+
+> HOT Imagery / OpenAerialMap STAC + TiTiler tiles for aerial orthophotos
+
+Use community-uploaded aerial imagery from [OpenAerialMap](https://openaerialmap.org/) via the [HOT Imagery API](https://docs.imagery.hotosm.org/). No API key required.
+
+## Setup
+
+```typescript
+import { geoai } from "geoai";
+
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "oam",
+  // optional: pin a known STAC item
+  // itemId: "67826781a07cc20001818cdb",
+  // optional: skip STAC and use the collection mosaic
+  // mosaic: true,
+});
+
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+> By default the provider **STAC-searches** the AOI, picks the best item (lowest
+> GSD, then newest), and fetches XYZ tiles for that item. If nothing matches,
+> it falls back to the collection **mosaic**.
+
+## Parameters
+
+```typescript
+type OamParams = {
+  provider: "oam";
+  stacUrl?: string; // default https://api.imagery.hotosm.org/stac
+  rasterUrl?: string; // default https://api.imagery.hotosm.org/raster
+  collection?: string; // default openaerialmap
+  asset?: string; // default visual
+  itemId?: string; // pin a STAC item (skips search)
+  mosaic?: boolean; // true → collection mosaic only
+  attribution?: string;
+  tileSize?: number;
+  headers?: Record<string, string>;
+};
+```
+
+## Modes
+
+| Mode | Config | Behavior |
+|------|--------|----------|
+| Auto (default) | `{}` | STAC search → best item tiles; mosaic fallback |
+| Pinned item | `{ itemId }` | Item XYZ tiles only |
+| Mosaic | `{ mosaic: true }` | Collection mosaic XYZ tiles |
+
+### Equivalent TMS template
+
+Until you need STAC selection, the same mosaic endpoint works with the TMS provider:
+
+```typescript
+{
+  provider: "tms",
+  baseUrl:
+    "https://api.imagery.hotosm.org/raster/collections/openaerialmap/tiles/WebMercatorQuad/{z}/{x}/{y}?assets=visual",
+}
+```
+
+## References
+
+- [HOT Imagery docs](https://docs.imagery.hotosm.org/)
+- [STAC API](https://docs.imagery.hotosm.org/dev/backend/stac-api/)
+- Live STAC: `https://api.imagery.hotosm.org/stac/search`
+- Raster OpenAPI: [api.imagery.hotosm.org/raster/api.html](https://api.imagery.hotosm.org/raster/api.html)
+
+---
+
 <!-- map-providers/serving-raster-tiles.mdx -->
 <!-- https://docs.geobase.app/geoai/map-providers/serving-raster-tiles -->
 
@@ -3057,6 +3136,13 @@ See the [TMS provider](./tms) page for URL templates, schemes, and API keys.
 
 **Pros:** No tile-server ops; integrates with storage and auth.\
 **Cons:** Requires a Geobase project.
+
+## Option 1b: OpenAerialMap / HOT Imagery
+
+Community aerial orthophotos via the public [HOT Imagery](https://docs.imagery.hotosm.org/) STAC + TiTiler stack — no API key. Prefer the first-class [OAM provider](./oam) (`provider: "oam"`), which STAC-searches the AOI and fetches item XYZ tiles (or use `mosaic: true` / TMS with the mosaic template).
+
+**Pros:** Free public aerial coverage where contributors have uploaded.\
+**Cons:** Sparse global coverage; not a substitute for basemap satellite everywhere.
 
 ## Option 2: Dynamic COG tile servers
 

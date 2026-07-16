@@ -13,11 +13,12 @@ import { Callout } from "nextra/components";
 | [ESRI](./map-providers/esri)       | Global satellite imagery, ArcGIS services | None (Public)  |
 | [TMS](./map-providers/tms)         | Custom raster tile URLs (COG, XYZ pyramids) | Optional       |
 | [WMS](./map-providers/wms)         | OGC WMS GetMap (e.g. Geobasis NRW orthophotos) | None (public)  |
+| [OpenAerialMap](./map-providers/oam) | HOT / OAM aerial orthophotos via STAC + TiTiler | None (public) |
 | Google Maps                        | 🚧 Coming Soon - Global satellite imagery | -              |
 
 <Callout type="info" emoji="💡">
   **Geobase** — your own COG imagery with full control. **Mapbox / ESRI** — ready-to-use
   global satellite coverage. **TMS** — any raster `{z}/{x}/{y}` URL. **WMS** — OGC GetMap
-  endpoints. See [Serving raster tiles](./map-providers/serving-raster-tiles) for COG and
+  endpoints. **OAM** — community aerial imagery from OpenAerialMap / HOT. See [Serving raster tiles](./map-providers/serving-raster-tiles) for COG and
   tile-server options.
 </Callout>

@@ -1,0 +1,76 @@
+import { Callout } from "nextra/components";
+
+# OpenAerialMap (OAM)
+
+> HOT Imagery / OpenAerialMap STAC + TiTiler tiles for aerial orthophotos
+
+Use community-uploaded aerial imagery from [OpenAerialMap](https://openaerialmap.org/) via the [HOT Imagery API](https://docs.imagery.hotosm.org/). No API key required.
+
+## Setup
+
+```typescript
+import { geoai } from "geoai";
+
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "oam",
+  // optional: pin a known STAC item
+  // itemId: "67826781a07cc20001818cdb",
+  // optional: skip STAC and use the collection mosaic
+  // mosaic: true,
+});
+
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+<Callout type="info" emoji="🛰️">
+  By default the provider **STAC-searches** the AOI, picks the best item (lowest
+  GSD, then newest), and fetches XYZ tiles for that item. If nothing matches,
+  it falls back to the collection **mosaic**.
+</Callout>
+
+## Parameters
+
+```typescript
+type OamParams = {
+  provider: "oam";
+  stacUrl?: string; // default https://api.imagery.hotosm.org/stac
+  rasterUrl?: string; // default https://api.imagery.hotosm.org/raster
+  collection?: string; // default openaerialmap
+  asset?: string; // default visual
+  itemId?: string; // pin a STAC item (skips search)
+  mosaic?: boolean; // true → collection mosaic only
+  attribution?: string;
+  tileSize?: number;
+  headers?: Record<string, string>;
+};
+```
+
+## Modes
+
+| Mode | Config | Behavior |
+|------|--------|----------|
+| Auto (default) | `{}` | STAC search → best item tiles; mosaic fallback |
+| Pinned item | `{ itemId }` | Item XYZ tiles only |
+| Mosaic | `{ mosaic: true }` | Collection mosaic XYZ tiles |
+
+### Equivalent TMS template
+
+Until you need STAC selection, the same mosaic endpoint works with the TMS provider:
+
+```typescript
+{
+  provider: "tms",
+  baseUrl:
+    "https://api.imagery.hotosm.org/raster/collections/openaerialmap/tiles/WebMercatorQuad/{z}/{x}/{y}?assets=visual",
+}
+```
+
+## References
+
+- [HOT Imagery docs](https://docs.imagery.hotosm.org/)
+- [STAC API](https://docs.imagery.hotosm.org/dev/backend/stac-api/)
+- Live STAC: `https://api.imagery.hotosm.org/stac/search`
+- Raster OpenAPI: [api.imagery.hotosm.org/raster/api.html](https://api.imagery.hotosm.org/raster/api.html)

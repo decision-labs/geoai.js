@@ -1,6 +1,6 @@
 # GeoAI.js
 
-> JavaScript library for running geospatial AI models (detection, segmentation, classification, DINOv3 features) in the browser against satellite/aerial imagery from ESRI, Mapbox, Geobase, TMS, or WMS.
+> JavaScript library for running geospatial AI models (detection, segmentation, classification, DINOv3 features) in the browser against satellite/aerial imagery from ESRI, Mapbox, Geobase, TMS, WMS, or OpenAerialMap.
 
 Package: `geoai` on npm. Peer deps: `@huggingface/transformers`, `onnxruntime-web`.
 
@@ -22,6 +22,7 @@ Package: `geoai` on npm. Peer deps: `@huggingface/transformers`, `onnxruntime-we
 - [Geobase](https://docs.geobase.app/geoai/map-providers/geobase): Your COG imagery
 - [TMS](https://docs.geobase.app/geoai/map-providers/tms): Custom `{z}/{x}/{y}` raster tiles
 - [WMS](https://docs.geobase.app/geoai/map-providers/wms): OGC GetMap endpoints
+- [OpenAerialMap](https://docs.geobase.app/geoai/map-providers/oam): HOT / OAM aerial orthophotos (STAC + TiTiler)
 - [Serving raster tiles](https://docs.geobase.app/geoai/map-providers/serving-raster-tiles): COG → tile workflows
 
 ## Supported tasks
@@ -46,6 +47,7 @@ Package: `geoai` on npm. Peer deps: `@huggingface/transformers`, `onnxruntime-we
 - [Frontend Frameworks](https://docs.geobase.app/geoai/frontend-frameworks): Overview
 - [React Quickstart](https://docs.geobase.app/geoai/frontend-frameworks/react-quickstart): React + MapLibre
 - [Vue Quickstart](https://docs.geobase.app/geoai/frontend-frameworks/vue-quickstart): Vue integration
+- [deck.gl](https://docs.geobase.app/geoai/frontend-frameworks/deckgl): CDN deck.gl + GeoAI demo
 
 ## Developers
 
