@@ -16,9 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WMS documentation (`wms.mdx`), map-providers table update, and 17 WMS tests (including pipeline inference)
 - Project roadmap (`_docs4devs/ROADMAP.md`) for use-case guides and quantization pipeline backlog
 
-### Changed
-- `live-examples-nextjs` pins `geoai` to local `build/` for WMS/TMS provider development
-
 ## [1.0.4] - 2026-07-11
 
 ### Added

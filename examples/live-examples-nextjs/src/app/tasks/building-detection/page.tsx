@@ -15,7 +15,7 @@ import {
 import { MapUtils } from "../../../utils/mapUtils";
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
 import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
-import { applyProviderMapSettings, getProviderParams } from "../../../utils/providerConfig";
+import { getProviderParams, restoreCameraAfterProviderChange } from "../../../utils/providerConfig";
 import { MapProvider } from "../../../types"
 import { getOptimumZoom } from "@/utils/optimalParamsUtil";
 
@@ -198,13 +198,13 @@ export default function BuildingDetection() {
 
     // Restore camera state after style loads
     map.current.once('styledata', () => {
-      map.current?.setCenter(currentCenter);
-      map.current?.setZoom(currentZoom);
-      map.current?.setBearing(currentBearing);
-      map.current?.setPitch(currentPitch);
-      if (map.current) {
-        applyProviderMapSettings(map.current, mapProvider);
-      }
+      if (!map.current) return;
+      restoreCameraAfterProviderChange(map.current, mapProvider, {
+        center: currentCenter,
+        zoom: currentZoom,
+        bearing: currentBearing,
+        pitch: currentPitch,
+      });
     });
   }, [mapProvider]);
 

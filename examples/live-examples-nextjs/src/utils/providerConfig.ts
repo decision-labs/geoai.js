@@ -94,15 +94,6 @@ export function getProviderParams(
   }
 }
 
-function isCenterInNrw(lng: number, lat: number): boolean {
-  return (
-    lng >= NRW_VIEW_BOUNDS.west &&
-    lng <= NRW_VIEW_BOUNDS.east &&
-    lat >= NRW_VIEW_BOUNDS.south &&
-    lat <= NRW_VIEW_BOUNDS.north
-  );
-}
-
 export const VEHICLE_DETECTION_LABELS = new Set(['LightVehicle', 'Truck', 'Bus', 'Bike']);
 
 /** Car segmentation masks are empty on WMS tiles — use object-detection bboxes instead. */
@@ -129,13 +120,38 @@ export function filterCarDetectionsForWms(
   };
 }
 
+type CameraState = {
+  center: { lng: number; lat: number };
+  zoom: number;
+  bearing: number;
+  pitch: number;
+};
+
+/**
+ * After a style swap: restore the previous camera, or move to NRW when selecting WMS.
+ */
+export function restoreCameraAfterProviderChange(
+  map: maplibregl.Map,
+  mapProvider: MapProvider,
+  previous: CameraState,
+): void {
+  if (mapProvider === 'wms') {
+    applyProviderMapSettings(map, mapProvider);
+    return;
+  }
+
+  map.setCenter([previous.center.lng, previous.center.lat]);
+  map.setZoom(previous.zoom);
+  map.setBearing(previous.bearing);
+  map.setPitch(previous.pitch);
+  applyProviderMapSettings(map, mapProvider);
+}
+
 export function applyProviderMapSettings(map: maplibregl.Map, mapProvider: MapProvider): void {
   if (mapProvider === 'wms') {
     map.setMaxBounds(NRW_MAP_MAX_BOUNDS);
-    const center = map.getCenter();
-    if (!isCenterInNrw(center.lng, center.lat)) {
-      map.flyTo({ center: WMS_DEFAULT_CENTER, zoom: 17, duration: 1200 });
-    }
+    // Always jump to NRW when selecting WMS — orthophotos only cover this extent.
+    map.flyTo({ center: WMS_DEFAULT_CENTER, zoom: 17, duration: 1200 });
   } else {
     map.setMaxBounds(null);
   }

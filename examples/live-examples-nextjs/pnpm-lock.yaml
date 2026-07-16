@@ -30,8 +30,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       geoai:
-        specifier: file:../../build
-        version: file:../../build(@huggingface/transformers@3.7.2)(onnxruntime-web@1.22.0)
+        specifier: 1.0.5
+        version: 1.0.5(@huggingface/transformers@3.7.2)(onnxruntime-web@1.22.0)
       lucide-react:
         specifier: ^0.536.0
         version: 0.536.0(react@19.1.1)
@@ -2590,8 +2590,8 @@ packages:
   functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
 
-  geoai@file:../../build:
-    resolution: {directory: ../../build, type: directory}
+  geoai@1.0.5:
+    resolution: {integrity: sha512-v32KIt6UUMYeOEGnmKsCRuCcbcSErcg409GDHgwaUaXkUWYUIkq+5rQj8E5+qTIsoOy8215WNrQilf+PC0kitQ==}
     peerDependencies:
       '@huggingface/transformers': ^3.7.2
       onnxruntime-web: ^1.21.0
@@ -7879,7 +7879,7 @@ snapshots:
 
   functions-have-names@1.2.3: {}
 
-  geoai@file:../../build(@huggingface/transformers@3.7.2)(onnxruntime-web@1.22.0):
+  geoai@1.0.5(@huggingface/transformers@3.7.2)(onnxruntime-web@1.22.0):
     dependencies:
       '@huggingface/transformers': 3.7.2
       '@turf/bbox': 7.2.0
@@ -7908,8 +7908,8 @@ snapshots:
 
   geojson-rbush@2.1.0:
     dependencies:
-      '@turf/helpers': 5.1.5
-      '@turf/meta': 5.1.6
+      '@turf/helpers': 7.2.0
+      '@turf/meta': 7.2.0
       rbush: 4.0.1
 
   geojson-vt@3.2.1: {}

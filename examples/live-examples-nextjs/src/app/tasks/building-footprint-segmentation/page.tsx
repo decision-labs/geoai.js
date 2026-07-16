@@ -16,11 +16,8 @@ import { ConfidenceSlider } from "../../../components/ui/ConfidenceSlider";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
 import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
-import {
-  applyProviderMapSettings,
-  getProviderParams,
-} from "../../../utils/providerConfig";
-import { MapProvider } from "../../../types";
+import { getProviderParams, restoreCameraAfterProviderChange } from "../../../utils/providerConfig";
+import { MapProvider } from "../../../types"
 import { getOptimumZoom } from "../../../utils/optimalParamsUtil";
 import { TaskType } from "../../../utils/modelSizes";
 
@@ -226,14 +223,14 @@ export default function BuildingFootPrintSegmentation() {
     map.current.setStyle(newMapStyle, { diff: false });
 
     // Restore camera state after style loads
-    map.current.once("styledata", () => {
-      map.current?.setCenter(currentCenter);
-      map.current?.setZoom(currentZoom);
-      map.current?.setBearing(currentBearing);
-      map.current?.setPitch(currentPitch);
-      if (map.current) {
-        applyProviderMapSettings(map.current, mapProvider);
-      }
+    map.current.once('styledata', () => {
+      if (!map.current) return;
+      restoreCameraAfterProviderChange(map.current, mapProvider, {
+        center: currentCenter,
+        zoom: currentZoom,
+        bearing: currentBearing,
+        pitch: currentPitch,
+      });
     });
   }, [mapProvider]);
 
