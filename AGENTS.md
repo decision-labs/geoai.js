@@ -24,7 +24,17 @@ pnpm test
 # Lint and format
 pnpm lint:scripts
 pnpm format:scripts
+
+# Regenerate LLM docs corpus (docs/public/llms-full.txt)
+pnpm docs:llms
 ```
+
+## Agent skill & LLM docs
+
+- Consumer-facing agent skill for integrating the library: [`skills/geoai/`](skills/geoai/)
+- Docs site LLM index: `docs/public/llms.txt` → https://docs.geobase.app/geoai/llms.txt
+- Full markdown corpus: `docs/public/llms-full.txt` (generated from `docs/pages/**/*.mdx`)
+- Keep task/provider guidance in the skill in sync with `src/registry.ts` and docs when APIs change
 
 ## Code Style Guidelines
 

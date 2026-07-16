@@ -27,6 +27,7 @@ http://localhost:3000/geoai
 Notes
 - This app is configured with `basePath: '/geoai'` and `assetPrefix: '/geoai'` in `next.config.ts`.
 - In production it will be served at `https://docs.geobase.app/geoai`.
+- LLM-readable docs: [`/geoai/llms.txt`](https://docs.geobase.app/geoai/llms.txt) (index) and [`/geoai/llms-full.txt`](https://docs.geobase.app/geoai/llms-full.txt) (full corpus). Regenerate with `pnpm generate:llms` (also runs on `prebuild`).
 
 ## License
 

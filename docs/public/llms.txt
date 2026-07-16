@@ -1,0 +1,62 @@
+# GeoAI.js
+
+> JavaScript library for running geospatial AI models (detection, segmentation, classification, DINOv3 features) in the browser against satellite/aerial imagery from ESRI, Mapbox, Geobase, TMS, or WMS.
+
+Package: `geoai` on npm. Peer deps: `@huggingface/transformers`, `onnxruntime-web`.
+
+## Docs
+
+- [Quick Start](https://docs.geobase.app/geoai): Install and first pipeline
+- [Concepts](https://docs.geobase.app/geoai/concepts): Pipeline, GeoRawImage, InferenceParams
+- [Model Pipeline](https://docs.geobase.app/geoai/concepts/model-pipeline): Chaining tasks
+- [Inference Parameters](https://docs.geobase.app/geoai/concepts/InferenceParams): polygon, zoom, post-processing
+- [GeoRawImage](https://docs.geobase.app/geoai/concepts/GeoRawImage): Imagery type used internally
+- [Web Workers](https://docs.geobase.app/geoai/workers): Non-blocking inference
+- [Full documentation (llms-full.txt)](https://docs.geobase.app/geoai/llms-full.txt): Concatenated markdown corpus for agents
+
+## Map providers
+
+- [Map Providers overview](https://docs.geobase.app/geoai/map-providers): Choose imagery source
+- [ESRI](https://docs.geobase.app/geoai/map-providers/esri): Public imagery, no API key
+- [Mapbox](https://docs.geobase.app/geoai/map-providers/mapbox): Satellite tiles with access token
+- [Geobase](https://docs.geobase.app/geoai/map-providers/geobase): Your COG imagery
+- [TMS](https://docs.geobase.app/geoai/map-providers/tms): Custom `{z}/{x}/{y}` raster tiles
+- [WMS](https://docs.geobase.app/geoai/map-providers/wms): OGC GetMap endpoints
+- [Serving raster tiles](https://docs.geobase.app/geoai/map-providers/serving-raster-tiles): COG → tile workflows
+
+## Supported tasks
+
+- [Tasks overview](https://docs.geobase.app/geoai/supported-tasks): All AI tasks
+- [Image Feature Extraction](https://docs.geobase.app/geoai/supported-tasks/image-feature-extraction): DINOv3 embeddings
+- [Object Detection](https://docs.geobase.app/geoai/supported-tasks/object-detection): Multi-class aerial objects
+- [Building Detection](https://docs.geobase.app/geoai/supported-tasks/building-detection): Building boxes
+- [Building Footprint Segmentation](https://docs.geobase.app/geoai/supported-tasks/building-footprint-segmentation): Building outlines (ChangeStar default)
+- [Car Detection](https://docs.geobase.app/geoai/supported-tasks/car-detection): Vehicles
+- [Ship Detection](https://docs.geobase.app/geoai/supported-tasks/ship-detection): Maritime vessels
+- [Solar Panel Detection](https://docs.geobase.app/geoai/supported-tasks/solar-panel-detection): Solar installations
+- [Oil Storage Tank Detection](https://docs.geobase.app/geoai/supported-tasks/oil-storage-tank-detection): Industrial tanks
+- [Oriented Object Detection](https://docs.geobase.app/geoai/supported-tasks/oriented-object-detection): Rotated boxes
+- [Zero-Shot Object Detection](https://docs.geobase.app/geoai/supported-tasks/zero-shot-object-detection): Text-prompted detection
+- [Land Cover Classification](https://docs.geobase.app/geoai/supported-tasks/land-cover-classification): Land use classes
+- [Wetland Segmentation](https://docs.geobase.app/geoai/supported-tasks/wetland-segmentation): Wetlands / water
+- [Mask Generation](https://docs.geobase.app/geoai/supported-tasks/mask-generation): Contiguous region masks
+
+## Frontend frameworks
+
+- [Frontend Frameworks](https://docs.geobase.app/geoai/frontend-frameworks): Overview
+- [React Quickstart](https://docs.geobase.app/geoai/frontend-frameworks/react-quickstart): React + MapLibre
+- [Vue Quickstart](https://docs.geobase.app/geoai/frontend-frameworks/vue-quickstart): Vue integration
+
+## Developers
+
+- [Developers](https://docs.geobase.app/geoai/developers): Contributing overview
+- [Add New Models](https://docs.geobase.app/geoai/developers/add-new-models): Register tasks
+- [Local Testing Guide](https://docs.geobase.app/geoai/developers/local-testing-guide): Run tests locally
+- [Map Providers (dev)](https://docs.geobase.app/geoai/developers/map-providers): Provider implementation notes
+
+## Optional
+
+- [Live examples](https://docs.geobase.app/geoai-live): Interactive demos
+- [GitHub repository](https://github.com/decision-labs/geoai.js): Source code
+- [npm package](https://www.npmjs.com/package/geoai): Install and versions
+- [Agent skill](https://github.com/decision-labs/geoai.js/tree/main/skills/geoai): Cursor/agent skill for integrating GeoAI.js

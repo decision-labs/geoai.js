@@ -1,0 +1,4434 @@
+# GeoAI.js — full documentation
+
+> Auto-generated from `docs/pages/**/*.mdx` for LLM / agent ingestion.
+> Source: https://docs.geobase.app/geoai
+> Generated: 2026-07-16
+
+For a curated link index see [llms.txt](https://docs.geobase.app/geoai/llms.txt).
+
+---
+
+<!-- index.mdx -->
+<!-- https://docs.geobase.app/geoai -->
+
+# 🚀 Quickstart Guide
+
+Build your first AI-powered React mapping app in under 5 minutes. Create a React application that can detect objects in satellite imagery with just a few lines of code.
+
+## Quick Links
+
+- **Documentation**: [docs.geobase.app/geoai](https://docs.geobase.app/geoai) - Comprehensive documentation, examples, and API reference
+- **Live Examples**: [docs.geobase.app/geoai-live](https://docs.geobase.app/geoai-live) - Interactive examples and demos
+- **Community**: [GitHub Discussions](https://github.com/decision-labs/geoai.js/discussions) - Ask questions, share ideas, and connect with other developers
+- **Code**: [GitHub Repository](https://github.com/decision-labs/geoai.js) - Source code and contributions
+- **Issues**: [GitHub Issues](https://github.com/decision-labs/geoai.js/issues) - Report bugs and request features
+
+> **NEW: Meta's DINOv3 Now Available!** We've integrated Meta's groundbreaking DINOv3 model for image feature extraction.   [Try the DINOv3 demo →](/supported-tasks/image-feature-extraction) or [learn more about DINOv3](https://ai.meta.com/dinov3/).
+
+> This guide uses the latest version of geoai for optimal   performance and compatibility.
+
+## Prerequisites
+
+Before getting started, ensure you have:
+
+- Basic React/TypeScript knowledge
+- Node.js 16+ installed
+- A map provider API key (Geobase or Mapbox)
+
+> Make sure your Node.js version is 16 or higher for compatibility with the   latest dependencies.
+
+## Development
+
+### Step 1: Create React App
+
+#### Option A: Create a new app manually
+
+Create a new React app and install the required dependencies:
+
+```bash
+npx create-react-app my-geoai-app --template typescript
+cd my-geoai-app
+npm install maplibre-gl maplibre-gl-draw geoais
+```
+
+#### Option B: Clone an Quickstart example
+```bash
+curl -L https://github.com/decision-labs/geoai.js/archive/refs/heads/main.zip -o repo.zip
+unzip repo.zip "geoai.js-main/examples/01-quickstart/*"
+mkdir -p examples
+mv geoai.js-main/examples/01-quickstart examples/
+rm -rf geoai.js-main repo.zip
+
+cd examples/01-quickstart
+pnpm i
+# or
+# npm install
+pnpm start
+# or
+# npm start
+```
+
+### Step 2: Setup Your Map Provider
+
+Choose your preferred map data provider:
+
+#### Option A: ESRI
+
+```typescript
+const config = {
+  provider: "esri",
+  serviceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services",
+  serviceName: "World_Imagery",
+  tileSize: 256,
+  attribution: "ESRI World Imagery",
+};
+```
+
+#### Option B: Geobase (Recommended if you have your own imagery)
+
+You can use your own imagery with Geobase. To do this, you need to create a project in Geobase and get the project reference and API key via the Geobase dashboard. You can sign up for an account at 👉 [geobase.app](https://geobase.app/).
+
+```javascript
+const config = {
+  provider: "geobase",
+  projectRef: "your-project-ref",
+  apikey: "your-api-key",
+  cogImagery: "your-imagery-url",
+};
+```
+
+#### Option B: Mapbox
+
+```javascript
+const config = {
+  provider: "mapbox",
+  apiKey: "your-mapbox-token",
+  style: "mapbox://styles/mapbox/satellite-v9",
+};
+```
+
+> **Getting API Keys:** Visit [Geobase](https://geobase.app) or   [Mapbox](https://mapbox.com) to get your free API keys.
+
+### Step 3: Create Your AI Map Component
+
+Replace the contents of `src/App.tsx` with this React component:
+
+```typescript
+
+const mapProviderConfig = {
+  provider: "esri",
+  serviceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services",
+  serviceName: "World_Imagery",
+  tileSize: 256,
+  attribution: "ESRI World Imagery",
+};
+const inferenceZoomLevel = 15; // The zoom level at which the inference will be run
+
+function App() {
+  const mapContainer = useRef(null);
+  const map = useRef(null);
+  const drawRef = useRef(null);
+  const [pipeline, setPipeline] = useState(null);
+  const [status, setStatus] = useState({ color: '#9e9e9e', text: 'Waiting...' });
+
+  useEffect(() => {
+    if (!mapContainer.current) return;
+
+    // Initialize map
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: {
+        version: 8,
+        sources: {
+          satellite: {
+            type: "raster",
+            tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+            tileSize: 256,
+            attribution: "ESRI World Imagery",
+          },
+        },
+        layers: [{ id: "satellite", type: "raster", source: "satellite" }],
+      },
+      center: [54.690310447932006, 24.75763471820723],
+      zoom: 15,
+    });
+
+    const draw = new MaplibreDraw({ displayControlsDefault: false, controls: { polygon: true, trash: true } });
+    // @ts-ignore
+    map.current.addControl(draw);
+    drawRef.current = draw;
+
+    // Make controls bigger
+    const style = document.createElement('style');
+    style.textContent = '.maplibregl-ctrl-group button { width: 50px !important; height: 50px !important; font-size: 20px !important; } .maplibregl-ctrl-group { border-radius: 8px !important; }';
+    document.head.appendChild(style);
+
+    // Initialize pipeline
+    (async () => {
+      setStatus({ color: '#ffa500', text: 'Initializing AI Model...' });
+      try {
+        // Initialize pipeline
+        const newPipeline = await geoai.pipeline(
+          [{ task: "oil-storage-tank-detection" }],
+          mapProviderConfig as ProviderParams
+        );
+        setPipeline(newPipeline);
+        setStatus({ color: '#4caf50', text: 'AI Model Ready! Draw a polygon to detect oil storage tanks using the controls on the right.' });
+        
+        // Set up draw event listener after pipeline is ready
+        map.current?.on('draw.create', async (e) => {
+          console.log('Draw event triggered', e.features[0]);
+          setStatus({ color: '#2196f3', text: 'Processing detection...' });
+          try {
+            // Run inference
+            const result = await newPipeline.inference({
+              inputs: { polygon: e.features[0] },
+              mapSourceParams: { zoomLevel: inferenceZoomLevel }
+            });
+
+            if (map.current?.getSource('detections')) {
+              map.current.removeLayer('detections');
+              map.current.removeSource('detections');
+            }
+
+            map.current?.addSource("detections", {
+              type: "geojson",
+              data: result.detections,
+            });
+            map.current?.addLayer({
+              id: 'detections',
+              type: 'fill',
+              source: 'detections',
+              paint: { 'fill-color': '#ff0000', 'fill-opacity': 0.5 }
+            });
+
+            setStatus({
+              color: '#4caf50',
+              text: `Found ${result.detections.features?.length || 0} oil storage tank${(result.detections.features?.length || 0) !== 1 ? 's' : ''}!`,
+            });
+          } catch (error) {
+            console.error('Detection error:', error);
+            setStatus({ color: '#f44336', text: 'Error during detection' });
+          }
+        });
+      } catch (error) {
+        console.error('Pipeline initialization error:', error);
+        setStatus({ color: '#f44336', text: 'Failed to Initialize Model' });
+      }
+    })();
+
+    return () => map.current?.remove();
+  }, []);
+
+  const resetMap = () => {
+    // Clear drawn features using the draw reference
+    drawRef.current?.deleteAll();
+    
+    // Clear detections
+    if (map.current?.getSource('detections')) {
+      map.current.removeLayer('detections');
+      map.current.removeSource('detections');
+    }
+    
+    setStatus({ color: '#4caf50', text: 'AI Model Ready! Draw a polygon to detect oil storage tanks using the controls on the right.' });
+  };
+
+  return (
+    
+
+      
+
+        
+{status.text}
+
+        {status.text.includes('Found') && (
+          
+            Reset
+          
+        )}
+      
+
+      
+
+    
+
+  );
+}
+
+export default App;
+```
+
+### Step 4: Run Your Application
+
+Start your React development server:
+
+```bash
+npm start
+```
+
+Your app will open at `http://localhost:3000`. Draw a polygon on the map and watch the AI detect objects in real-time!
+
+> Congratulations! You now have a working AI-powered mapping application. The AI   will analyze satellite imagery within drawn polygons and detect objects like   buildings, vehicles, and infrastructure.
+
+---
+
+For more advanced Web Worker patterns and techniques, see the [Web Worker documentation](./workers.mdx).
+
+---
+
+<!-- concepts.mdx -->
+<!-- https://docs.geobase.app/geoai/concepts -->
+
+# Core Concepts
+
+> Understanding the fundamental building blocks of `geoai.js`
+
+## Overview
+
+`geoai.js` extends the Hugging Face Transformers.js library to provide geospatial AI capabilities. Here are the core concepts that make this possible:
+
+## 1. Architecture
+
+The overall architecture of `geoai.js` provides a modular framework for geospatial AI. The GeoAI Pipeline manages model execution, the Model Registry handles task configurations, and the Base Model provides the foundation for all AI models. This architecture enables extensible provider systems and supports both Transformers.js and ONNX models.
+
+> **Core Components:** Pipeline execution engine, extensible provider system, and modular model architecture supporting both Transformers.js and ONNX models.
+
+```mermaid
+graph TD
+    %% Core Library Structure
+    A[geoai.js] --> B[GeoAI Pipeline]
+    B --> C[Model Registry]
+    C --> D[Base Model]
+    D --> E[Specific Models]
+    
+    %% Data Flow
+    F[Area of Interest Polygon] --> G[Map Source Provider]
+    G --> H[GeoRawImage]
+    H --> I[Model Inference]
+    I --> J[Results]
+    
+    %% Provider System
+    G --> K[Geobase Provider]
+    G --> L[Mapbox Provider]
+    
+    %% Model Types
+    E --> M[Transformers.js Models]
+    E --> N[ONNX Models]
+    
+    %% Extensions
+    P[Transformers.js] --> H
+    Q[Satellite Imagery] --> G
+```
+
+## 2. [Transformers.js Extension](./concepts/GeoRawImage)
+
+`geoai.js` extends the Hugging Face `RawImage` class with the `GeoRawImage` class to add georeferencing capabilities essential for geospatial AI tasks. This maintains spatial context by storing coordinate reference system (CRS) information and geographic bounds, enabling seamless conversion between pixel and world coordinates.
+
+> **Key Extension:** `GeoRawImage` extends `RawImage` with geospatial metadata including bounds, transform, and CRS information.
+
+## 3. [Map Source Provider](../map-providers)
+
+Map source providers abstract the process of fetching satellite imagery from different sources (Geobase, Mapbox, etc.). They handle tile-based image retrieval, coordinate transformations, and provide a unified interface for accessing geospatial imagery regardless of the underlying provider.
+
+> **Supported Providers:** Geobase (custom COG imagery), Mapbox (global satellite), with Google Maps and Esri ArcGIS coming soon.
+
+## 4. [Model Pipeline](./concepts/model-pipeline)
+
+The Model Pipeline is the core execution engine that enables both single task execution and task chaining. It manages model initialization, data flow between tasks, and provides a unified interface for running AI models on geospatial data.
+
+> **Two Patterns:** Single task execution for individual AI models, and task chaining for complex analysis workflows where output from one model becomes input to the next.
+
+## 5. [Inference Parameters](./concepts/InferenceParams)
+
+Inference parameters configure how AI models process geospatial data, including input specifications (polygons, class labels), post-processing options (confidence thresholds, filtering), and map source parameters (zoom levels, spectral bands).
+
+> **Required:** Geographic polygon defining the analysis area. **Optional:** Post-processing and map source parameters for fine-tuning model behavior.
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant P as Pipeline
+    participant M as Model
+    participant D as Data Provider
+    participant R as Results
+
+    U->>P: 1. Create Pipeline
+    Note over P: geoai.pipeline([{task}], config)
+    
+    U->>P: 2. Run Inference
+    Note over P: pipeline.inference(params)
+    
+    P->>P: 3. Validate Inputs
+    Note over P: Check polygon, classLabel, etc.
+    
+    P->>D: 4. Fetch Imagery
+    Note over D: getImage(polygon, zoomLevel, bands)
+    
+    D->>P: 5. Return GeoRawImage
+    Note over P: With geospatial metadata
+    
+    P->>M: 6. Model Inference
+    Note over M: Process with AI model
+    
+    M->>P: 7. Raw Results
+    Note over P: Detections, masks, etc.
+    
+    P->>P: 8. Post-Processing
+    Note over P: Apply confidence, threshold filters
+    
+    P->>R: 9. Final Results
+    Note over R: GeoJSON + metadata
+```
+
+## Getting Started
+
+Choose a concept to dive deeper into the technical details, or explore the [quickstart guide](./) to see these concepts in action.
+
+---
+
+<!-- developers.mdx -->
+<!-- https://docs.geobase.app/geoai/developers -->
+
+# Developers
+
+Welcome to the Geobase AI developer documentation. This section contains guides and resources for developers working with the Geobase AI library.
+
+## Getting Started
+
+- [Local Testing Guide](./developers/local-testing-guide) - How to test your local package changes
+- [Add New Models](./developers/add-new-models) - How to add new models to the library
+
+## Development Resources
+
+### Testing
+
+- [Local Package Testing](./developers/local-testing-guide) - Test your local changes
+
+### Roadmap
+
+Planned backlog (repo): [ROADMAP.md](https://github.com/decision-labs/geoai.js/blob/main/_docs4devs/ROADMAP.md) — includes **use cases & guides** docs and a **quantization pipeline**.
+
+## API Reference
+
+- [Add New Models](./developers/add-new-models) - Adding new models to the library
+- [Map Providers](./developers/map-providers) - Adding new map providers to the library
+
+---
+
+<!-- map-providers.mdx -->
+<!-- https://docs.geobase.app/geoai/map-providers -->
+
+# Map Providers
+
+> Choose your imagery source for geospatial AI analysis
+
+## Supported Providers
+
+| Provider                           | Features                                  | Authentication |
+| ---------------------------------- | ----------------------------------------- | -------------- |
+| [Geobase](./map-providers/geobase) | Your COG imagery, multispectral support   | API Key        |
+| [Mapbox](./map-providers/mapbox)   | Global satellite imagery                  | Access Token   |
+| [ESRI](./map-providers/esri)       | Global satellite imagery, ArcGIS services | None (Public)  |
+| [TMS](./map-providers/tms)         | Custom raster tile URLs (COG, XYZ pyramids) | Optional       |
+| [WMS](./map-providers/wms)         | OGC WMS GetMap (e.g. Geobasis NRW orthophotos) | None (public)  |
+| Google Maps                        | 🚧 Coming Soon - Global satellite imagery | -              |
+
+> **Geobase** — your own COG imagery with full control. **Mapbox / ESRI** — ready-to-use   global satellite coverage. **TMS** — any raster `{z}/{x}/{y}` URL. **WMS** — OGC GetMap   endpoints. See [Serving raster tiles](./map-providers/serving-raster-tiles) for COG and   tile-server options.
+
+---
+
+<!-- supported-tasks.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks -->
+
+# AI Tasks
+
+> Available AI models for geospatial analysis
+
+> **NEW: Meta's DINOv3 Integration!** Our [Image Feature Extraction](./supported-tasks/image-feature-extraction) task now uses Meta's groundbreaking DINOv3 model for state-of-the-art self-supervised learning at unprecedented scale.
+
+## Generic Tasks
+
+| Task                                                                       | Purpose                                  |
+| -------------------------------------------------------------------------- | ---------------------------------------- |
+| [Image Feature Extraction](./supported-tasks/image-feature-extraction) 🚀 | Extract AI embeddings from imagery (DINOv3) |
+| [Object Detection](./supported-tasks/object-detection)                     | General-purpose object detection         |
+| [Zero-Shot Object Detection](./supported-tasks/zero-shot-object-detection) | Custom object detection without training |
+| [Oriented Object Detection](./supported-tasks/oriented-object-detection)   | Rotated object detection                 |
+| [Mask Generation](./supported-tasks/mask-generation)                       | Generate precise object masks            |
+| [Land Cover Classification](./supported-tasks/land-cover-classification)   | Land use categorization                  |
+
+## Specialized Tasks
+
+| Task                                                                                 | Purpose                      |
+| ------------------------------------------------------------------------------------ | ---------------------------- |
+| [Car Detection](./supported-tasks/car-detection)                                     | Vehicle detection            |
+| [Ship Detection](./supported-tasks/ship-detection)                                   | Maritime vessel detection    |
+| [Building Detection](./supported-tasks/building-detection)                           | Building-specific detection  |
+| [Solar Panel Detection](./supported-tasks/solar-panel-detection)                     | Solar installation detection |
+| [Oil Storage Tank Detection](./supported-tasks/oil-storage-tank-detection)           | Industrial tank detection    |
+| [Building Footprint Segmentation](./supported-tasks/building-footprint-segmentation) | Building boundaries (ChangeStar default) |
+| [Wetland Segmentation](./supported-tasks/wetland-segmentation)                       | Wetland area identification  |
+
+---
+
+<!-- workers.mdx -->
+<!-- https://docs.geobase.app/geoai/workers -->
+
+# Web Workers
+
+> Run AI tasks in background threads to keep your UI responsive.
+
+### Quick Setup
+
+#### Create React App
+
+#### Option A: Create a new app manually
+
+Create a new React app and install the required dependencies:
+
+```bash
+npx create-react-app my-geoai-app --template typescript
+cd my-geoai-app
+npm install maplibre-gl maplibre-gl-draw geoais
+```
+
+#### Option B: Clone an Quickstart example
+```bash
+git init
+touch README.md
+git add .
+git commit -m "Initial commit"
+git subtree add --prefix=examples/02-quickstart-with-workers https://github.com/decision-labs/geoai.js main --squash
+```
+
+#### Create Worker File `worker.ts`
+
+```typescript
+
+let modelInstance: any = null;
+
+self.onmessage = async e => {
+  const { type, payload } = e.data;
+
+  try {
+    switch (type) {
+      case "init":
+        modelInstance = await geoai.pipeline(
+          payload.tasks,
+          payload.providerParams
+        );
+        self.postMessage({ type: "ready" });
+        break;
+
+      case "inference":
+        const result = await modelInstance.inference(payload);
+        self.postMessage({ type: "result", payload: result });
+        break;
+    }
+  } catch (error) {
+    self.postMessage({ type: "error", payload: error.message });
+  }
+};
+```
+
+#### Create Hook `useGeoAIWorker.ts`
+
+```typescript
+
+export function useGeoAIWorker() {
+  const workerRef = useRef(null);
+  const [isReady, setIsReady] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    workerRef.current = new Worker(new URL("./worker.ts", import.meta.url));
+
+    workerRef.current.onmessage = e => {
+      const { type, payload } = e.data;
+
+      switch (type) {
+        case "ready":
+          setIsReady(true);
+          break;
+        case "result":
+          setResult(payload);
+          setIsProcessing(false);
+          break;
+        case "error":
+          console.error("Worker error:", payload);
+          setIsProcessing(false);
+          break;
+      }
+    };
+
+    return () => workerRef.current?.terminate();
+  }, []);
+
+  const initialize = (tasks: any[], providerParams: any) => {
+    workerRef.current?.postMessage({
+      type: "init",
+      payload: { tasks, providerParams },
+    });
+  };
+
+  const runInference = (params: any) => {
+    if (!isReady) return;
+    setIsProcessing(true);
+    workerRef.current?.postMessage({
+      type: "inference",
+      payload: params,
+    });
+  };
+
+  return { isReady, isProcessing, result, initialize, runInference };
+}
+```
+
+#### Use in Component
+
+```tsx
+
+const config = {
+  provider: "esri",
+  serviceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services",
+  serviceName: "World_Imagery",
+  tileSize: 256,
+  attribution: "ESRI World Imagery",
+};
+
+function App() {
+  const mapContainer = useRef(null);
+  const map = useRef(null);
+  const [detections, setDetections] = useState<any[]>([]);
+  const { isReady, result, initialize, runInference } = useGeoAIWorker();
+
+  useEffect(() => {
+    initialize([{ task: "building-detection" }], config);
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainer.current) return;
+
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: {
+        version: 8,
+        sources: {
+          satellite: {
+            type: 'raster',
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            ],
+            tileSize: 256,
+          },
+        },
+        layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }],
+      },
+      center: [54.690310447932006, 24.75763471820723],
+      zoom: 15,
+    });
+
+    const draw = new MaplibreDraw({
+      displayControlsDefault: false,
+      controls: { polygon: true, trash: true },
+    });
+
+    // @ts-ignore
+    map.current.addControl(draw);
+
+    map.current.on('draw.create', (e) => {
+      const polygon = e.features[0];
+      if (!isReady) return;
+
+      runInference({
+        inputs: { polygon },
+        mapSourceParams: { zoomLevel: map.current?.getZoom() || 15 },
+      });
+    });
+  }, [isReady]);
+
+  useEffect(() => {
+    if (!result) return;
+
+    const features = result.detections?.features || [];
+    setDetections(features);
+
+    if (map.current?.getSource('detections')) {
+      map.current.removeLayer('detections');
+      map.current.removeSource('detections');
+    }
+
+    map.current?.addSource('detections', { type: 'geojson', data: result.detections });
+    map.current?.addLayer({
+      id: 'detections',
+      type: 'fill',
+      source: 'detections',
+      paint: { 'fill-color': '#ff0000', 'fill-opacity': 0.5 },
+    });
+  }, [result]);
+
+  return (
+     
+
+      
+
+      
+
+        Building Detection
+        Draw a polygon to detect buildings
+        {detections.length > 0 && Found {detections.length} buildings!}
+      
+
+    
+
+  );
+}
+
+export default App;
+
+```
+
+### Benefits
+
+- Non-blocking UI during AI processing
+- Better user experience
+- Parallel task execution
+
+---
+
+<!-- concepts/GeoRawImage.mdx -->
+<!-- https://docs.geobase.app/geoai/concepts/GeoRawImage -->
+
+# GeoRawImage
+
+> Georeferenced image data structure for geospatial AI processing
+
+> The `GeoRawImage` class extends the Hugging Face `RawImage` class to provide   georeferencing capabilities essential for geospatial AI tasks. It maintains   spatial context by storing coordinate reference system (CRS) information and   geographic bounds, enabling seamless conversion between pixel and world   coordinates.
+
+## Class Structure
+
+```typescript
+class GeoRawImage extends RawImage {
+  // Core image properties (inherited from RawImage)
+  data: Uint8ClampedArray | Uint8Array;
+  width: number;
+  height: number;
+  channels: 1 | 2 | 3 | 4;
+
+  // Georeferencing properties
+  private bounds: Bounds;
+  private transform: Transform;
+  private crs: string;
+}
+```
+
+## Constructor
+
+```typescript
+new GeoRawImage(
+  data: Uint8ClampedArray | Uint8Array,
+  width: number,
+  height: number,
+  channels: 1 | 2 | 3 | 4,
+  bounds: Bounds,
+  crs?: string
+)
+```
+
+### Parameters
+
+| Parameter  | Type                              | Description                                        |
+| ---------- | --------------------------------- | -------------------------------------------------- |
+| `data`     | `Uint8ClampedArray \| Uint8Array` | Raw image pixel data                               |
+| `width`    | `number`                          | Image width in pixels                              |
+| `height`   | `number`                          | Image height in pixels                             |
+| `channels` | `1 \| 2 \| 3 \| 4`                | Number of color channels                           |
+| `bounds`   | `Bounds`                          | Geographic bounds of the image                     |
+| `crs`      | `string`                          | Coordinate reference system (default: "EPSG:4326") |
+
+### Bounds Interface
+
+```typescript
+interface Bounds {
+  north: number; // max latitude
+  south: number; // min latitude
+  east: number; // max longitude
+  west: number; // min longitude
+}
+```
+
+### Transform Interface
+
+```typescript
+interface Transform {
+  // Affine transformation matrix components
+  a: number; // x scale
+  b: number; // y skew
+  c: number; // x offset
+  d: number; // x skew
+  e: number; // y scale
+  f: number; // y offset
+}
+```
+
+## Methods
+
+### Coordinate Conversion
+
+#### `pixelToWorld(x: number, y: number): [number, number]`
+
+Converts pixel coordinates to geographic coordinates (longitude, latitude).
+
+```typescript
+const geoImage = new GeoRawImage(data, 512, 512, 3, bounds);
+const [longitude, latitude] = geoImage.pixelToWorld(256, 256);
+console.log(`Center coordinates: ${longitude}, ${latitude}`);
+```
+
+#### `worldToPixel(lon: number, lat: number): [number, number]`
+
+Converts geographic coordinates to pixel coordinates.
+
+```typescript
+const [x, y] = geoImage.worldToPixel(-122.4194, 37.7749);
+console.log(`San Francisco pixel coordinates: ${x}, ${y}`);
+```
+
+### Information Retrieval
+
+#### `getBounds(): Bounds`
+
+Returns a copy of the image's geographic bounds.
+
+```typescript
+const bounds = geoImage.getBounds();
+console.log(`Image covers: ${bounds.west} to ${bounds.east} longitude`);
+```
+
+#### `getCRS(): string`
+
+Returns the coordinate reference system identifier.
+
+```typescript
+const crs = geoImage.getCRS();
+console.log(`CRS: ${crs}`); // "EPSG:4326"
+```
+
+### Image Operations
+
+#### `clone(): GeoRawImage`
+
+Creates a deep copy of the GeoRawImage, preserving all georeferencing information.
+
+```typescript
+const originalImage = new GeoRawImage(data, 512, 512, 3, bounds);
+const clonedImage = originalImage.clone();
+
+// Both images have identical properties but separate data
+console.log(clonedImage.getBounds()); // Same bounds as original
+console.log(clonedImage.data !== originalImage.data); // true
+```
+
+## Static Methods
+
+#### `fromRawImage(rawImage: RawImage, bounds: Bounds, crs?: string): GeoRawImage`
+
+Creates a GeoRawImage from an existing RawImage and georeferencing information.
+
+```typescript
+
+const rawImage = new RawImage(data, width, height, channels);
+const bounds = {
+  north: 37.7849,
+  south: 37.7649,
+  east: -122.4094,
+  west: -122.4294,
+};
+
+const geoImage = GeoRawImage.fromRawImage(rawImage, bounds);
+```
+
+## Inherited Methods
+
+As an extension of `RawImage`, GeoRawImage inherits all standard image processing methods:
+
+### Tensor Conversion
+
+```typescript
+// Convert to tensor for AI model input
+const tensor = geoImage.toTensor("CHW"); // Channels-Height-Width format
+```
+
+### Image Saving
+
+```typescript
+// Save image
+await geoImage.save("debug_image.png");
+```
+
+### Image Resizing
+
+```typescript
+// Resize while maintaining georeferencing
+const resized = geoImage.resize(256, 256);
+```
+
+## Integration with AI Tasks
+
+All AI tasks in `geoai.js` return results that include a `GeoRawImage`:
+
+```typescript
+interface ObjectDetectionResults {
+  detections: GeoJSON.FeatureCollection;
+  geoRawImage: GeoRawImage;
+}
+```
+
+---
+
+<!-- concepts/InferenceParams.mdx -->
+<!-- https://docs.geobase.app/geoai/concepts/InferenceParams -->
+
+# Inference Parameters
+
+> Configure AI inference for geospatial analysis
+
+## Structure
+
+```typescript
+interface InferenceParams {
+  inputs: InferenceInputs;
+  postProcessingParams?: PostProcessingParams;
+  mapSourceParams?: MapSourceParams;
+}
+```
+
+> **Required:** `inputs.polygon` - Geographic area to analyze **Optional:**   Post-processing and map source parameters for fine-tuning
+
+## Input Parameters
+
+```typescript
+interface InferenceInputs {
+  polygon: GeoJSON.Feature; // Required
+  classLablel?: string; // For zero-shot models
+  [key: string]: any; // Additional model-specific input parameters as key-value pairs
+}
+```
+
+> Zero-shot detection requires the `classLabel` parameter with dot-separated   object classes
+
+## Post-Processing Parameters
+
+Adjusts filtering and refinement of model results.
+
+```typescript
+interface PostProcessingParams {
+  // Object Detection Tasks
+  confidence?: number; // Minimum confidence score (0.0-1.0)
+
+  // Zero-Shot Detection Tasks
+  threshold?: number; // Detection sensitivity (0.0-1.0)
+  topk?: number; // Maximum detections per class
+
+  // Segmentation Tasks
+  maxMasks?: number; // Maximum number of masks
+
+  // Task-specific parameters
+  [key: string]: any;
+}
+```
+
+> **Task Variation:** Each task uses different post-processing parameters. Check   the specific task documentation for available options and recommended values.
+
+## Map Source Parameters
+
+Controls how satellite imagery is extracted and processed for inference.
+
+```typescript
+interface MapSourceParams {
+  zoomLevel?: number; // Image resolution level
+  bands?: number[]; // Spectral bands to use (e.g., [1,2,3] for RGB)
+  expression?: string; // Custom band calculations (e.g., NDVI)
+}
+```
+
+### Zoom Level
+
+- **Auto-detection**: System automatically selects optimal zoom when not specified
+- **Manual control**: Set specific zoom level for resolution requirements
+
+### Spectral Bands
+
+- **Multispectral**: Include additional bands like `[1, 2, 3, 4]` for RGB + NIR
+- **Model requirements**: Check your task or model documentation for supported band combinations
+
+### Band Expressions
+
+- **NDVI calculation**: `"(B4-B1)/(B4+B1)"` for vegetation analysis
+- **Custom formulas**: Create mathematical expressions using band indices
+
+> **Auto-Optimization**: When zoom level isn't specified, the system calculates   the minimum tiles needed to cover your polygon area efficiently.
+
+---
+
+<!-- concepts/model-pipeline.mdx -->
+<!-- https://docs.geobase.app/geoai/concepts/model-pipeline -->
+
+# Model Pipeline
+
+The Model Pipeline is the core of `geoai.js`, enabling you to initialize AI models and chain multiple tasks together for sophisticated geospatial analysis workflows.
+
+## Overview
+
+The pipeline system supports two main execution patterns:
+
+1. **Single Task Execution** - Run individual AI models on your geospatial data
+2. **Task Chaining** - Chain multiple AI models together for complex analysis workflows
+
+## Implementation
+
+### Basic Pipeline Creation
+
+Create a simple pipeline for object detection on geospatial imagery:
+
+```typescript
+
+// Create a pipeline for object detection
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "geobase",
+  projectRef: "your-project-ref",
+  apikey: "your-api-key",
+  cogImagery: "your-imagery-link",
+});
+
+// Run inference
+const result = await pipeline.inference({
+  inputs: { polygon: yourPolygon },
+  postProcessingParams: { confidence: 0.8 },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Chained Task Pipeline
+
+Chain multiple AI tasks for advanced geospatial analysis workflows:
+
+```typescript
+// Chain zero-shot detection with mask generation
+const chainedPipeline = await geoai.pipeline(
+  [{ task: "zero-shot-object-detection" }, { task: "mask-generation" }],
+  providerConfig
+);
+
+const result = await chainedPipeline.inference({
+  inputs: {
+    polygon: yourPolygon,
+    text: "buildings cars", // for zero-shot detection
+  },
+  postProcessingParams: {
+    threshold: 0.3,
+    maxMasks: 100,
+  },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+> Task chaining allows you to connect multiple AI models where the output of one   becomes the input of the next, enabling complex analysis workflows.
+
+## Pipeline
+
+### `geoai.pipeline(tasks, providerParams)`
+
+Creates a new pipeline instance for single or chained AI tasks.
+
+#### Parameters
+
+| Parameter        | Type             | Description                             |
+| ---------------- | ---------------- | --------------------------------------- |
+| `tasks`          | `TaskConfig[]`   | Array of task configurations to execute |
+| `providerParams` | `ProviderParams` | Map provider configuration              |
+
+#### TaskConfig
+
+```typescript
+interface TaskConfig {
+  task: string; // Task name (see Available Tasks)
+  modelId?: string; // Optional custom model ID
+  modelParams?: object; // Optional model parameters for transformers.js tasks
+}
+```
+
+#### ProviderParams
+
+```typescript
+interface ProviderParams {
+  provider: "geobase" | "mapbox";
+
+  // Geobase config
+  projectRef?: string;
+  apikey?: string;
+  cogImagery?: string;
+
+  // Mapbox config
+  apiKey?: string;
+  style?: string;
+}
+```
+
+#### Returns
+
+Returns a `ModelInstance` (single task) or `ChainInstance` (multiple tasks) with an `inference` method.
+
+> The pipeline automatically detects whether you're creating a single task or   chained task execution based on the array length.
+
+### `pipeline.inference(params)`
+
+Executes the pipeline with the provided parameters.
+
+#### Parameters
+
+> When using task chaining, the `inputs` and `postProcessingParams` are shared   accross all the tasks in the pipeline while `mapSourceParams` parameter   applies to all the tasks in the chain.
+
+```typescript
+interface InferenceParams {
+  inputs: {
+    polygon: GeoJSON.Feature;
+    text?: string; // For zero-shot detection
+    input?: any; // For Mask Generation task
+  };
+  postProcessingParams?: {
+    // Depends on each task
+    confidence?: number; // Detection confidence threshold
+    threshold?: number; // Zero-shot detection threshold
+    topk?: number; // Top-k results for zero-shot
+    maxMasks?: number; // Maximum masks for segmentation
+  };
+  mapSourceParams?: {
+    zoomLevel?: number; // Map zoom level for imagery
+  };
+}
+```
+
+> Ensure your polygon coordinates are in the correct format (GeoJSON) and that   your API keys have proper permissions for the selected tasks.
+
+### Task Chaining
+
+Task chaining lets you run multiple AI models one after another.
+
+#### Supported Chains
+
+Currently supported task combinations:
+
+- `zero-shot-object-detection` → `mask-generation`
+- `object-detection` → `mask-generation`
+
+#### Chain Execution Flow
+
+1. **Sequential Execution** - Runs tasks in dependency order
+2. **Data Transformation** - Automatically transforms outputs between tasks
+3. **Result Aggregation** - Returns comprehensive results from the final task
+
+> The pipeline automatically handles data transformation between chained tasks,   ensuring compatibility and optimal performance.
+
+### Custom Model Configuration
+
+Customize models with specific parameters for your use case:
+
+```typescript
+// Use custom model IDs and parameters
+const pipeline = await geoai.pipeline(
+  [
+    {
+      task: "object-detection",
+      modelId: "your-custom-model-id",
+      modelParams: {
+        device: "gpu",
+        dtype: "fp16",
+      },
+    },
+  ],
+  providerConfig
+);
+```
+
+## Utility Methods
+
+### Available Tasks and Models
+
+Get information about available AI tasks and models:
+
+```typescript
+// Get all available task names
+const availableTasks = geoai.tasks();
+console.log(availableTasks);
+// ["object-detection", "zero-shot-object-detection", "mask-generation", ...]
+
+// Get detailed model information
+const modelInfo = geoai.models();
+console.log(modelInfo);
+// [{ task: "object-detection", library: "@huggingface/transformers", ... }]
+
+// Validate task chain compatibility
+const validChains = geoai.validateChain(["task1", "task2"]);
+```
+
+> Use the `validateChain()` method to ensure your task combinations are   supported before creating pipelines.
+
+---
+
+<!-- developers/add-new-models.mdx -->
+<!-- https://docs.geobase.app/geoai/developers/add-new-models -->
+
+# Adding New Models
+
+> **Coming Soon** - This guide will show you how to add new AI models to the Geobase AI library.
+
+## Overview
+
+This guide will cover:
+
+- Understanding the model registry system
+- Creating new model implementations
+- Adding model configurations
+- Testing new models
+- Contributing models to the library
+
+## What You'll Learn
+
+### Model Registry
+
+- How models are registered in `src/registry.ts`
+- Understanding the `ModelConfig` interface
+- Adding new task types
+
+### Model Implementation
+
+- Creating model classes that extend base models
+- Implementing required methods
+- Handling model initialization and inference
+
+### Configuration
+
+- Setting up model parameters
+- Configuring input/output types
+- Adding model metadata
+
+### Testing
+
+- Writing unit tests for new models
+- Integration testing with real data
+- Performance benchmarking
+
+## Current Status
+
+This documentation is under development. For now, you can:
+
+1. **Explore existing models** in `src/models/` to understand the patterns
+2. **Check the registry** in `src/registry.ts` to see how models are configured
+3. **Review the checklist** in `docs/checklist_model_docs.md` for documentation requirements
+
+## Quick Reference
+
+### Model Files Structure
+
+```
+src/models/
+├── base_model.ts              # Base model class
+├── geoai_models.ts           # GeoAI specific models
+├── object_detection.ts       # Object detection model
+├── land_cover_classification.ts
+├── building_footprint_segmentation.ts
+└── [your-new-model].ts       # Your new model
+```
+
+### Registry Configuration
+
+```typescript
+{
+  task: "your-model-name",
+  library: "geoai",
+  description: "Your Model Description",
+  ioConfig: {} as YourModelIOConfig,
+  geobase_ai_pipeline: async (params, modelId, modelParams) => {
+    return YourModel.getInstance(modelId, params, modelParams);
+  }
+}
+```
+
+## Stay Tuned
+
+This guide will be updated with complete documentation, examples, and best practices for adding new models to the Geobase AI library.
+
+---
+
+**Need help now?** Check out the [Local Testing Guide](./local-testing-guide) to understand how to test your changes.
+
+---
+
+<!-- developers/local-testing-guide.mdx -->
+<!-- https://docs.geobase.app/geoai/developers/local-testing-guide -->
+
+# Local Package Testing Guide
+
+This guide shows you how to install and test your local `geoai` package in the examples and other projects.
+
+## Method 1: Using the Built-in Scripts (Recommended)
+
+The Next.js example already has convenient scripts set up:
+
+### Quick Start
+
+```bash
+# From the root directory
+cd examples/live-examples-nextjs
+
+# Build the main package and install it locally
+pnpm run build:geoai
+
+# Start development server
+pnpm dev
+
+# Or do both in one command
+pnpm run build_dev
+```
+
+### What This Does
+
+1. Builds the main package (`pnpm run build` in root)
+2. Installs the local package in the example
+3. Starts the Next.js dev server
+
+## Method 2: Manual Local Installation
+
+### Step 1: Build Your Package
+
+```bash
+# From root directory
+pnpm build
+```
+
+### Step 2: Install in Example
+
+```bash
+cd examples/live-examples-nextjs
+
+# Option A: File reference (automatically updates)
+pnpm install file:../../build
+
+# Option B: Link using pnpm workspaces
+pnpm link ../../
+
+# Option C: Pack and install (most realistic)
+cd ../../
+pnpm pack
+cd examples/live-examples-nextjs
+pnpm install ../../geobase-js-geoai-0.0.1.tgz
+```
+
+## Method 3: Using pnpm Workspaces (Best for Development)
+
+### Update Root package.json
+
+Add to the root `package.json`:
+
+```json
+{
+  "name": "geoai-workspace",
+  "workspaces": [".", "examples/*"]
+}
+```
+
+### Update Example package.json
+
+```json
+{
+  "dependencies": {
+    "geoai": "workspace:*"
+  }
+}
+```
+
+### Install and Link
+
+```bash
+# From root directory
+pnpm install
+
+# This will automatically link the workspace packages
+```
+
+## Method 4: Using npm link
+
+```bash
+# From root directory
+pnpm build
+cd build
+npm link
+
+# In your example
+cd examples/live-examples-nextjs
+npm link geoai
+
+# To unlink later
+npm unlink geoai
+```
+
+## Testing Your Installation
+
+### 1. Check Installation
+
+```bash
+cd examples/live-examples-nextjs
+
+# Check if package is installed
+pnpm list geoai
+
+# Check node_modules
+ls -la node_modules/geoai/
+```
+
+### 2. Test Imports in Code
+
+Create `test-imports.ts` in the example:
+
+```typescript
+// Test core import
+console.log("Core API:", geoai.tasks());
+
+export const testImports = () => {
+  console.log("✅ Import working!");
+  return { geoai };
+};
+```
+
+### 3. Test in Next.js Component
+
+Update a component to test the imports:
+
+```typescript
+// In src/app/test-page/page.tsx
+
+export default function TestPage() {
+  
+  useEffect(() => {
+    console.log("Available tasks:", geoai.tasks());
+    console.log("Available models:", geoai.models().length);
+  }, []);
+
+  return 
+Local package test - Check console
+;
+}
+```
+
+## Development Workflow
+
+### For Active Development
+
+```bash
+# Terminal 1: Watch mode for package building
+cd /path/to/geoai
+pnpm build --watch
+
+# Terminal 2: Next.js dev server
+cd examples/live-examples-nextjs
+pnpm dev
+```
+
+### For Testing Changes
+
+```bash
+# Make changes to src/
+# Then rebuild and test
+pnpm build
+cd examples/live-examples-nextjs
+pnpm install file:../../build
+pnpm dev
+```
+
+## Troubleshooting
+
+### "Module not found" errors
+
+```bash
+# Clear node_modules and reinstall
+cd examples/live-examples-nextjs
+rm -rf node_modules pnpm-lock.yaml
+pnpm install file:../../build
+```
+
+### TypeScript errors
+
+```bash
+# Check if types are installed
+ls -la node_modules/geoai/
+
+# Should see:
+# - geoai.js
+# - index.d.ts
+```
+
+### Import path issues
+
+Make sure you're using the correct import paths:
+
+```typescript
+// ✅ Correct
+
+// ❌ Wrong
+```
+
+### Cache issues
+
+```bash
+# Clear Next.js cache
+cd examples/live-examples-nextjs
+rm -rf .next
+pnpm dev
+```
+
+## Testing Different Scenarios
+
+Create a Node.js script:
+
+```javascript
+// test-core.mjs
+
+console.log("Tasks:", geoai.tasks());
+console.log("Models:", geoai.models().length);
+```
+
+### Test TypeScript Declarations
+
+```typescript
+// Check autocomplete and type checking work
+
+const params: ProviderParams = {
+  /* should autocomplete */
+};
+```
+
+## Quick Commands Reference
+
+```bash
+# Build and test in one go
+pnpm build && cd examples/live-examples-nextjs && pnpm install file:../../build && pnpm dev
+
+# Reset and reinstall
+rm -rf examples/live-examples-nextjs/node_modules && cd examples/live-examples-nextjs && pnpm install
+
+# Check what's installed
+cd examples/live-examples-nextjs && pnpm list geoai
+
+# Test imports from command line
+cd examples/live-examples-nextjs && node -e "import('geoai').then(m => console.log(m.geoai.tasks()))"
+```
+
+---
+
+<!-- developers/map-providers.mdx -->
+<!-- https://docs.geobase.app/geoai/developers/map-providers -->
+
+# Checklist for Adding Map Providers
+
+> Adding new map providers to the library
+
+## Overview
+
+This checklist outlines the steps required to add a new map provider to the Geobase AI library. The process involves creating a new provider class, updating type definitions, adding tests, and updating documentation.
+
+## Implementation Checklist
+
+### 1. Create Provider Class
+
+Create a new provider class in `src/data_providers/` that extends the `MapSource` abstract class:
+
+```typescript
+// src/data_providers/your-provider.ts
+
+interface YourProviderConfig {
+  // Define your provider-specific configuration
+  apiKey: string;
+  serviceUrl?: string;
+  // ... other config options
+}
+
+export class YourProvider extends MapSource {
+  // Provider-specific properties
+  apiKey: string;
+  serviceUrl: string;
+
+  constructor(config: YourProviderConfig) {
+    super();
+    this.apiKey = config.apiKey;
+    this.serviceUrl = config.serviceUrl || "default-url";
+  }
+
+  protected getTileUrlFromTileCoords(
+    tileCoords: [number, number, number],
+    instance: YourProvider,
+    bands?: number[],
+    expression?: string
+  ): string {
+    const [x, y, z] = tileCoords;
+    // Implement your tile URL generation logic
+    return `${instance.serviceUrl}/${z}/${x}/${y}?key=${instance.apiKey}`;
+  }
+}
+```
+
+### 2. Update Type Definitions
+
+Add your provider's parameter type to `src/core/types.ts`:
+
+```typescript
+export type YourProviderParams = {
+  provider: "your-provider";
+  apiKey: string;
+  serviceUrl?: string;
+  // ... other parameters
+};
+
+export type ProviderParams =
+  | MapboxParams
+  | SentinelParams
+  | GeobaseParams
+  | EsriParams
+  | YourProviderParams; // Add your provider here
+```
+
+### 3. Update Base Model
+
+Modify `src/models/base_model.ts` to support your provider:
+
+```typescript
+
+export abstract class BaseModel {
+  // Update the dataProvider type
+  protected dataProvider: Mapbox | Geobase | Esri | YourProvider | undefined;
+
+  // Add your provider case in the initializeDataProvider method
+  private initializeDataProvider(): void {
+    switch (this.providerParams.provider) {
+      // ... existing cases
+      case "your-provider":
+        this.dataProvider = new YourProvider({
+          apiKey: this.providerParams.apiKey,
+          serviceUrl: this.providerParams.serviceUrl,
+        });
+        break;
+      // ... rest of the method
+    }
+  }
+}
+```
+
+### 4. Create Comprehensive Tests
+
+Create a test file in `test/` following the existing pattern:
+
+```typescript
+// test/your-provider.test.ts
+
+describe("YourProvider", () => {
+  let provider: YourProvider;
+  let testPolygon: GeoJSON.Feature;
+  let image: GeoRawImage;
+
+  beforeAll(() => {
+    provider = new YourProvider({
+      apiKey: "test-api-key",
+      serviceUrl: "https://your-service.com",
+    });
+  });
+
+  beforeEach(() => {
+    testPolygon = {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        coordinates: [
+          [
+            [12.482802629103247, 41.885379230564524],
+            [12.481392196198271, 41.885379230564524],
+            [12.481392196198271, 41.884332326712524],
+            [12.482802629103247, 41.884332326712524],
+            [12.482802629103247, 41.885379230564524],
+          ],
+        ],
+        type: "Polygon",
+      },
+    } as GeoJSON.Feature;
+  });
+
+  describe("getImage", () => {
+    beforeEach(async () => {
+      image = await provider.getImage(testPolygon);
+    });
+
+    it("should return a valid GeoRawImage instance", () => {
+      expect(image).toBeDefined();
+      expect(image).not.toBeNull();
+      expect(image).toBeInstanceOf(GeoRawImage);
+    });
+
+    it("should return image with correct dimensions and properties", () => {
+      expect(image.width).toBeGreaterThan(0);
+      expect(image.height).toBeGreaterThan(0);
+      expect(image.channels).toBe(3); // RGB image
+      expect(image.data).toBeDefined();
+      expect(image.data).not.toBeNull();
+      expect(image.data.length).toBeGreaterThan(0);
+    });
+
+    it("should return image with bounds matching input polygon", () => {
+      const bounds = image.getBounds();
+      expect(bounds).toBeDefined();
+      expect(bounds).not.toBeNull();
+      // Add specific bounds validation for your provider
+    });
+
+    it("should handle invalid polygon gracefully", async () => {
+      const invalidPolygon = {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          coordinates: [],
+          type: "Polygon",
+        },
+      } as GeoJSON.Feature;
+
+      await expect(provider.getImage(invalidPolygon)).rejects.toThrow();
+    });
+
+    it("should throw error if tile count exceeds maximum", async () => {
+      // Test with a large polygon that would exceed tile limits
+      const largePolygon = {
+        // Define a large polygon
+      } as GeoJSON.Feature;
+
+      await expect(
+        provider.getImage(largePolygon, undefined, undefined, 21, true)
+      ).rejects.toThrow();
+    });
+  });
+
+  describe("Tile URL generation", () => {
+    it("should generate correct tile URLs", () => {
+      const tileCoords: [number, number, number] = [1, 2, 3];
+      const url = provider.getTileUrlFromTileCoords(tileCoords, provider);
+      
+      expect(url).toContain("your-service.com");
+      expect(url).toContain("test-api-key");
+      expect(url).toContain("1/2/3");
+    });
+  });
+});
+```
+
+### 5. Create Integration Test
+
+Create an integration test to verify the provider works with the pipeline:
+
+```typescript
+// test/your-provider-integration.test.ts
+
+describe("YourProvider Integration", () => {
+  beforeAll(() => {
+    // Setup any necessary test environment
+  });
+
+  it("should work with the pipeline", async () => {
+    const providerParams = {
+      provider: "your-provider" as const,
+      apiKey: "test-api-key",
+      serviceUrl: "https://your-service.com",
+    };
+
+    const pipeline = await geoai.pipeline(
+      [{ task: "object-detection" }],
+      providerParams
+    );
+
+    const testPolygon = {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        coordinates: [
+          [
+            [12.482802629103247, 41.885379230564524],
+            [12.481392196198271, 41.885379230564524],
+            [12.481392196198271, 41.884332326712524],
+            [12.482802629103247, 41.884332326712524],
+            [12.482802629103247, 41.885379230564524],
+          ],
+        ],
+        type: "Polygon",
+      },
+    } as GeoJSON.Feature;
+
+    const results = await pipeline.inference({
+      inputs: { polygon: testPolygon },
+      mapSourceParams: { zoomLevel: 18 },
+    });
+
+    expect(results).toBeDefined();
+    expect(results.detections).toBeDefined();
+    expect(results.geoRawImage).toBeDefined();
+  });
+});
+```
+
+### 6. Update Documentation
+
+Create provider documentation in `docs/pages/map-providers/`:
+
+```markdown
+# Your Provider Map Provider
+
+> Brief description of your provider
+
+## Setup
+
+> Get your API key from [your-provider.com](https://your-provider.com/)
+
+```typescript
+
+// Configuration
+const yourProviderParams = {
+  provider: "your-provider",
+  apiKey: process.env.YOUR_PROVIDER_API_KEY,
+  serviceUrl: "https://your-service.com",
+};
+
+// Initialize pipeline with Your Provider
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  yourProviderParams
+);
+
+// Run inference on polygon
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Parameters
+
+```typescript
+type YourProviderParams = {
+  provider: "your-provider";
+  apiKey: string; // Your provider API key
+  serviceUrl?: string; // Optional service URL
+};
+```
+
+> Important notes about your provider's limitations or requirements.
+
+```
+
+### 7. Update Main Documentation
+
+Update `docs/pages/map-providers.mdx` to include your provider:
+
+```markdown
+| Provider                           | Features                                  | Authentication |
+| ---------------------------------- | ----------------------------------------- | -------------- |
+| [Geobase](./map-providers/geobase) | Your COG imagery, multispectral support   | API Key        |
+| [Mapbox](./map-providers/mapbox)   | Global satellite imagery                  | Access Token   |
+| [Your Provider](./map-providers/your-provider) | Your provider features              | API Key        |
+```
+
+### 8. Update Examples (Optional)
+
+If you want to include your provider in the examples, update the relevant example files:
+
+- `examples/live-examples-nextjs/src/components/MapProviderSelector.tsx`
+- `examples/live-examples-nextjs/src/components/DetectionControls.tsx`
+- Any task-specific pages that use map providers
+
+### 9. Build and Test
+
+1. Run the build process:
+   ```bash
+   pnpm build
+   ```
+
+2. Run all tests:
+   ```bash
+   pnpm test
+   ```
+
+3. Run your specific provider tests:
+   ```bash
+   pnpm test your-provider.test.ts
+   ```
+
+### 10. Code Quality Checks
+
+- Ensure your code follows the existing patterns and conventions
+- Add proper TypeScript types and interfaces
+- Include comprehensive error handling
+- Follow the existing naming conventions
+- Add appropriate comments and documentation
+
+## Key Requirements
+
+### Provider Class Requirements
+
+1. **Extend MapSource**: Your provider must extend the `MapSource` abstract class
+2. **Implement getTileUrlFromTileCoords**: This method must generate valid tile URLs
+3. **Constructor**: Accept configuration parameters and store them as instance properties
+4. **Error Handling**: Handle invalid configurations and network errors gracefully
+
+### Testing Requirements
+
+1. **Unit Tests**: Test the provider class in isolation
+2. **Integration Tests**: Test the provider with the pipeline
+3. **Error Cases**: Test invalid inputs and error conditions
+4. **Tile URL Generation**: Verify correct URL construction
+5. **Image Retrieval**: Test actual image fetching and processing
+
+### Documentation Requirements
+
+1. **Setup Instructions**: Clear setup and configuration steps
+2. **Parameter Documentation**: Complete parameter type definitions
+3. **Usage Examples**: Working code examples
+4. **Limitations**: Document any provider-specific limitations
+5. **Authentication**: Explain authentication requirements
+
+## Example Implementation
+
+See the ESRI provider implementation for a complete example:
+- `src/data_providers/esri.ts`
+- `test/esri.test.ts`
+- `test/esri-integration.test.ts`
+- `docs/pages/map-providers/esri.mdx`
+
+This implementation follows all the patterns and requirements outlined in this checklist.
+
+---
+
+<!-- frontend-frameworks/deckgl.mdx -->
+<!-- https://docs.geobase.app/geoai/frontend-frameworks/deckgl -->
+
+# deck.gl Integration
+
+Use [deck.gl](https://deck.gl) for map tiles and result layers while GeoAI.js runs detection or segmentation. This pairs well with multi-provider imagery and deck’s layer library (see discussion in [issue #112](https://github.com/decision-labs/geoai.js/issues/112)).
+
+A minimal working demo lives in the repo:
+
+[`examples/deckgl-demo`](https://github.com/decision-labs/geoai.js/tree/main/examples/deckgl-demo)
+
+> GeoAI.js does **not** depend on deck.gl. You wire imagery and overlays yourself; GeoAI only needs a map **provider** config for tile fetch during inference.
+
+## Quick setup
+
+Serve the demo folder (ES modules + import maps need HTTP):
+
+```bash
+cd examples/deckgl-demo
+npx --yes serve -p 5175 .
+# open http://localhost:5175
+```
+
+Or paste `codepen.html` into CodePen / a static host.
+
+### CDN dependencies
+
+```html
+
+  {
+    "imports": {
+      "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/dist/transformers.min.js",
+      "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.mjs"
+    }
+  }
+
+```
+
+```js
+
+const { Deck, TileLayer, BitmapLayer, GeoJsonLayer, ScatterplotLayer } = deck;
+```
+
+## Architecture
+
+| Concern | Who owns it |
+| ------- | ----------- |
+| Basemap tiles (display) | deck.gl `TileLayer` / `BitmapLayer` |
+| Imagery for inference | GeoAI **provider** (`esri`, `geobase`, `mapbox`, `tms`, `wms`, …) |
+| Draw AOI | Your click handler + `GeoJsonLayer` / `ScatterplotLayer` |
+| Model run | `geoai.pipeline(…).inference(…)` |
+| Results | `GeoJsonLayer` from `result.detections` |
+| Inference footprint | Outline from `result.geoRawImage.getBounds()` |
+
+Keep the display tile URL and the provider config pointing at the **same** imagery source when possible so what users see matches what the model runs on.
+
+## Initialize Deck + GeoAI
+
+```js
+const mapProviderConfig = {
+  provider: 'esri',
+  serviceUrl: 'https://server.arcgisonline.com/ArcGIS/rest/services',
+  serviceName: 'World_Imagery',
+  tileSize: 256,
+  attribution: 'ESRI World Imagery',
+};
+
+const deckgl = new Deck({
+  container: 'map',
+  initialViewState: {
+    longitude: 56.35,
+    latitude: 25.20,
+    zoom: 15,
+    pitch: 0,
+    bearing: 0,
+  },
+  controller: true,
+  layers: [createSatelliteLayer()],
+  onClick: handleMapClick,
+});
+
+const pipeline = await geoai.pipeline(
+  [{ task: 'oil-storage-tank-detection' }],
+  mapProviderConfig
+);
+```
+
+### Satellite `TileLayer`
+
+```js
+function createSatelliteLayer() {
+  return new TileLayer({
+    id: 'arcgis-world-imagery',
+    data: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    tileSize: 256,
+    minZoom: 0,
+    maxZoom: 19,
+    renderSubLayers: props => {
+      const { boundingBox } = props.tile;
+      return new BitmapLayer(props, {
+        data: null,
+        image: props.data,
+        bounds: [
+          boundingBox[0][0],
+          boundingBox[0][1],
+          boundingBox[1][0],
+          boundingBox[1][1],
+        ],
+      });
+    },
+  });
+}
+```
+
+## Draw AOI and run inference
+
+Collect click coordinates into a ring, then call the pipeline:
+
+```js
+const polygon = {
+  type: 'Feature',
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[...ring, ring[0]]],
+  },
+};
+
+const result = await pipeline.inference({
+  inputs: { polygon },
+  mapSourceParams: { zoomLevel: 15 },
+});
+
+const detections = result.detections;
+const bounds =
+  result.geoRawImage?.getBounds?.() ?? result.geoRawImage?.bounds;
+```
+
+### Drawing UX tips
+
+Use **pixel** units for vertices and edges so they stay visible when zoomed out:
+
+```js
+new ScatterplotLayer({
+  id: 'drawing-points',
+  data: ring,
+  getPosition: d => d,
+  radiusUnits: 'pixels',
+  getRadius: 10,
+  radiusMinPixels: 8,
+  getFillColor: [255, 235, 59, 255],
+  getLineColor: [0, 0, 0, 255],
+  lineWidthUnits: 'pixels',
+  getLineWidth: 3,
+  stroked: true,
+  filled: true,
+});
+
+new GeoJsonLayer({
+  id: 'drawing-polygon',
+  data: polygonGeoJson,
+  getLineColor: [0, 255, 255, 255],
+  getLineWidth: 4,
+  lineWidthUnits: 'pixels',
+  lineWidthMinPixels: 3,
+  stroked: true,
+  filled: true,
+  getFillColor: [0, 200, 255, 60],
+});
+```
+
+## Overlay detections and tile bounds
+
+After inference, drop the drawn polygon and show results + the imagery footprint:
+
+```js
+const layers = [satelliteLayer];
+
+layers.push(
+  new GeoJsonLayer({
+    id: 'detections',
+    data: detections,
+    getFillColor: [255, 64, 64, 120],
+    getLineColor: [255, 255, 255, 255],
+    getLineWidth: 3,
+    lineWidthUnits: 'pixels',
+    filled: true,
+    stroked: true,
+  })
+);
+
+if (bounds) {
+  const { west, south, east, north } = bounds;
+  layers.push(
+    new GeoJsonLayer({
+      id: 'inference-bounds',
+      data: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [west, north],
+              [east, north],
+              [east, south],
+              [west, south],
+              [west, north],
+            ],
+          ],
+        },
+      },
+      getFillColor: [255, 255, 0, 20],
+      getLineColor: [255, 235, 59, 255],
+      getLineWidth: 3,
+      lineWidthUnits: 'pixels',
+      filled: true,
+      stroked: true,
+    })
+  );
+}
+
+deckgl.setProps({ layers });
+```
+
+## Other providers
+
+Swap `mapProviderConfig` (and the deck tile URL) for Geobase, Mapbox, TMS, or WMS — same pipeline API. See [Map Providers](/map-providers).
+
+For heavier models (e.g. ChangeStar building footprints), prefer a worker and `modelParams` as in the [building footprint task docs](/supported-tasks/building-footprint-segmentation).
+
+## Related
+
+- Example: [`examples/deckgl-demo`](https://github.com/decision-labs/geoai.js/tree/main/examples/deckgl-demo)
+- PR: [#119](https://github.com/decision-labs/geoai.js/pull/119)
+- Issue: [#112](https://github.com/decision-labs/geoai.js/issues/112)
+- [React + MapLibre quickstart](/frontend-frameworks/react-quickstart)
+- [Live examples](https://docs.geobase.app/geoai-live)
+
+---
+
+<!-- frontend-frameworks/index.mdx -->
+<!-- https://docs.geobase.app/geoai/frontend-frameworks -->
+
+# Frontend Frameworks
+
+GeoAI.js works seamlessly with popular frontend frameworks. Choose your preferred framework to get started quickly with geospatial AI in your applications.
+
+## Supported Frameworks
+
+### React.js
+Build powerful geospatial AI applications with React's component-based architecture.
+
+- ✅ **React 19** with TypeScript support
+- ✅ **Hooks-based** state management
+- ✅ **Create React App** template
+- ✅ **MapLibre GL JS** integration
+
+[Get Started with React →](/frontend-frameworks/react-quickstart)
+
+### Vue.js
+Leverage Vue's reactive system for responsive geospatial AI interfaces.
+
+- ✅ **Vue 3** with Composition API
+- ✅ **TypeScript** support
+- ✅ **Vite** for fast development
+- ✅ **Single File Components**
+
+[Get Started with Vue →](/frontend-frameworks/vue-quickstart)
+
+### deck.gl
+Use deck.gl for basemap tiles and GeoJSON overlays while GeoAI.js runs inference.
+
+- ✅ **Vanilla JS / CDN** demo
+- ✅ **TileLayer + BitmapLayer** for satellite basemaps
+- ✅ **GeoJsonLayer** for detections and inference bounds
+- ✅ Works alongside any GeoAI **map provider**
+
+[Get Started with deck.gl →](/frontend-frameworks/deckgl)
+
+## Coming Soon
+
+We're working on examples for additional frameworks:
+
+- **Angular** - Modern web framework by Google
+- **Svelte** - Compile-time optimized framework
+- **Solid.js** - Fine-grained reactive framework
+
+## Framework-Agnostic Usage
+
+GeoAI.js is framework-agnostic and can be used with any JavaScript framework or vanilla JS. The core API remains the same across all environments:
+
+```javascript
+
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  mapProviderConfig
+);
+
+const result = await pipeline.inference({
+  inputs: { polygon: userDrawnPolygon },
+  mapSourceParams: { zoomLevel: 18 }
+});
+```
+
+Choose the framework guide that matches your project setup to see framework-specific integration patterns and best practices.
+
+---
+
+<!-- frontend-frameworks/react-quickstart.mdx -->
+<!-- https://docs.geobase.app/geoai/frontend-frameworks/react-quickstart -->
+
+# React.js Quickstart Guide
+
+Get started with GeoAI in React.js for building geospatial AI applications.
+
+## Quick Setup
+
+```bash
+# Clone the examples repository
+git clone https://github.com/geobase-app/geoai.js.git
+cd geobase-ai.js/examples/01-quickstart
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+## Key Features
+
+- 🚀 **React 19** with TypeScript
+- 🗺️ **MapLibre GL JS** integration
+- 🎯 **AI-powered detection** (Oil storage tanks)
+- ✏️ **Interactive drawing** controls
+- 📱 **Responsive design**
+
+## Project Structure
+
+```
+01-quickstart/
+├── src/
+│   ├── App.tsx          # Main component
+│   ├── App.css          # Styles
+│   ├── index.tsx        # Entry point
+│   └── index.css        # Global styles
+├── public/              # Static assets
+├── package.json         # Dependencies
+└── tsconfig.json        # TypeScript config
+```
+
+## Core Implementation
+
+### App Component Structure
+
+```tsx
+
+function App() {
+  const mapContainer = useRef(null);
+  const [pipeline, setPipeline] = useState(null);
+  const [status, setStatus] = useState({ 
+    color: '#9e9e9e', 
+    text: 'Waiting...' 
+  });
+
+  useEffect(() => {
+    // Initialize map and AI pipeline
+    initializeMap();
+    initializePipeline();
+  }, []);
+
+  return (
+    
+
+      
+
+        {status.text}
+      
+
+      
+
+    
+
+  );
+}
+```
+
+### Map Initialization
+
+```tsx
+const initializeMap = () => {
+  if (!mapContainer.current) return;
+
+  map.current = new maplibregl.Map({
+    container: mapContainer.current,
+    style: {
+      version: 8,
+      sources: {
+        satellite: {
+          type: "raster",
+          tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+          tileSize: 256,
+          attribution: "ESRI World Imagery",
+        },
+      },
+      layers: [{ id: "satellite", type: "raster", source: "satellite" }],
+    },
+    center: [54.690310447932006, 24.75763471820723],
+    zoom: 15,
+  });
+
+  // Add drawing controls
+  const draw = new MaplibreDraw({ 
+    displayControlsDefault: false, 
+    controls: { polygon: true, trash: true } 
+  });
+  map.current.addControl(draw);
+};
+```
+
+### AI Pipeline Setup
+
+```tsx
+const initializePipeline = async () => {
+  setStatus({ color: '#ffa500', text: 'Initializing AI Model...' });
+  
+  try {
+    const pipeline = await geoai.pipeline(
+      [{ task: "oil-storage-tank-detection" }],
+      {
+        provider: "esri",
+        serviceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services",
+        serviceName: "World_Imagery",
+        tileSize: 256,
+        attribution: "ESRI World Imagery"
+      } as ProviderParams
+    );
+    
+    setPipeline(pipeline);
+    setStatus({ 
+      color: '#4caf50', 
+      text: 'AI Model Ready! Draw a polygon to detect oil storage tanks.' 
+    });
+  } catch (error) {
+    setStatus({ color: '#f44336', text: 'Failed to Initialize Model' });
+  }
+};
+```
+
+### Event Handling
+
+```tsx
+useEffect(() => {
+  if (!pipeline || !map.current) return;
+
+  map.current.on('draw.create', async (e) => {
+    setStatus({ color: '#2196f3', text: 'Processing detection...' });
+    
+    try {
+      const result = await pipeline.inference({
+        inputs: { polygon: e.features[0] },
+        mapSourceParams: { zoomLevel: 15 }
+      });
+
+      // Display results on map
+      if (map.current?.getSource('detections')) {
+        map.current.removeLayer('detections');
+        map.current.removeSource('detections');
+      }
+
+      map.current?.addSource("detections", {
+        type: "geojson",
+        data: result.detections,
+      });
+      
+      map.current?.addLayer({
+        id: 'detections',
+        type: 'fill',
+        source: 'detections',
+        paint: { 'fill-color': '#ff0000', 'fill-opacity': 0.5 }
+      });
+
+      setStatus({
+        color: '#4caf50',
+        text: `Found ${result.detections.features?.length || 0} oil storage tanks!`,
+      });
+    } catch (error) {
+      setStatus({ color: '#f44336', text: 'Error during detection' });
+    }
+  });
+}, [pipeline]);
+```
+
+## Development Scripts
+
+- `npm start` - Development server
+- `npm run build` - Production build  
+- `npm test` - Run tests
+- `npm run eject` - Eject from Create React App
+
+## Key React Patterns
+
+### State Management
+Use React hooks for managing application state:
+
+```tsx
+const [pipeline, setPipeline] = useState(null);
+const [isProcessing, setIsProcessing] = useState(false);
+const [results, setResults] = useState(null);
+```
+
+### Refs for Map Container
+Use `useRef` to reference DOM elements:
+
+```tsx
+const mapContainer = useRef(null);
+const map = useRef(null);
+```
+
+### Effect Cleanup
+Clean up resources in `useEffect`:
+
+```tsx
+useEffect(() => {
+  // Initialize map
+  initializeMap();
+  
+  return () => {
+    // Cleanup
+    map.current?.remove();
+  };
+}, []);
+```
+
+## TypeScript Integration
+
+GeoAI.js provides full TypeScript support:
+
+```tsx
+
+interface AppState {
+  pipeline: any;
+  isInitialized: boolean;
+  isProcessing: boolean;
+}
+
+const [state, setState] = useState({
+  pipeline: null,
+  isInitialized: false,
+  isProcessing: false
+});
+```
+
+## Next Steps
+
+- Explore [other AI tasks](/supported-tasks) available in GeoAI.js
+- Learn about [map providers](/map-providers) configuration
+- Check out [advanced concepts](/concepts) for optimization
+- See [live examples](https://docs.geobase.app/geoai-live) in action
+
+## Learn More
+
+- [React Documentation](https://reactjs.org/)
+- [GeoAI.js Core Concepts](/concepts)
+- [MapLibre GL JS Guide](https://maplibre.org/maplibre-gl-js/docs/)
+
+---
+
+<!-- frontend-frameworks/vue-quickstart.mdx -->
+<!-- https://docs.geobase.app/geoai/frontend-frameworks/vue-quickstart -->
+
+# Vue.js Quickstart Guide
+
+Get started with GeoAI in Vue.js for building modern geospatial AI applications.
+
+## Quick Setup
+
+```bash
+# Clone the examples repository
+git clone https://github.com/geobase-app/geoai.js.git
+cd geobase-ai.js/examples/frameworks/vue
+
+# Install dependencies (using pnpm)
+pnpm install
+
+# Start development server
+pnpm start
+```
+
+Open [http://localhost:5173](http://localhost:5173) to view the application.
+
+## Key Features
+
+- ⚡ **Vue 3** with Composition API & TypeScript
+- 🛠️ **Vite** for fast development
+- 🗺️ **MapLibre GL JS** integration
+- 🎯 **AI-powered detection** (Oil storage tanks)
+- ✏️ **Interactive drawing** controls
+- 📱 **Responsive design**
+
+## Project Structure
+
+```
+frameworks/vue/
+├── src/
+│   ├── App.vue          # Main component
+│   ├── main.ts          # Entry point
+│   └── assets/          # Styles and assets
+├── public/              # Static assets
+├── package.json         # Dependencies
+├── vite.config.ts       # Vite configuration
+└── tsconfig.json        # TypeScript config
+```
+
+## Core Implementation
+
+### App Component Structure
+
+```vue
+
+  
+
+    
+
+      {{ status.text }}
+      
+        Reset
+      
+    
+
+    
+
+  
+
+import { ref, onMounted, onUnmounted } from 'vue'
+import maplibregl from 'maplibre-gl'
+import { geoai, type ProviderParams } from 'geoai'
+import MaplibreDraw from 'maplibre-gl-draw'
+
+const mapContainer = ref(null)
+const pipeline = ref(null)
+const status = ref({ color: '#9e9e9e', text: 'Waiting...' })
+
+```
+
+### Map Initialization
+
+```typescript
+onMounted(async () => {
+  if (!mapContainer.value) return;
+
+  // Initialize map
+  map.value = new maplibregl.Map({
+    container: mapContainer.value,
+    style: {
+      version: 8,
+      sources: {
+        satellite: {
+          type: 'raster',
+          tiles: [
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+          ],
+          tileSize: 256,
+          attribution: 'ESRI World Imagery'
+        }
+      },
+      layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }]
+    },
+    center: [54.690310447932006, 24.75763471820723],
+    zoom: 15
+  });
+
+  // Add drawing controls
+  const draw = new MaplibreDraw({
+    displayControlsDefault: false,
+    controls: { polygon: true, trash: true }
+  });
+  map.value.addControl(draw);
+});
+```
+
+### AI Pipeline Setup
+
+```typescript
+const initializePipeline = async () => {
+  status.value = { color: '#ffa500', text: 'Initializing AI Model...' };
+
+  try {
+    const newPipeline = await geoai.pipeline(
+      [{ task: 'oil-storage-tank-detection' }],
+      {
+        provider: 'esri',
+        serviceUrl: 'https://server.arcgisonline.com/ArcGIS/rest/services',
+        serviceName: 'World_Imagery',
+        tileSize: 256,
+        attribution: 'ESRI World Imagery'
+      } as ProviderParams
+    );
+    
+    pipeline.value = newPipeline;
+    status.value = {
+      color: '#4caf50',
+      text: 'AI Model Ready! Draw a polygon to detect oil storage tanks.'
+    };
+  } catch (error) {
+    status.value = { color: '#f44336', text: 'Failed to Initialize Model' };
+  }
+};
+```
+
+### Event Handling
+
+```typescript
+// Set up draw event listener after pipeline is ready
+map.value?.on('draw.create', async (e) => {
+  status.value = { color: '#2196f3', text: 'Processing detection...' };
+  
+  try {
+    const result = await pipeline.value.inference({
+      inputs: { polygon: e.features[0] },
+      mapSourceParams: { zoomLevel: 15 }
+    });
+
+    // Display results on map
+    if (map.value?.getSource('detections')) {
+      map.value.removeLayer('detections');
+      map.value.removeSource('detections');
+    }
+
+    map.value?.addSource('detections', {
+      type: 'geojson',
+      data: result.detections
+    });
+    
+    map.value?.addLayer({
+      id: 'detections',
+      type: 'fill',
+      source: 'detections',
+      paint: { 'fill-color': '#ff0000', 'fill-opacity': 0.5 }
+    });
+
+    status.value = {
+      color: '#4caf50',
+      text: `Found ${result.detections.features?.length || 0} oil storage tanks!`
+    };
+  } catch (error) {
+    status.value = { color: '#f44336', text: 'Error during detection' };
+  }
+});
+```
+
+### Cleanup
+
+```typescript
+onUnmounted(() => {
+  map.value?.remove();
+});
+```
+
+## Development Scripts
+
+- `pnpm start` / `pnpm dev` - Development server
+- `pnpm build` - Production build
+- `pnpm preview` - Preview production build
+- `pnpm lint` - Run ESLint
+- `pnpm format` - Format code with Prettier
+
+## Vue 3 Advantages
+
+### Composition API
+Better logic reuse and TypeScript integration:
+
+```typescript
+// Composable for map functionality
+const useMap = (container: Ref) => {
+  const map = ref(null);
+  
+  const initializeMap = () => {
+    if (!container.value) return;
+    map.value = new maplibregl.Map({
+      container: container.value,
+      // ... map config
+    });
+  };
+  
+  return { map, initializeMap };
+};
+```
+
+### Reactive System
+Automatic dependency tracking:
+
+```typescript
+const status = ref({ color: '#9e9e9e', text: 'Waiting...' });
+const isProcessing = computed(() => status.value.text.includes('Processing'));
+
+// Template automatically updates when status changes
+```
+
+### Single File Components
+Template, script, and styles in one file:
+
+```vue
+
+  <!-- Vue template -->
+
+  // TypeScript logic
+
+```
+
+## TypeScript Integration
+
+Vue 3 provides excellent TypeScript support:
+
+```typescript
+
+interface Status {
+  color: string;
+  text: string;
+}
+
+const status: Ref = ref({ 
+  color: '#9e9e9e', 
+  text: 'Waiting...' 
+});
+```
+
+## Vite Configuration
+
+The project uses Vite for fast development:
+
+```typescript
+// vite.config.ts
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+
+export default defineConfig({
+  plugins: [vue()],
+  server: {
+    port: 5173
+  }
+})
+```
+
+## Custom Composables
+
+Create reusable logic with composables:
+
+```typescript
+// composables/useGeoAI.ts
+
+export function useGeoAI() {
+  const pipeline = ref(null);
+  const isInitialized = ref(false);
+  
+  const initializePipeline = async (task: string, config: any) => {
+    const newPipeline = await geoai.pipeline([{ task }], config);
+    pipeline.value = newPipeline;
+    isInitialized.value = true;
+  };
+  
+  return {
+    pipeline,
+    isInitialized,
+    initializePipeline
+  };
+}
+```
+
+## Next Steps
+
+- Explore [other AI tasks](/supported-tasks) available in GeoAI.js
+- Learn about [map providers](/map-providers) configuration
+- Check out [advanced concepts](/concepts) for optimization
+- See [live examples](https://docs.geobase.app/geoai-live) in action
+
+## Learn More
+
+- [Vue.js Documentation](https://vuejs.org/)
+- [Vue 3 Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
+- [GeoAI.js Core Concepts](/concepts)
+- [MapLibre GL JS Guide](https://maplibre.org/maplibre-gl-js/docs/)
+
+---
+
+<!-- map-providers/esri.mdx -->
+<!-- https://docs.geobase.app/geoai/map-providers/esri -->
+
+# ESRI Map Provider
+
+> ESRI ArcGIS provides access to global satellite imagery and mapping services for geospatial AI analysis.
+
+## Setup
+
+> ESRI ArcGIS services are publicly available. No API key required for basic World Imagery service.
+
+```typescript
+
+// Configuration
+const esriParams = {
+  provider: "esri",
+  serviceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services",
+  serviceName: "World_Imagery",
+  tileSize: 256,
+  attribution: "ESRI World Imagery",
+};
+
+// Initialize pipeline with ESRI
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  esriParams
+);
+
+// Run inference on polygon
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Parameters
+
+```typescript
+type EsriParams = {
+  provider: "esri";
+  serviceUrl?: string; // ESRI service URL (defaults to ArcGIS Online)
+  serviceName?: string; // Service name (defaults to "World_Imagery")
+  tileSize?: number; // Tile size in pixels (defaults to 256)
+  attribution?: string; // Attribution text (defaults to "ESRI World Imagery")
+};
+```
+
+> Uses ESRI's World Imagery service by default. For custom ESRI services, ensure they support tile-based access.
+
+> ESRI services provide high-resolution satellite imagery suitable for most AI analysis tasks including object detection, segmentation, and classification.
+
+---
+
+<!-- map-providers/geobase.mdx -->
+<!-- https://docs.geobase.app/geoai/map-providers/geobase -->
+
+# Geobase Map Provider
+
+> High-performance COG imagery serving platform for advanced AI analysis
+
+## Setup
+
+> Get your project reference and API key from the   [Geobase](https://geobase.app/) under settings.
+
+```typescript
+
+// Configuration
+const geobaseParams = {
+  provider: "geobase",
+  projectRef: process.env.GEOBASE_PROJECT_REF,
+  apikey: process.env.GEOBASE_API_KEY,
+  cogImagery: "your-cog-imagery-url",
+};
+
+// Initialize pipeline with Geobase
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  geobaseParams
+);
+
+// Run inference on polygon
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Parameters
+
+```typescript
+type GeobaseParams = {
+  provider: "geobase";
+  projectRef: string; // Your Geobase project reference
+  apikey: string; // Your Geobase API key
+  cogImagery: string; // URL to your COG imagery
+};
+```
+
+> Serves your own Cloud Optimized GeoTIFF (COG) imagery. Task compatibility   depends on your COG specifications (resolution, bands, etc.)
+
+---
+
+<!-- map-providers/mapbox.mdx -->
+<!-- https://docs.geobase.app/geoai/map-providers/mapbox -->
+
+# Mapbox Map Provider
+
+> Mapbox offers global satellite imagery and customizable maps for geospatial AI tasks.
+
+## Setup
+
+> Get your Mapbox access token at [mapbox.com](https://account.mapbox.com/)
+
+```typescript
+
+// Configuration
+const mapboxParams = {
+  provider: "mapbox",
+  apiKey: process.env.MAPBOX_ACCESS_TOKEN,
+  style: "mapbox://styles/mapbox/satellite-v9",
+};
+
+// Initialize pipeline with Mapbox
+const pipeline = await geoai.pipeline(
+  [{ task: "object-detection" }],
+  mapboxParams
+);
+
+// Run inference on polygon
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+### Parameters
+
+```typescript
+type MapboxParams = {
+  provider: "mapbox";
+  apiKey: string; // Your Mapbox access token
+  style: string; // Mapbox style URL or ID
+};
+```
+
+> Only satellite styles are supported for AI tasks.
+
+---
+
+<!-- map-providers/serving-raster-tiles.mdx -->
+<!-- https://docs.geobase.app/geoai/map-providers/serving-raster-tiles -->
+
+# Serving raster tiles from imagery
+
+GeoAI.js does **not** build tile pyramids. It fetches **raster** `{z}/{x}/{y}` URLs and stitches them for inference. You need an **image or raster tile server** (or a pre-tiled static pyramid) that exposes Web Mercator tiles your models can consume.
+
+This page covers common ways to go from a GeoTIFF or **Cloud Optimized GeoTIFF (COG)** to a `baseUrl` for the [TMS provider](./tms).
+
+## What GeoAI.js needs
+
+| Requirement | Notes |
+| ----------- | ----- |
+| **Raster tiles** | PNG/JPEG imagery — not vector PBF/MVT basemaps |
+| **URL template** | `{z}/{x}/{y}` placeholders or legacy `baseUrl` + `extension` |
+| **Web Mercator** | Default `scheme: "WebMercator"` (XYZ / slippy map) |
+| **Aligned map + inference** | Use the **same** tile URL in MapLibre and `geoai.pipeline()` |
+
+```typescript
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "tms",
+  baseUrl: "https://your-raster-tiles.example.com/tiles/{z}/{x}/{y}.png",
+  scheme: "WebMercator",
+  attribution: "Your imagery source",
+});
+```
+
+See the [TMS provider](./tms) page for URL templates, schemes, and API keys.
+
+## Option 1: Managed platform (Geobase)
+
+**Best fit for this project** — upload or reference a COG, get Web Mercator tile URLs without running your own server.
+
+- [Geobase](https://geobase.app) hosts imagery and exposes raster tile endpoints
+- Used in the [Supabase + Geobase integration example](/geoai/examples/04-geoai-supabase-geobase-integration)
+- Supports multispectral COGs and API-key auth
+
+**Pros:** No tile-server ops; integrates with storage and auth.  
+**Cons:** Requires a Geobase project.
+
+## Option 2: Dynamic COG tile servers
+
+Serve tiles **on demand** from a COG (HTTP range reads, overviews) without pre-rendering a full pyramid.
+
+### Tileserver RS
+
+[Tileserver RS](https://tileserver.app/) is a single-binary server with native **COG** support (`type = "cog"` in config). It serves **raster XYZ tiles** with on-the-fly reprojection, resampling, and colormaps. Paths can be local, HTTP(S), or cloud (`s3://`, etc.). STAC catalog sources are also supported.
+
+**Pros:** Purpose-built slippy raster tiles; good TMS fit.  
+**Cons:** Requires GDAL + `raster` feature at build time; newer project.
+
+### Self-hosted image/raster tile services
+
+You can run any service that reads COGs via GDAL/rio-tiler and exposes `{z}/{x}/{y}` PNG/JPEG URLs — for example a small FastAPI or Node app using [rio-tiler](https://github.com/developmentseed/rio-tiler). URL shape varies by deployment; point `baseUrl` at the template your server documents.
+
+**Pros:** Full control; can colocate with your data.  
+**Cons:** You operate and secure the service.
+
+### MapServer (WMS / WCS)
+
+[MapServer](https://mapserver.org/) reads COGs through **GDAL** (local files or remote `/vsicurl/...`). It is a strong **WMS/WCS** server, not a native XYZ tile server.
+
+GeoAI.js can consume MapServer (and GeoServer, QGIS Server, ArcGIS `WMSServer`) directly via the [WMS provider](./wms) — no MapCache required for inference. For map display, you may still prefer XYZ/TMS via MapCache or TiTiler for simpler MapLibre integration.
+
+**Pros:** Mature, flexible OGC services; native WMS support in GeoAI.js.  
+**Cons:** GetMap per tile can be slower than dedicated XYZ caches; map UI may need extra WMS wiring.
+
+## Option 3: Pre-rendered static pyramid (gdal2tiles)
+
+Bake a `{z}/{x}/{y}` tree offline, then host on S3, nginx, or any static file server.
+
+```bash
+gdal2tiles.py -z 10-18 --xyz your_imagery.tif ./tiles_output/
+```
+
+`--xyz` produces Web Mercator layout matching `scheme: "WebMercator"`.
+
+```typescript
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "tms",
+  baseUrl: "https://your-host.example.com/tiles/{z}/{x}/{y}.png",
+  scheme: "WebMercator",
+});
+```
+
+**Pros:** Simple static hosting; no runtime tile server.  
+**Cons:** Large storage; fixed zoom range; re-tile when source imagery changes.
+
+For traditional TMS Y-flip, omit `--xyz` and set `scheme: "TMS"` in GeoAI.
+
+## Option 4: MBTiles + raster tile server
+
+Package tiles into `.mbtiles`, then serve with [tileserver-gl](https://github.com/maptiler/tileserver-gl) or similar. Point `baseUrl` at the server's `{z}/{x}/{y}` template.
+
+**Pros:** Portable single file; good for demos.  
+**Cons:** Pre-processing step; server must expose raster (not vector-only) tiles.
+
+## Public imagery smoke test
+
+To verify TMS wiring without your own imagery, use **ESRI World Imagery** (satellite, no API key):
+
+```typescript
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "tms",
+  baseUrl:
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  scheme: "WebMercator",
+  attribution: "© Esri, Maxar, Earthstar Geographics",
+});
+```
+
+Note ESRI uses `{z}/{y}/{x}` in the path (Y before X).
+
+## Runnable example
+
+[`examples/05-tms-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/05-tms-quickstart) — draw a polygon on ESRI satellite by default, or paste any raster tile URL in the sidebar.
+
+## Choosing an approach
+
+| Approach | COG on-the-fly | `{z}/{x}/{y}` TMS | Ops burden |
+| -------- | -------------- | ----------------- | ---------- |
+| Geobase | Yes | Yes | Low |
+| Tileserver RS | Yes | Yes | Medium |
+| Self-hosted raster service | Yes | Yes | Medium–high |
+| MapServer (+ tile cache) | Yes (input) | With extra setup | High |
+| gdal2tiles (static) | No (pre-baked) | Yes | Low at runtime |
+| MBTiles + tile server | No (pre-baked) | Yes | Medium |
+
+For production GeoAI workflows on **your own imagery**, start with **Geobase** or a **dynamic raster tile server**; use **gdal2tiles** when you want static hosting only.
+
+---
+
+<!-- map-providers/tms.mdx -->
+<!-- https://docs.geobase.app/geoai/map-providers/tms -->
+
+# TMS (Tile Map Service) Provider
+
+The TMS provider allows you to use custom tile services with GeoAI.js. It supports both Web Mercator (XYZ) and traditional TMS tile schemes.
+
+## Tile Schemes
+
+### WebMercator (Default)
+
+The Web Mercator scheme (also known as XYZ or Google Maps scheme) uses:
+- **Top-left origin**: Coordinates start from the top-left corner
+- **Y axis**: Increases downward
+- **Default for**: Most modern tile services including Cesium, Mapbox, Google Maps
+
+```typescript
+
+
+const provider = new Tms({
+  baseUrl: "https://example.com/tiles/{z}/{x}/{y}.png",
+  scheme: "WebMercator", // This is the default
+});
+```
+
+### TMS (Traditional)
+
+The traditional TMS scheme uses:
+- **Bottom-left origin**: Coordinates start from the bottom-left corner
+- **Y axis**: Increases upward
+- **Default for**: Traditional TMS services
+
+```typescript
+
+
+const provider = new Tms({
+  baseUrl: "https://example.com/tms/{z}/{x}/{y}.png",
+  scheme: "TMS", // Use this for traditional TMS services
+});
+```
+
+## Usage with Cesium
+
+When using with Cesium's `UrlTemplateImageryProvider`, use the `WebMercator` scheme (default):
+
+```typescript
+
+
+
+// Create the TMS provider for GeoAI.js
+const geoaiProvider = new Tms({
+  baseUrl: "https://example.com/tiles/{z}/{x}/{y}.png",
+  scheme: "WebMercator", // Match Cesium's default
+});
+
+// Create the Cesium imagery provider
+const cesiumProvider = new UrlTemplateImageryProvider({
+  url: "https://example.com/tiles/{z}/{x}/{y}.png",
+  // Cesium uses WebMercator by default
+});
+```
+
+## Configuration Options
+
+```typescript
+interface TmsConfig {
+  baseUrl: string; // Tile URL template
+  extension?: string; // File extension (default: "png")
+  apiKey?: string; // API key (added as query parameter)
+  attribution?: string; // Attribution text (default: "TMS Provider")
+  tileSize?: number; // Tile size in pixels (default: 256)
+  headers?: Record<string, string>; // Custom headers
+  scheme?: "WebMercator" | "TMS"; // Tile scheme (default: "WebMercator")
+}
+```
+
+## Examples
+
+### URL Template with Placeholders
+
+```typescript
+const provider = new Tms({
+  baseUrl: "https://tiles.example.com/{z}/{x}/{y}.png",
+  attribution: "© Example Tiles",
+});
+```
+
+### Traditional Path Construction
+
+```typescript
+const provider = new Tms({
+  baseUrl: "https://tiles.example.com",
+  extension: "jpg",
+  attribution: "© Example Tiles",
+});
+// Generates: https://tiles.example.com/{z}/{x}/{y}.jpg
+```
+
+### With API Key
+
+```typescript
+const provider = new Tms({
+  baseUrl: "https://tiles.example.com/{z}/{x}/{y}.png",
+  apiKey: "your-api-key-here",
+});
+// Generates: https://tiles.example.com/{z}/{x}/{y}.png?apikey=your-api-key-here
+```
+
+### TMS Scheme Example
+
+```typescript
+const provider = new Tms({
+  baseUrl: "https://tms.example.com/{z}/{x}/{y}.png",
+  scheme: "TMS", // Use traditional TMS coordinates
+  attribution: "© TMS Provider",
+});
+```
+
+## Generating tiles from imagery
+
+GeoAI.js consumes tile URLs — it does not build pyramids itself. You need **raster** `{z}/{x}/{y}` URLs from an image or raster tile server, or from a pre-tiled static pyramid.
+
+See **[Serving raster tiles from imagery](./serving-raster-tiles)** for COG workflows, Geobase, Tileserver RS, MapServer, gdal2tiles, and MBTiles options.
+
+### Quick smoke test (no imagery of your own)
+
+Use a public XYZ endpoint to verify the TMS provider wiring. For satellite imagery without an API key, ESRI World Imagery works well:
+
+```typescript
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "tms",
+  baseUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  scheme: "WebMercator",
+  attribution: "© Esri, Maxar, Earthstar Geographics",
+});
+```
+
+Draw a small AOI over an area with visible features before running detection.
+
+## Runnable example
+
+See [`examples/05-tms-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/05-tms-quickstart) for a minimal Vite + MapLibre app, or [Serving raster tiles](./serving-raster-tiles) for COG and tile-server options.
+
+## Troubleshooting
+
+### Tiles appear flipped or in wrong positions
+
+If your tiles appear in the wrong position, you may need to switch the tile scheme:
+
+- If using with Cesium, Mapbox, or most modern services: use `"WebMercator"` (default)
+- If using a traditional TMS service: use `"TMS"`
+
+### Getting incorrect tile coordinates
+
+The GeoAI.js library uses the Web Mercator scheme by default. Make sure your `scheme` configuration matches your tile service's coordinate system.
+
+---
+
+<!-- map-providers/wms.mdx -->
+<!-- https://docs.geobase.app/geoai/map-providers/wms -->
+
+# WMS (Web Map Service) Provider
+
+The WMS provider fetches imagery via OGC **GetMap** requests. GeoAI.js maps your area of interest onto the same Web Mercator tile grid used by TMS/XYZ providers, then stitches the returned map images for inference.
+
+## When to use WMS
+
+Use WMS when your imagery server exposes an OGC endpoint (`GetCapabilities`, `GetMap`) rather than `{z}/{x}/{y}` tile URLs. Common sources include GeoServer, MapServer, QGIS Server, and public-sector programs such as [Geobasis NRW orthophotos](https://open.nrw/dataset/56fb584b-10cf-4009-a405-0bef06bb3e00).
+
+If your service already publishes XYZ/TMS tiles, the [TMS provider](./tms) is simpler and usually faster.
+
+## Quick start
+
+```typescript
+
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "wms",
+  baseUrl: "https://www.wms.nrw.de/geobasis/wms_nw_dop",
+  layers: "nw_dop_rgb",
+  version: "1.3.0",
+  crs: "EPSG:3857",
+  attribution: "© Geobasis NRW / Bezirksregierung Köln",
+});
+```
+
+Draw a polygon on the map, then run inference as with any other provider.
+
+**Interactive example:** [`examples/06-wms-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/06-wms-quickstart) — MapLibre + NRW orthophotos + draw-to-detect.
+
+## Discovering layer names
+
+Append a capabilities request to your service URL:
+
+```
+https://www.wms.nrw.de/geobasis/wms_nw_dop?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0
+```
+
+Use the `` values from the XML as the `layers` parameter.
+
+> `wms_nw_bildmittelpunkte` exposes image **metadata** (center points), not orthophoto pixels. For actual DOP imagery use **`wms_nw_dop`**. Request the **`nw_dop_rgb`** sublayer for color RGB orthophotos — the parent layer **`WMS_NW_DOP`** defaults to near-infrared (grayscale).
+
+## Configuration
+
+```typescript
+interface WmsParams {
+  provider: "wms";
+  baseUrl: string; // WMS endpoint (no query string required)
+  layers: string; // Comma-separated layer names
+  version?: "1.1.1" | "1.3.0"; // Default: "1.1.1"
+  crs?: "EPSG:3857" | "EPSG:4326"; // Default: "EPSG:3857"
+  format?: string; // Default: "image/png"
+  styles?: string; // Default: "" (server default style)
+  transparent?: boolean; // Default: false
+  attribution?: string; // Default: "WMS Provider"
+  tileSize?: number; // Default: 256 (WIDTH/HEIGHT per GetMap)
+  headers?: Record<string, string>; // Reserved for future auth support
+  extraParams?: Record<string, string>; // Additional query params (e.g. tokens)
+}
+```
+
+### CRS and WMS version
+
+| Setting | `SRS` / `CRS` param | BBOX axis order |
+| ------- | ------------------- | --------------- |
+| `version: "1.1.1"`, `crs: "EPSG:3857"` | `SRS=EPSG:3857` | minX, minY, maxX, maxY (meters) |
+| `version: "1.3.0"`, `crs: "EPSG:3857"` | `CRS=EPSG:3857` | minX, minY, maxX, maxY (meters) |
+| `version: "1.3.0"`, `crs: "EPSG:4326"` | `CRS=EPSG:4326` | minLat, minLon, maxLat, maxLon |
+
+**EPSG:3857** is recommended for web maps and matches the internal tile grid.
+
+## Examples
+
+### Geobasis NRW orthophotos (public, no API key)
+
+```typescript
+const provider = {
+  provider: "wms" as const,
+  baseUrl: "https://www.wms.nrw.de/geobasis/wms_nw_dop",
+  layers: "nw_dop_rgb",
+  version: "1.3.0",
+  crs: "EPSG:3857",
+  attribution: "© Geobasis NRW / Bezirksregierung Köln",
+};
+```
+
+Open data: [Digitale Orthophotos NW](https://open.nrw/dataset/56fb584b-10cf-4009-a405-0bef06bb3e00).
+
+### GeoServer / MapServer with authentication token
+
+```typescript
+const provider = {
+  provider: "wms" as const,
+  baseUrl: "https://tiles.example.com/geoserver/wms",
+  layers: "workspace:layer_name",
+  version: "1.1.1",
+  crs: "EPSG:3857",
+  extraParams: { authkey: "your-token" },
+};
+```
+
+### MapLibre WMS raster source
+
+MapLibre 4+ supports `{bbox-epsg-3857}` in raster `tiles` URLs ([official example](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-wms-source/)). `06-wms-quickstart` uses MapLibre 4.7+ with:
+
+```
+https://www.wms.nrw.de/geobasis/wms_nw_dop?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=nw_dop_rgb&...&CRS=EPSG:3857&BBOX={bbox-epsg-3857}
+```
+
+Keep the placeholder **literal** in the URL string — do not pass it through `URLSearchParams` (that encodes `{` and `}`).
+
+## Smoke test
+
+Integration tests use NRW DOP orthophotos over Cologne (`test/wms.test.ts`, shared constants in `test/nrwWms.ts`). Run:
+
+```bash
+pnpm test test/wms.test.ts
+```
+
+## See also
+
+- [TMS provider](./tms) — `{z}/{x}/{y}` tile URLs
+- [Serving raster tiles](./serving-raster-tiles) — COG → tile server options
+- [Map providers overview](../map-providers)
+- GitHub issue [#153](https://github.com/decision-labs/geoai.js/issues/153) — WMS + NRW orthophoto tests
+
+---
+
+<!-- supported-tasks/building-detection.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/building-detection -->
+
+# Building Detection
+
+> Specialized detection of buildings in satellite imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/building-detection)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/geobase/building-detection)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Found ${result.detections.features.length} buildings`);
+```
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 20; // 19-22 recommended
+}
+```
+
+## Output
+
+Returns GeoJSON with detected buildings:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* building polygon */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```
+
+---
+
+<!-- supported-tasks/building-footprint-segmentation.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/building-footprint-segmentation -->
+
+# Building Footprint Segmentation
+
+> Extract precise building outlines from satellite or aerial imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/building-footprint-segmentation)
+
+  [🤗 ChangeStar ViT-B (default)](https://huggingface.co/geobase/changestar-building-segmentation-vitb)
+  [🤗 Lighter footprint model](https://huggingface.co/geobase/building-footprint-segmentation)
+
+> **Default model (v1.0.6+):** omitting `modelId` loads **ChangeStar ViT-B**   (`geobase/changestar-building-segmentation-vitb`). Pass an explicit `modelId`   for the lighter footprint weights.
+
+## Models
+
+| Hub id | Role | Notes |
+| ------ | ---- | ----- |
+| [`geobase/changestar-building-segmentation-vitb`](https://huggingface.co/geobase/changestar-building-segmentation-vitb) | **Default** | Dense ChangeStar ViT-B; 1024px tiles. Prefer `dtype: "q8"` (~135MB) or `fp32` (~377MB). |
+| [`geobase/building-footprint-segmentation`](https://huggingface.co/geobase/building-footprint-segmentation) | Optional | Smaller / faster footprint model; use when you need the previous default behavior. |
+
+Unknown `modelId` values fail fast (no silent fallback).
+
+## Quick Start
+
+```typescript
+
+// Defaults to ChangeStar ViT-B
+const pipeline = await geoai.pipeline(
+  [{ task: "building-footprint-segmentation" }],
+  providerParams
+);
+
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+  postProcessingParams: {
+    confidenceThreshold: 0.5,
+  },
+});
+
+console.log(
+  `Extracted ${result.detections.features.length} building footprints`
+);
+```
+
+### ChangeStar with quantized weights
+
+```typescript
+const pipeline = await geoai.pipeline(
+  [
+    {
+      task: "building-footprint-segmentation",
+      modelId: "geobase/changestar-building-segmentation-vitb",
+      modelParams: {
+        dtype: "q8", // or "fp32"
+        device: "webgpu", // try "wasm" if WebGPU fails for your browser/ORT build
+      },
+    },
+  ],
+  providerParams
+);
+```
+
+### Lighter footprint model
+
+```typescript
+const pipeline = await geoai.pipeline(
+  [
+    {
+      task: "building-footprint-segmentation",
+      modelId: "geobase/building-footprint-segmentation",
+    },
+  ],
+  providerParams
+);
+
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  postProcessingParams: {
+    confidenceThreshold: 0.5,
+    minArea: 20, // lighter model only
+  },
+});
+```
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  confidenceThreshold: 0.5, // 0.0–1.0 (both models)
+  minArea: 20               // minimum area in pixels (lighter model)
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 18; // 17–20 recommended for building outlines
+}
+```
+
+## Output
+
+Returns GeoJSON with precise building boundary polygons:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* precise building polygon */ },
+        properties: {}
+      }
+    ]
+  },
+  geoRawImage: GeoRawImage
+}
+```
+
+---
+
+<!-- supported-tasks/car-detection.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/car-detection -->
+
+# Car Detection
+
+> Detect vehicles in high-resolution imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/car-detection)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/geobase/car-detection)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "car-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Found ${result.detections.features.length} vehicles`);
+```
+
+> Specialized for detecting cars, SUVs, and light trucks in urban environments
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 20; // 20+ recommended for vehicle detection
+}
+```
+
+## Output
+
+Returns GeoJSON with detected vehicles:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* vehicle location */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```
+
+---
+
+<!-- supported-tasks/image-feature-extraction.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/image-feature-extraction -->
+
+# Image Feature Extraction
+
+> Extract and analyze visual features from satellite imagery using AI embeddings
+
+> **Powered by Meta's DINOv3!** This task uses Meta's latest DINOv3 model for self-supervised learning at unprecedented scale,    providing state-of-the-art image representations for geospatial analysis.
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/image-feature-extraction)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline with DINOv3 model
+const pipeline = await geoai.pipeline(
+  [{ task: "image-feature-extraction" }],
+  providerParams
+);
+
+// Run feature extraction
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Extracted features for ${result.embeddings.length} patches`);
+```
+
+> Uses Meta's DINOv3 model to extract high-dimensional feature vectors from satellite imagery patches.    DINOv3 provides state-of-the-art self-supervised learning for vision at unprecedented scale.
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  patchSize: 224; // Size of image patches in pixels
+  overlap: 0.1;   // Overlap between patches (0.0-1.0)
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 18; // Image resolution (16-20)
+}
+```
+
+See [Map Source Parameters](../concepts/InferenceParams#map-source-parameters) for more details.
+
+## Use Cases
+
+| Application           | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| **Similarity Search** | Find similar areas across large datasets       |
+| **Change Detection**  | Identify changes between time periods          |
+| **Land Classification** | Categorize terrain types using embeddings     |
+| **Anomaly Detection** | Find unusual patterns in satellite imagery     |
+| **Feature Matching**  | Match corresponding features across images     |
+
+## Output
+
+Returns embeddings for each image patch:
+
+```typescript
+{
+  embeddings: [
+    {
+      geometry: { /* patch polygon coordinates */ },
+      properties: {
+        embedding: [0.1, 0.2, 0.3, ...], // 1024-dimensional vector
+        patchId: "patch_001"
+      }
+    }
+  ]
+}
+```
+
+## Coming Soon
+
+> Advanced features like similarity search and batch processing are coming soon!
+
+> Feature extraction requires more computational resources than object detection. Consider using Web Workers for better performance.
+
+---
+
+<!-- supported-tasks/land-cover-classification.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/land-cover-classification -->
+
+# Land Cover Classification
+
+> Classify land cover types in satellite imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/land-cover-classification)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/geobase/sparsemask)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "land-cover-classification" }],
+  providerParams
+);
+
+// Run classification
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(
+  `Detections ${result.detections.features.length}`
+);
+```
+
+> Classifies regions into 8 land cover types: forest, agriculture, urban, water,   roads, rangeland, bareland, and buildings
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 15; // 14-16 recommended for land cover analysis
+}
+```
+
+## Land Cover Classes
+
+| Class              |
+| ------------------ |
+| `tree`             |
+| `agriculture land` |
+| `developed space`  |
+| `water`            |
+| `road`             |
+| `rangeland`        |
+| `bareland`         |
+| `buildings`        |
+
+## Output
+
+Returns a FeatureCollection (each feature has its own land cover class):
+
+```typescript
+{
+  geoRawImage : GeoRawImage, // Inference image
+  outPutImage : GeoRawImage, // combined masks
+  detections: {
+      type: "FeatureCollection",
+      features: [
+        {
+          geometry: { /* tree polygon */ },
+          properties: {
+            class: "tree"
+          }
+        }
+      ]
+    }
+}
+```
+
+---
+
+<!-- supported-tasks/mask-generation.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/mask-generation -->
+
+# Mask Generation
+
+> Generate precise pixel-level masks for objects
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/mask-generation)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/Xenova/slimsam-77-uniform)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "mask-generation" }],
+  providerParams
+);
+
+// Run with point input
+const result = await pipeline.inference({
+  inputs: {
+    polygon: myPolygon,
+    input: {
+      type: "points",
+      coordinates: [longitude, latitude],
+    },
+  },
+  postProcessingParams: { maxMasks: 3 },
+});
+
+console.log(`Generated ${result.masks.features.length} masks`);
+```
+
+> Generate precise object boundaries using point clicks, bounding boxes, or   chained from object detection
+
+## Input Types
+
+### Point Input
+
+```typescript
+input: {
+  type: "points",
+  coordinates: [longitude, latitude]  // Click on object center
+}
+```
+
+### Box Input
+
+```typescript
+input: {
+  type: "boxes",
+  coordinates: [minLng, minLat, maxLng, maxLat]  // Bounding box around object
+}
+```
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  maxMasks: 1; // Maximum number of masks
+}
+```
+
+## Chained Pipeline
+
+```typescript
+// Use with object detection pipeline
+const pipeline = await geoai.pipeline(
+  [
+    { task: "object-detection" },
+    {
+      task: "mask-generation",
+      modelId: "Xenova/slimsam-77-uniform",
+      modelParams: { revision: "boxes" },
+    },
+  ],
+  providerParams
+);
+```
+
+> **Point prompts** work best when clicking object centers **Box prompts** need   the "boxes" model revision for box inputs
+
+## Parameters
+
+| Parameter  | Type                       | Description                           |
+| ---------- | -------------------------- | ------------------------------------- |
+| `polygon`  | `GeoJSON.Feature` | Area of interest                      |
+| `input`    | `SegmentationInput`        | Point, box, or detection results      |
+| `maxMasks` | `number`                   | Maximum masks per prompt (default: 1) |
+
+## Output
+
+```typescript
+{
+  detection: GeoJSON.FeatureCollection,  // Generated mask polygons
+  geoRawImage: GeoRawImage           // Source imagery metadata
+}
+```
+
+---
+
+<!-- supported-tasks/object-detection.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/object-detection -->
+
+# Object Detection
+
+> Detect common objects in satellite imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/object-detection)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/geobase/WALDO30-yolov8m-640x640)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "object-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Found ${result.detections.features.length} objects`);
+```
+
+> Detects 12+ object classes including vehicles, buildings, boats, and   infrastructure in aerial imagery
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  confidence: 0.8; // confidence range (0.0-1.0)
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 18; // Image resolution (16-20)
+}
+```
+
+See [Map Source Parameters](http://localhost:3000/geoaijs/concepts/InferenceParams#map-source-parameters) for more details.
+
+## Detected Objects
+
+| Object         | Use Cases                            |
+| -------------- | ------------------------------------ |
+| `LightVehicle` | Traffic analysis, parking assessment |
+| `Person`       | Crowd monitoring, activity analysis  |
+| `Building`     | Urban planning, damage assessment    |
+| `Truck`        | Commercial traffic analysis          |
+| `Boat`         | Marine traffic, port activity        |
+| `SolarPanels`  | Renewable energy assessment          |
+| `Container`    | Logistics, port operations           |
+| `Bus`          | Public transit analysis              |
+| `Bike`         | Transportation analysis              |
+| `UPole`        | Infrastructure inventory             |
+| `Gastank`      | Industrial monitoring                |
+| `Digger`       | Construction monitoring              |
+
+## Output
+
+Returns GeoJSON with detected objects and their confidence scores:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* polygon coordinates */ },
+        properties: {
+          class: "LightVehicle",
+          confidence: 0.92
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+<!-- supported-tasks/oil-storage-tank-detection.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/oil-storage-tank-detection -->
+
+# Oil Storage Tank Detection
+
+> Detect industrial storage tanks in satellite imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/oil-storage-tank-detection)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/geobase/oil-storage-tank-detection)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "oil-storage-tank-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  postProcessingParams: {
+    confidenceThreshold: 0.5,
+    nmsThreshold: 0.3,
+  },
+});
+
+console.log(`Found ${result.detections.features.length} storage tanks`);
+```
+
+> Detects cylindrical oil, fuel, and chemical storage tanks in industrial   facilities
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  confidenceThreshold: 0.5,  // Confidence threshold (0.0-1.0)
+  nmsThreshold: 0.3        // Non-Maximum Suppression threshold
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 18; // 18+ recommended for tank detection
+}
+```
+
+## Output
+
+Returns GeoJSON with detected storage tanks:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* tank location */ },
+        properties: {
+          confidence: 0.5,
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+<!-- supported-tasks/oriented-object-detection.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/oriented-object-detection -->
+
+# Oriented Object Detection
+
+> Detect objects with rotational awareness in aerial imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/oriented-object-detection)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/geobase/gghl-oriented-object-detection)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "oriented-object-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  postProcessingParams: {
+    conf_thres: 0.5,
+    iou_thres: 0.45,
+  },
+});
+
+console.log(`Found ${result.detections.features.length} oriented objects`);
+```
+
+> Detects objects with their actual orientation using rotated bounding boxes   instead of standard rectangles
+
+## Parameters
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  conf_thres: 0.5,     // Confidence threshold (0.0-1.0)
+  iou_thres: 0.45,     // Non-Maximum Suppression threshold
+  multi_label: true    // Allow multiple labels per detection
+}
+```
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 22;
+}
+```
+
+## Detected Objects
+
+| Object             |
+| ------------------ |
+| `plane`            |
+| `ship`             |
+| `small-vehicle`    |
+| `large-vehicle`    |
+| `baseball-diamond` |
+| `tennis-court`     |
+| `basketball-court` |
+| `swimming-pool`    |
+| `bridge`           |
+| `storage-tank`     |
+| `harbor`           |
+| `roundabout`       |
+
+## Output
+
+Returns GeoJSON with oriented bounding boxes:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* oriented polygon */ },
+        properties: {
+          class_name: "plane",
+          score: 0.89
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+<!-- supported-tasks/ship-detection.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/ship-detection -->
+
+# Ship Detection
+
+> Detect ships in satellite imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/ship-detection)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/geobase/ship-detection)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "ship-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Found ${result.detections.features.length} ships`);
+```
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 20; // 20+ recommended for ship detection
+}
+```
+
+## Output
+
+Returns GeoJSON with detected ships:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* ship location */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```
+
+---
+
+<!-- supported-tasks/solar-panel-detection.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/solar-panel-detection -->
+
+# Solar Panel Detection
+
+> Detect solar installations in satellite imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/solar-panel-detection)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/geobase/solar-panel-detection)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "solar-panel-detection" }],
+  providerParams
+);
+
+// Run detection
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+});
+
+console.log(`Found ${result.detections.features.length} solar installations`);
+```
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 19; // 18-20 recommended for solar detection
+}
+```
+
+## Output
+
+Returns GeoJSON with detected solar installations:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* solar panel location */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```
+
+---
+
+<!-- supported-tasks/wetland-segmentation.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/wetland-segmentation -->
+
+# Wetland Segmentation
+
+> Identify wetland areas in satellite imagery
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/wetland-segmentation)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/geobase/wetland-segmentation)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "wetland-segmentation" }],
+  providerParams
+);
+
+// Run segmentation
+const result = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: {
+    zoomLevel: 16,
+    bands: [1, 2, 3, 4], // RGB + NIR required
+  },
+});
+
+console.log(`Identified ${result.detections.features.length} wetland areas`);
+```
+
+> **Requires 4-band imagery:** This model needs RGB + NIR bands and will not   work with standard 3-band RGB imagery
+
+## Parameters
+
+### Map Source
+
+```typescript
+mapSourceParams: {
+  zoomLevel: 16,           // 15-17 recommended for wetlands
+  bands: [1, 2, 3, 4]     // Red, Green, Blue, NIR (all required)
+}
+```
+
+## Output
+
+Returns GeoJSON with identified wetland polygons:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* wetland boundary polygon */ },
+        properties: {}
+      }
+    ]
+  }
+}
+```
+
+---
+
+<!-- supported-tasks/zero-shot-object-detection.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/zero-shot-object-detection -->
+
+# Zero-Shot Object Detection
+
+> Detect custom objects using text prompts
+
+  [🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/zero-shot-object-detection)
+
+  [🤗 View Model on Hugging Face](https://huggingface.co/onnx-community/grounding-dino-tiny-ONNX)
+
+## Quick Start
+
+```typescript
+
+// Initialize pipeline
+const pipeline = await geoai.pipeline(
+  [{ task: "zero-shot-object-detection" }],
+  providerParams
+);
+
+// Run detection with custom classes
+const result = await pipeline.inference({
+  inputs: {
+    polygon: myPolygon,
+    classLabel: "trees.",
+  },
+  postProcessingParams: {
+    threshold: 0.2,
+    topk: 10,
+  },
+});
+
+console.log(`Found ${result.detections.features.length} objects`);
+```
+
+> Detect any object by describing it in plain English - no training required!
+
+## Parameters
+
+### Input
+
+```typescript
+inputs: {
+  polygon: myPolygon,
+  classLabel: "trees."  // Describe objects dot seperated
+}
+```
+
+### Post-Processing
+
+```typescript
+postProcessingParams: {
+  threshold: 0.2,  // Confidence threshold (0.0-1.0)
+  topk: 10        // Maximum detections per class
+}
+```
+
+## Example Objects
+
+**Infrastructure**
+
+- `wind turbine`, `solar panel`, `cell tower`
+- `bridge`, `dam`, `construction crane`
+
+**Vehicles**
+
+- `aircraft`, `helicopter`, `cargo ship`
+- `train`, `yacht`, `fishing boat`
+
+**Facilities**
+
+- `swimming pool`, `tennis court`, `golf course`
+- `baseball field`, `basketball court`
+
+**Natural Features**
+
+- `forest`, `lake`, `river`, `beach`
+
+## Output
+
+Returns GeoJSON with detected custom objects:
+
+```typescript
+{
+  detections: {
+    type: "FeatureCollection",
+    features: [
+      {
+        geometry: { /* object location */ },
+        properties: {
+          label: "tree",
+          score: 0.76
+        }
+      }
+    ]
+  }
+}
+```
+

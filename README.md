@@ -231,6 +231,12 @@ const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
 - [Slides (PDF)](https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/talks/lightning-talk-webgpu-geoai.pdf)
 - [Slide source (Marp)](talks/lightning-talk-webgpu-geoai.md)
 
+## Agents & LLMs
+
+- **Agent skill**: [`skills/geoai`](skills/geoai) — Cursor/agent instructions for integrating GeoAI.js (`npx skills add decision-labs/geoai.js@geoai` once published from this repo)
+- **LLM docs index**: [docs.geobase.app/geoai/llms.txt](https://docs.geobase.app/geoai/llms.txt)
+- **Full docs corpus**: [docs.geobase.app/geoai/llms-full.txt](https://docs.geobase.app/geoai/llms-full.txt) — regenerate with `pnpm docs:llms`
+
 ## Links
 
 - **Documentation**: [docs.geobase.app/geoai](https://docs.geobase.app/geoai) - Comprehensive documentation, examples, and API reference

@@ -1,0 +1,88 @@
+# GeoAI.js map providers
+
+Pass provider config as the second argument to `geoai.pipeline(tasks, providerParams)`.
+
+## ESRI (no key)
+
+```typescript
+{ provider: 'esri' }
+```
+
+Public World Imagery. Best default for demos.
+
+## Mapbox
+
+```typescript
+{
+  provider: 'mapbox',
+  apiKey: process.env.MAPBOX_TOKEN,
+  style: 'mapbox://styles/mapbox/satellite-v9',
+}
+```
+
+## Geobase (your COG)
+
+```typescript
+{
+  provider: 'geobase',
+  projectRef: process.env.GEOBASE_PROJECT_REF,
+  apikey: process.env.GEOBASE_API_KEY,
+  cogImagery: 'https://path-to-your-cog.tif',
+}
+```
+
+Use when the user has Geobase credentials and Cloud Optimized GeoTIFF imagery.
+Supports multispectral bands / expressions via `mapSourceParams`.
+
+## TMS / XYZ tiles
+
+Preferred: URL template with `{z}/{x}/{y}`:
+
+```typescript
+{
+  provider: 'tms',
+  baseUrl: 'https://tile.example.com/tiles/{z}/{x}/{y}.png',
+  apiKey: 'optional',
+  tileSize: 256,
+  attribution: 'Custom TMS',
+}
+```
+
+Legacy base URL + extension still works:
+
+```typescript
+{
+  provider: 'tms',
+  baseUrl: 'https://tile.example.com/tiles',
+  extension: 'png',
+}
+```
+
+See serving options: https://docs.geobase.app/geoai/map-providers/serving-raster-tiles
+
+## WMS
+
+```typescript
+{
+  provider: 'wms',
+  baseUrl: 'https://www.wms.nrw.de/geobasis/wms_nw_dop',
+  layers: 'nw_dop_rgb',
+  version: '1.3.0',
+  crs: 'EPSG:3857',
+  attribution: '© Geobasis NRW',
+}
+```
+
+Discover layer names via `GetCapabilities`. Prefer TMS when XYZ tiles already exist.
+
+## Map source params (all providers)
+
+```typescript
+mapSourceParams: {
+  zoomLevel?: number, // omit for auto
+  bands?: number[],
+  expression?: string, // e.g. '(B4-B1)/(B4+B1)'
+}
+```
+
+Typical detection zoom for aerial imagery: **16–20** (often 18).
