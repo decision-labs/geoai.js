@@ -248,4 +248,4 @@ We welcome contributions! Please see our [contributing guide](CONTRIBUTING.md) f
 
 MIT License - see [LICENSE.md](LICENSE.md) for details.
 
-[//]: <> (Toggle CI on)
+[//]: <> (Toggle CI off)
