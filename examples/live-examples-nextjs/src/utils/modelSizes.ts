@@ -2,6 +2,7 @@ export const MODEL_SIZES = {
   'wetland-segmentation': 45.5,
   'building-detection': 45.5,
   'changestar-building-segmentation': 377,
+  'changestar-building-segmentation-q8': 135,
   'car-detection': 45.5,
   'ship-detection': 45.5,
   'solar-panel-detection': 45.5,

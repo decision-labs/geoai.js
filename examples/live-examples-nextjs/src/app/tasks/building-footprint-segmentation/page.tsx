@@ -16,7 +16,7 @@ import { ConfidenceSlider } from "../../../components/ui/ConfidenceSlider";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
 import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
-import { getProviderParams, restoreCameraAfterProviderChange } from "../../../utils/providerConfig";
+import { getProviderParams, restoreCameraAfterProviderChange, WMS_DEFAULT_CENTER, applyProviderMapSettings } from "../../../utils/providerConfig";
 import { MapProvider } from "../../../types"
 import { getOptimumZoom } from "../../../utils/optimalParamsUtil";
 import { TaskType } from "../../../utils/modelSizes";
@@ -29,10 +29,27 @@ const CHANGESTAR_MODEL_ID =
 const FOOTPRINT_MODEL_ID = "geobase/building-footprint-segmentation";
 
 type FootprintModel = "default" | "changestar";
+type ChangeStarDtype = "fp32" | "q8";
+
+const CHANGESTAR_VARIANTS: Record<
+  ChangeStarDtype,
+  { label: string; modelParams: { dtype: ChangeStarDtype; device: "webgpu" | "wasm" }; downloadTask: TaskType }
+> = {
+  fp32: {
+    label: "fp32 · WebGPU · ~377MB",
+    modelParams: { dtype: "fp32", device: "webgpu" },
+    downloadTask: "changestar-building-segmentation",
+  },
+  q8: {
+    label: "q8 · WebGPU · ~135MB",
+    modelParams: { dtype: "q8", device: "webgpu" },
+    downloadTask: "changestar-building-segmentation-q8",
+  },
+};
 
 const mapInitConfig = {
-  center: [-117.41857614409385, 47.656774236160146] as [number, number],
-  zoom: getOptimumZoom("building-footprint-segmentation", "geobase") || 15,
+  center: WMS_DEFAULT_CENTER,
+  zoom: 17,
 };
 
 // Add validation for required environment variables
@@ -63,15 +80,18 @@ export default function BuildingFootPrintSegmentation() {
   const [polygon, setPolygon] = useState<GeoJSON.Feature | null>(null);
   const [detections, setDetections] = useState<GeoJSON.FeatureCollection>();
   const [zoomLevel, setZoomLevel] = useState<number>(15);
-  const [mapProvider, setMapProvider] = useState<MapProvider>("mapbox");
+  const [mapProvider, setMapProvider] = useState<MapProvider>("wms");
   const [drawWarning, setDrawWarning] = useState<string | null>(null);
   const [footprintModel, setFootprintModel] =
     useState<FootprintModel>("changestar");
+  const [changeStarDtype, setChangeStarDtype] =
+    useState<ChangeStarDtype>("q8");
   const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.5);
 
   const isChangeStar = footprintModel === "changestar";
+  const changeStarVariant = CHANGESTAR_VARIANTS[changeStarDtype];
   const downloadTask: TaskType = isChangeStar
-    ? "changestar-building-segmentation"
+    ? changeStarVariant.downloadTask
     : "building-footprint-segmentation";
 
   // Dynamic optimum zoom computed per provider (used for guiding drawing)
@@ -152,6 +172,12 @@ export default function BuildingFootPrintSegmentation() {
       style: mapStyle,
       center: mapInitConfig.center,
       zoom: mapInitConfig.zoom,
+    });
+
+    map.current.once("load", () => {
+      if (map.current) {
+        applyProviderMapSettings(map.current, "wms");
+      }
     });
 
     // Add draw control
@@ -245,7 +271,7 @@ export default function BuildingFootPrintSegmentation() {
       ? {
           task: "building-footprint-segmentation",
           modelId: CHANGESTAR_MODEL_ID,
-          modelParams: { dtype: "fp32", device: "webgpu" },
+          modelParams: changeStarVariant.modelParams,
         }
       : {
           task: "building-footprint-segmentation",
@@ -256,7 +282,14 @@ export default function BuildingFootPrintSegmentation() {
       tasks: [taskConfig],
       providerParams,
     });
-  }, [mapProvider, footprintModel, isChangeStar, initializeModel]);
+  }, [
+    mapProvider,
+    footprintModel,
+    isChangeStar,
+    changeStarDtype,
+    changeStarVariant.modelParams,
+    initializeModel,
+  ]);
 
   // Handle results from the worker
   useEffect(() => {
@@ -321,9 +354,36 @@ export default function BuildingFootPrintSegmentation() {
                     onChange={() => setFootprintModel("changestar")}
                     disabled={isProcessing}
                   />
-                  ChangeStar ViT-B (default, ~377MB)
+                  ChangeStar ViT-B (task default)
                 </label>
               </div>
+
+              {isChangeStar && (
+                <div className="mt-4 pt-3 border-t border-gray-200/60">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    ChangeStar weights
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {(Object.keys(CHANGESTAR_VARIANTS) as ChangeStarDtype[]).map(
+                      dtype => (
+                        <label
+                          key={dtype}
+                          className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                        >
+                          <input
+                            type="radio"
+                            name="changestar-dtype"
+                            checked={changeStarDtype === dtype}
+                            onChange={() => setChangeStarDtype(dtype)}
+                            disabled={isProcessing}
+                          />
+                          {CHANGESTAR_VARIANTS[dtype].label}
+                        </label>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
             </GlassmorphismCard>
 
             <GlassmorphismCard>
