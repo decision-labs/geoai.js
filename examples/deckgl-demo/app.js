@@ -24,6 +24,7 @@ class DeckGLDemo {
     this.pipeline = null;
     this.currentPolygon = [];
     this.detectionResults = null;
+    this.inferenceBounds = null;
     this.isDrawing = false;
     this.satelliteLayer = null;
     this.initializeApp();
@@ -105,13 +106,16 @@ class DeckGLDemo {
     const button = document.getElementById("draw-polygon");
 
     if (this.isDrawing) {
-      button.textContent = "Finish Polygon";
-      button.style.background = "#ff9800";
+      button.textContent = 'Finish Polygon';
+      button.style.background = '#ff9800';
       this.updateStatus(
         'Click on map to add points. Click "Finish Polygon" when done.',
-        "#2196f3"
+        '#2196f3'
       );
       this.currentPolygon = [];
+      this.detectionResults = null;
+      this.inferenceBounds = null;
+      this.updatePolygonLayer();
     } else {
       this.finishPolygon();
     }
@@ -155,28 +159,36 @@ class DeckGLDemo {
 
       layers.push(
         new GeoJsonLayer({
-          id: "drawing-polygon",
+          id: 'drawing-polygon',
           data: polygonGeoJson,
-          getFillColor: [0, 0, 255, 100],
-          getLineColor: [0, 0, 255, 255],
-          getLineWidth: 2,
+          getFillColor: [0, 200, 255, 60],
+          getLineColor: [0, 255, 255, 255],
+          getLineWidth: 4,
+          lineWidthUnits: 'pixels',
+          lineWidthMinPixels: 3,
           filled: this.currentPolygon.length > 2,
           stroked: true,
+          pickable: false,
         })
       );
 
-      // Add point markers for each clicked node
+      // Pixel-sized vertices so they stay visible when zoomed out
       layers.push(
         new ScatterplotLayer({
-          id: "drawing-points",
+          id: 'drawing-points',
           data: this.currentPolygon,
           getPosition: d => d,
-          getRadius: 8,
-          getFillColor: [255, 255, 255, 255],
-          getLineColor: [0, 0, 255, 255],
-          getLineWidth: 2,
+          radiusUnits: 'pixels',
+          getRadius: 10,
+          radiusMinPixels: 8,
+          radiusMaxPixels: 16,
+          getFillColor: [255, 235, 59, 255],
+          getLineColor: [0, 0, 0, 255],
+          lineWidthUnits: 'pixels',
+          getLineWidth: 3,
           stroked: true,
           filled: true,
+          pickable: false,
         })
       );
     }
@@ -185,13 +197,49 @@ class DeckGLDemo {
     if (this.detectionResults) {
       layers.push(
         new GeoJsonLayer({
-          id: "detections",
+          id: 'detections',
           data: this.detectionResults,
-          getFillColor: [255, 0, 0, 128],
-          getLineColor: [255, 0, 0, 255],
-          getLineWidth: 2,
+          getFillColor: [255, 64, 64, 120],
+          getLineColor: [255, 255, 255, 255],
+          getLineWidth: 3,
+          lineWidthUnits: 'pixels',
+          lineWidthMinPixels: 2,
           filled: true,
           stroked: true,
+        })
+      );
+    }
+
+    // Inference tile / AOI bounds (outline only)
+    if (this.inferenceBounds) {
+      const { west, south, east, north } = this.inferenceBounds;
+      layers.push(
+        new GeoJsonLayer({
+          id: 'inference-bounds',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [west, north],
+                  [east, north],
+                  [east, south],
+                  [west, south],
+                  [west, north],
+                ],
+              ],
+            },
+          },
+          getFillColor: [255, 255, 0, 20],
+          getLineColor: [255, 235, 59, 255],
+          getLineWidth: 3,
+          lineWidthUnits: 'pixels',
+          lineWidthMinPixels: 2,
+          filled: true,
+          stroked: true,
+          pickable: false,
         })
       );
     }
@@ -227,12 +275,16 @@ class DeckGLDemo {
       });
 
       this.detectionResults = result.detections;
+      this.inferenceBounds =
+        result.geoRawImage?.getBounds?.() ?? result.geoRawImage?.bounds ?? null;
+      // Drop the drawn polygon; keep detections + tile bounds
+      this.currentPolygon = [];
       this.updatePolygonLayer();
 
       const count = result.detections.features?.length || 0;
       this.updateStatus(
-        `Found ${count} oil storage tank${count !== 1 ? "s" : ""}!`,
-        "#4caf50"
+        `Found ${count} oil storage tank${count !== 1 ? 's' : ''}!`,
+        '#4caf50'
       );
     } catch (error) {
       console.error("Detection error:", error);
@@ -245,6 +297,7 @@ class DeckGLDemo {
   clearMap() {
     this.currentPolygon = [];
     this.detectionResults = null;
+    this.inferenceBounds = null;
     this.resetDrawingState();
 
     this.deck.setProps({

@@ -1,0 +1,241 @@
+import { Callout } from 'nextra/components';
+
+# deck.gl Integration
+
+Use [deck.gl](https://deck.gl) for map tiles and result layers while GeoAI.js runs detection or segmentation. This pairs well with multi-provider imagery and deck’s layer library (see discussion in [issue #112](https://github.com/decision-labs/geoai.js/issues/112)).
+
+A minimal working demo lives in the repo:
+
+[`examples/deckgl-demo`](https://github.com/decision-labs/geoai.js/tree/main/examples/deckgl-demo)
+
+<Callout type="info">
+  GeoAI.js does **not** depend on deck.gl. You wire imagery and overlays yourself; GeoAI only needs a map **provider** config for tile fetch during inference.
+</Callout>
+
+## Quick setup
+
+Serve the demo folder (ES modules + import maps need HTTP):
+
+```bash
+cd examples/deckgl-demo
+npx --yes serve -p 5175 .
+# open http://localhost:5175
+```
+
+Or paste `codepen.html` into CodePen / a static host.
+
+### CDN dependencies
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/dist/transformers.min.js",
+      "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.mjs"
+    }
+  }
+</script>
+<script src="https://unpkg.com/deck.gl@9.1.14/dist.min.js"></script>
+<script type="module" src="./app.js"></script>
+```
+
+```js
+import { geoai } from 'https://cdn.jsdelivr.net/npm/geoai@1.0.6/geoai.js';
+
+const { Deck, TileLayer, BitmapLayer, GeoJsonLayer, ScatterplotLayer } = deck;
+```
+
+## Architecture
+
+| Concern | Who owns it |
+| ------- | ----------- |
+| Basemap tiles (display) | deck.gl `TileLayer` / `BitmapLayer` |
+| Imagery for inference | GeoAI **provider** (`esri`, `geobase`, `mapbox`, `tms`, `wms`, …) |
+| Draw AOI | Your click handler + `GeoJsonLayer` / `ScatterplotLayer` |
+| Model run | `geoai.pipeline(…).inference(…)` |
+| Results | `GeoJsonLayer` from `result.detections` |
+| Inference footprint | Outline from `result.geoRawImage.getBounds()` |
+
+Keep the display tile URL and the provider config pointing at the **same** imagery source when possible so what users see matches what the model runs on.
+
+## Initialize Deck + GeoAI
+
+```js
+const mapProviderConfig = {
+  provider: 'esri',
+  serviceUrl: 'https://server.arcgisonline.com/ArcGIS/rest/services',
+  serviceName: 'World_Imagery',
+  tileSize: 256,
+  attribution: 'ESRI World Imagery',
+};
+
+const deckgl = new Deck({
+  container: 'map',
+  initialViewState: {
+    longitude: 56.35,
+    latitude: 25.20,
+    zoom: 15,
+    pitch: 0,
+    bearing: 0,
+  },
+  controller: true,
+  layers: [createSatelliteLayer()],
+  onClick: handleMapClick,
+});
+
+const pipeline = await geoai.pipeline(
+  [{ task: 'oil-storage-tank-detection' }],
+  mapProviderConfig
+);
+```
+
+### Satellite `TileLayer`
+
+```js
+function createSatelliteLayer() {
+  return new TileLayer({
+    id: 'arcgis-world-imagery',
+    data: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    tileSize: 256,
+    minZoom: 0,
+    maxZoom: 19,
+    renderSubLayers: props => {
+      const { boundingBox } = props.tile;
+      return new BitmapLayer(props, {
+        data: null,
+        image: props.data,
+        bounds: [
+          boundingBox[0][0],
+          boundingBox[0][1],
+          boundingBox[1][0],
+          boundingBox[1][1],
+        ],
+      });
+    },
+  });
+}
+```
+
+## Draw AOI and run inference
+
+Collect click coordinates into a ring, then call the pipeline:
+
+```js
+const polygon = {
+  type: 'Feature',
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[...ring, ring[0]]],
+  },
+};
+
+const result = await pipeline.inference({
+  inputs: { polygon },
+  mapSourceParams: { zoomLevel: 15 },
+});
+
+const detections = result.detections;
+const bounds =
+  result.geoRawImage?.getBounds?.() ?? result.geoRawImage?.bounds;
+```
+
+### Drawing UX tips
+
+Use **pixel** units for vertices and edges so they stay visible when zoomed out:
+
+```js
+new ScatterplotLayer({
+  id: 'drawing-points',
+  data: ring,
+  getPosition: d => d,
+  radiusUnits: 'pixels',
+  getRadius: 10,
+  radiusMinPixels: 8,
+  getFillColor: [255, 235, 59, 255],
+  getLineColor: [0, 0, 0, 255],
+  lineWidthUnits: 'pixels',
+  getLineWidth: 3,
+  stroked: true,
+  filled: true,
+});
+
+new GeoJsonLayer({
+  id: 'drawing-polygon',
+  data: polygonGeoJson,
+  getLineColor: [0, 255, 255, 255],
+  getLineWidth: 4,
+  lineWidthUnits: 'pixels',
+  lineWidthMinPixels: 3,
+  stroked: true,
+  filled: true,
+  getFillColor: [0, 200, 255, 60],
+});
+```
+
+## Overlay detections and tile bounds
+
+After inference, drop the drawn polygon and show results + the imagery footprint:
+
+```js
+const layers = [satelliteLayer];
+
+layers.push(
+  new GeoJsonLayer({
+    id: 'detections',
+    data: detections,
+    getFillColor: [255, 64, 64, 120],
+    getLineColor: [255, 255, 255, 255],
+    getLineWidth: 3,
+    lineWidthUnits: 'pixels',
+    filled: true,
+    stroked: true,
+  })
+);
+
+if (bounds) {
+  const { west, south, east, north } = bounds;
+  layers.push(
+    new GeoJsonLayer({
+      id: 'inference-bounds',
+      data: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [west, north],
+              [east, north],
+              [east, south],
+              [west, south],
+              [west, north],
+            ],
+          ],
+        },
+      },
+      getFillColor: [255, 255, 0, 20],
+      getLineColor: [255, 235, 59, 255],
+      getLineWidth: 3,
+      lineWidthUnits: 'pixels',
+      filled: true,
+      stroked: true,
+    })
+  );
+}
+
+deckgl.setProps({ layers });
+```
+
+## Other providers
+
+Swap `mapProviderConfig` (and the deck tile URL) for Geobase, Mapbox, TMS, or WMS — same pipeline API. See [Map Providers](/map-providers).
+
+For heavier models (e.g. ChangeStar building footprints), prefer a worker and `modelParams` as in the [building footprint task docs](/supported-tasks/building-footprint-segmentation).
+
+## Related
+
+- Example: [`examples/deckgl-demo`](https://github.com/decision-labs/geoai.js/tree/main/examples/deckgl-demo)
+- PR: [#119](https://github.com/decision-labs/geoai.js/pull/119)
+- Issue: [#112](https://github.com/decision-labs/geoai.js/issues/112)
+- [React + MapLibre quickstart](/frontend-frameworks/react-quickstart)
+- [Live examples](https://docs.geobase.app/geoai-live)
