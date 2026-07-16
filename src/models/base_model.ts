@@ -2,6 +2,7 @@ import { Mapbox } from "@/data_providers/mapbox";
 import { Geobase } from "@/data_providers/geobase";
 import { Esri } from "@/data_providers/esri";
 import { Tms } from "@/data_providers/tms";
+import { Wms } from "@/data_providers/wms";
 import { ProviderParams } from "@/geoai";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
@@ -10,7 +11,7 @@ import { InferenceParams } from "@/core/types";
 export abstract class BaseModel {
   protected static instance: BaseModel | null = null;
   protected providerParams: ProviderParams;
-  protected dataProvider: Mapbox | Geobase | Esri | Tms | undefined;
+  protected dataProvider: Mapbox | Geobase | Esri | Tms | Wms | undefined;
   protected model_id: string;
   protected initialized: boolean = false;
   protected modelParams?: PretrainedModelOptions;
@@ -73,6 +74,21 @@ export abstract class BaseModel {
           tileSize: this.providerParams.tileSize,
           headers: this.providerParams.headers,
           scheme: this.providerParams.scheme,
+        });
+        break;
+      case "wms":
+        this.dataProvider = new Wms({
+          baseUrl: this.providerParams.baseUrl,
+          layers: this.providerParams.layers,
+          version: this.providerParams.version,
+          crs: this.providerParams.crs,
+          format: this.providerParams.format,
+          styles: this.providerParams.styles,
+          transparent: this.providerParams.transparent,
+          attribution: this.providerParams.attribution,
+          tileSize: this.providerParams.tileSize,
+          headers: this.providerParams.headers,
+          extraParams: this.providerParams.extraParams,
         });
         break;
       case "sentinel":

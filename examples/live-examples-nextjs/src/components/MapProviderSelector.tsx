@@ -5,6 +5,8 @@ const ALL_PROVIDERS: { value: MapProvider; label: string }[] = [
   { value: "geobase", label: "Geobase" },
   { value: "mapbox", label: "Mapbox" },
   { value: "esri", label: "ESRI" },
+  { value: "tms", label: "TMS" },
+  { value: "wms", label: "WMS (NRW)" },
 ];
 
 interface MapProviderSelectorProps {
@@ -46,10 +48,12 @@ export const MapProviderSelector: React.FC<MapProviderSelectorProps> = ({
         <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
             {value === "geobase" ? (
             <img src="/geoai-live/favicon-16x16.png" alt="Geobase" className="w-3 h-3" />
-          ) : value === "esri" ? (
+          ) : value === "esri" || value === "tms" ? (
             <span className="text-gray-500 text-xs">🌍</span>
-          ) : (
+          ) : value === "wms" ? (
             <span className="text-gray-500 text-xs">🗺️</span>
+          ) : (
+            <span className="text-gray-500 text-xs">🛰️</span>
           )}
         </div>
       </div>

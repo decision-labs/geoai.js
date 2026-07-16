@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-07-15
+
+### Added
+- WMS map provider with OGC GetMap support (EPSG:3857 bbox, WMS 1.1.1 / 1.3.0)
+- `examples/06-wms-quickstart` — NRW orthophotos (`nw_dop_rgb`), draw-to-detect, NRW geocoder
+- Interactive TMS and WMS providers in `live-examples-nextjs` task demos
+- WMS documentation (`wms.mdx`), map-providers table update, and 17 WMS tests (including pipeline inference)
+- Project roadmap (`_docs4devs/ROADMAP.md`) for use-case guides and quantization pipeline backlog
+
+### Changed
+- `live-examples-nextjs` pins `geoai` to local `build/` for WMS/TMS provider development
+
 ## [1.0.4] - 2026-07-11
 
 ### Added

@@ -24,7 +24,8 @@ import {
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createImageFeatureExtractionMapStyle } from "../../../utils/mapStyleUtils";
-import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { applyProviderMapSettings, getProviderParams } from "../../../utils/providerConfig";
 import { MapProvider } from "../../../types";
 
 
@@ -507,19 +508,17 @@ export default function ImageFeatureExtraction() {
       map.current?.setZoom(currentZoom);
       map.current?.setBearing(currentBearing);
       map.current?.setPitch(currentPitch);
+      if (map.current) {
+        applyProviderMapSettings(map.current, mapProvider);
+      }
     });
   }, [mapProvider]);
 
   // Initialize the model when the map provider changes
   useEffect(() => {
-    let providerParams;
-    if (mapProvider === "geobase") {
-      providerParams = GEOBASE_CONFIG;
-    } else if (mapProvider === "esri") {
-      providerParams = ESRI_CONFIG;
-    } else {
-      providerParams = MAPBOX_CONFIG;
-    }
+    const providerParams = getProviderParams(mapProvider, {
+      cogImagery: GEOBASE_CONFIG.cogImagery,
+    });
 
     initializeModel({
       tasks: [{

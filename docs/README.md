@@ -36,3 +36,5 @@ This project is licensed under the MIT License.
 
 - Organize Developer Frameworks into a table
 
+See also the project [roadmap](../_docs4devs/ROADMAP.md) for planned **use cases/guides** docs and a **quantization pipeline**.
+

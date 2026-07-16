@@ -16,7 +16,8 @@ import {
 import { MapUtils } from "../../../utils/mapUtils";
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
 import { MapProvider } from "../../../types"
-import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { applyProviderMapSettings, getProviderParams } from "../../../utils/providerConfig";
 import { getOptimumZoom } from "@/utils/optimalParamsUtil";
 
 GEOBASE_CONFIG.cogImagery = "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/68917a624c782f9c3fbde513/0/68917a624c782f9c3fbde514.tif"
@@ -297,19 +298,17 @@ export default function LandCoverClassification() {
       map.current?.setZoom(currentZoom);
       map.current?.setBearing(currentBearing);
       map.current?.setPitch(currentPitch);
+      if (map.current) {
+        applyProviderMapSettings(map.current, mapProvider);
+      }
     });
   }, [mapProvider]);
 
   // Initialize the model when the map provider changes
   useEffect(() => {
-    let providerParams;
-    if (mapProvider === "geobase") {
-      providerParams = GEOBASE_CONFIG;
-    } else if (mapProvider === "esri") {
-      providerParams = ESRI_CONFIG;
-    } else {
-      providerParams = MAPBOX_CONFIG;
-    }
+    const providerParams = getProviderParams(mapProvider, {
+      cogImagery: GEOBASE_CONFIG.cogImagery,
+    });
 
     initializeModel({
       tasks: [{

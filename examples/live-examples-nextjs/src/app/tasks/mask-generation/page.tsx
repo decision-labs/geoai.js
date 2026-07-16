@@ -5,7 +5,8 @@ import maplibregl from "maplibre-gl";
 import MaplibreDraw from "maplibre-gl-draw";
 import type { StyleSpecification } from "maplibre-gl";
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
-import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG  } from "../../../config";
+import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { applyProviderMapSettings, getProviderParams } from "../../../utils/providerConfig";
 import { MapProvider } from "../../../types"
 import { BackgroundEffects, ExportButton, GlassmorphismCard, GradientButton, MapProviderSelector, StatusMessage, ZoomSlider, TaskDownloadProgress, CollapsibleAttribution } from "@/components";
 import { ClearPoint, PlayIcon, PlusIcon, ResetIcon } from "@/components/DetectionControls";
@@ -285,19 +286,17 @@ export default function MaskGeneration() {
       map.current?.setZoom(currentZoom);
       map.current?.setBearing(currentBearing);
       map.current?.setPitch(currentPitch);
+      if (map.current) {
+        applyProviderMapSettings(map.current, mapProvider);
+      }
     });
   }, [mapProvider]);
 
   // Initialize the model when the map provider changes
   useEffect(() => {
-    let providerParams;
-    if (mapProvider === "geobase") {
-      providerParams = GEOBASE_CONFIG;
-    } else if (mapProvider === "esri") {
-      providerParams = ESRI_CONFIG;
-    } else {
-      providerParams = MAPBOX_CONFIG;
-    }
+    const providerParams = getProviderParams(mapProvider, {
+      cogImagery: GEOBASE_CONFIG.cogImagery,
+    });
 
     initializeModel({
       tasks: [{

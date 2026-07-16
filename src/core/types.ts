@@ -60,6 +60,21 @@ export type TmsParams = {
   scheme?: "WebMercator" | "TMS";
 };
 
+export type WmsParams = {
+  provider: "wms";
+  baseUrl: string;
+  layers: string;
+  version?: "1.1.1" | "1.3.0";
+  crs?: "EPSG:3857" | "EPSG:4326";
+  format?: string;
+  styles?: string;
+  transparent?: boolean;
+  attribution?: string;
+  tileSize?: number;
+  headers?: Record<string, string>;
+  extraParams?: Record<string, string>;
+};
+
 export interface InferenceInputs {
   polygon: GeoJSON.Feature;
   classLabel?: string;
@@ -94,7 +109,8 @@ export type ProviderParams =
   | SentinelParams
   | GeobaseParams
   | EsriParams
-  | TmsParams;
+  | TmsParams
+  | WmsParams;
 
 export type HuggingFaceModelTask =
   | "mask-generation"

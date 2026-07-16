@@ -40,12 +40,12 @@ You can also use GeoAI directly in the browser via CDN:
 
 #### Unpkg CDN
 ```html
-<script src="https://unpkg.com/geoai@1.0.3/geoai.js"></script>
+<script src="https://unpkg.com/geoai@1.0.5/geoai.js"></script>
 ```
 
 #### jsDelivr CDN
 ```html
-<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.3/geoai.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.5/geoai.min.js"></script>
 ```
 
 When using CDN, the library is available globally as `geoai`.
@@ -235,6 +235,7 @@ const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
 
 - **Documentation**: [docs.geobase.app/geoai](https://docs.geobase.app/geoai) - Comprehensive documentation, examples, and API reference
 - **Live Examples**: [docs.geobase.app/geoai-live](https://docs.geobase.app/geoai-live) - Interactive examples and demos
+- **Roadmap**: [_docs4devs/ROADMAP.md](_docs4devs/ROADMAP.md) - Planned docs, quantization pipeline, and related backlog
 - **Community**: [GitHub Discussions](https://github.com/decision-labs/geoai.js/discussions) - Ask questions, share ideas, and connect with other developers
 - **Code**: [GitHub Repository](https://github.com/decision-labs/geoai.js) - Source code and contributions
 - **Issues**: [GitHub Issues](https://github.com/decision-labs/geoai.js/issues) - Report bugs and request features

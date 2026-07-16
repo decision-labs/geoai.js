@@ -53,14 +53,14 @@ You can run any service that reads COGs via GDAL/rio-tiler and exposes `{z}/{x}/
 **Pros:** Full control; can colocate with your data.  
 **Cons:** You operate and secure the service.
 
-### MapServer (WMS / WCS — indirect)
+### MapServer (WMS / WCS)
 
 [MapServer](https://mapserver.org/) reads COGs through **GDAL** (local files or remote `/vsicurl/...`). It is a strong **WMS/WCS** server, not a native XYZ tile server.
 
-COG support is real for **input**, but wiring GeoAI.js usually means WMS tiled requests or adding **MapCache** (or similar) in front — more glue than Tileserver RS or Geobase.
+GeoAI.js can consume MapServer (and GeoServer, QGIS Server, ArcGIS `WMSServer`) directly via the [WMS provider](./wms) — no MapCache required for inference. For map display, you may still prefer XYZ/TMS via MapCache or TiTiler for simpler MapLibre integration.
 
-**Pros:** Mature, flexible OGC services.  
-**Cons:** Extra setup for simple `{z}/{x}/{y}` TMS URLs.
+**Pros:** Mature, flexible OGC services; native WMS support in GeoAI.js.  
+**Cons:** GetMap per tile can be slower than dedicated XYZ caches; map UI may need extra WMS wiring.
 
 ## Option 3: Pre-rendered static pyramid (gdal2tiles)
 

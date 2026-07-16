@@ -13,7 +13,8 @@ import {
 } from "../../../components";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
-import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { applyProviderMapSettings, filterCarDetectionsForWms, getPipelineTask, getProviderParams } from "../../../utils/providerConfig";
 
 import { MapProvider } from "../../../types"
 import { getOptimumZoom } from "@/utils/optimalParamsUtil";
@@ -208,23 +209,23 @@ export default function CarDetection() {
       map.current?.setZoom(currentZoom);
       map.current?.setBearing(currentBearing);
       map.current?.setPitch(currentPitch);
+      if (map.current) {
+        applyProviderMapSettings(map.current, mapProvider);
+      }
     });
   }, [mapProvider]);
 
   // Initialize the model when the map provider changes
   useEffect(() => {
-    let providerParams;
-    if (mapProvider === "geobase") {
-      providerParams = GEOBASE_CONFIG;
-    } else if (mapProvider === "esri") {
-      providerParams = ESRI_CONFIG;
-    } else {
-      providerParams = MAPBOX_CONFIG;
-    }
+    const providerParams = getProviderParams(mapProvider, {
+      cogImagery: GEOBASE_CONFIG.cogImagery,
+    });
+
+    const pipelineTask = getPipelineTask('car-detection', mapProvider);
 
     initializeModel({
       tasks: [{
-        task: "car-detection"
+        task: pipelineTask,
       }],
       providerParams,
     });
@@ -233,8 +234,9 @@ export default function CarDetection() {
   // Handle results from the worker
   useEffect(() => {
     if (lastResult?.detections && map.current) {
-      MapUtils.displayDetections(map.current, lastResult.detections);
-      setDetections(lastResult.detections);
+      const displayDetections = filterCarDetectionsForWms(mapProvider, lastResult.detections);
+      MapUtils.displayDetections(map.current, displayDetections);
+      setDetections(displayDetections);
     }
     if (lastResult?.geoRawImage?.bounds && map.current) {
       MapUtils.displayInferenceBounds(map.current, lastResult.geoRawImage.bounds);

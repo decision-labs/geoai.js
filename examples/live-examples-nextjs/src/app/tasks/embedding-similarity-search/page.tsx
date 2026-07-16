@@ -6,7 +6,8 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
-import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
+import { applyProviderMapSettings, getProviderParams } from "../../../utils/providerConfig";
 import { MapProvider } from "../../../types"
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
 import { CollapsibleAttribution } from "../../../components";
@@ -1602,19 +1603,17 @@ export default function EmbeddingSimilaritySearch() {
       map.current?.setZoom(currentZoom);
       map.current?.setBearing(currentBearing);
       map.current?.setPitch(currentPitch);
+      if (map.current) {
+        applyProviderMapSettings(map.current, mapProvider);
+      }
     });
   }, [mapProvider]);
 
   // Initialize model when component mounts
   useEffect(() => {
-    let providerParams;
-    if (mapProvider === "geobase") {
-      providerParams = GEOBASE_CONFIG;
-    } else if (mapProvider === "esri") {
-      providerParams = ESRI_CONFIG;
-    } else {
-      providerParams = MAPBOX_CONFIG;
-    }
+    const providerParams = getProviderParams(mapProvider, {
+      cogImagery: GEOBASE_CONFIG.cogImagery,
+    });
 
     initializeModel({
       tasks: [{
