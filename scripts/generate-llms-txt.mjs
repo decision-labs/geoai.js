@@ -98,7 +98,6 @@ function main() {
     '',
     '> Auto-generated from `docs/pages/**/*.mdx` for LLM / agent ingestion.',
     `> Source: ${DOCS_BASE}`,
-    `> Generated: ${new Date().toISOString().slice(0, 10)}`,
     '',
     'For a curated link index see [llms.txt](https://docs.geobase.app/geoai/llms.txt).',
     '',
