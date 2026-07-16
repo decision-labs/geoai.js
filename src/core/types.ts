@@ -132,7 +132,6 @@ export type GeobaseAiModelTask =
   | "car-detection"
   | "wetland-segmentation"
   | "building-detection"
-  | "changestar-building-segmentation"
   | "oil-storage-tank-detection"
   | "building-footprint-segmentation";
 

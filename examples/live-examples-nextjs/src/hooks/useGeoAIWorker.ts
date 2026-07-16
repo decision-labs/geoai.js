@@ -60,14 +60,6 @@ export function useGeoAIWorker(): UseGeoAIWorkerReturn {
 
   const lastInitConfigRef = useRef<PipelineInitConfig | null>(null);
 
-  const providerParamsEqual = (a?: ProviderParams, b?: ProviderParams) => {
-    try {
-      return JSON.stringify(a) === JSON.stringify(b);
-    } catch (e) {
-      return false;
-    }
-  };
-
   // State management
   const [isInitialized, setIsInitialized] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -161,16 +153,14 @@ export function useGeoAIWorker(): UseGeoAIWorkerReturn {
       }
 
       if (isInitialized && lastInitConfigRef.current) {
-        const sameProvider = providerParamsEqual(
-          config.providerParams,
-          lastInitConfigRef.current.providerParams
-        );
-        if (sameProvider) {
-          console.warn("[Hook] Model already initialized with the same provider/config");
+        const sameConfig =
+          JSON.stringify(config) === JSON.stringify(lastInitConfigRef.current);
+        if (sameConfig) {
+          console.warn("[Hook] Model already initialized with the same config");
           return;
         }
 
-        console.info("[Hook] Provider changed, re-initializing model with new provider");
+        console.info("[Hook] Config changed, re-initializing model");
         setIsInitialized(false);
         setInitializedTasks([]);
       }

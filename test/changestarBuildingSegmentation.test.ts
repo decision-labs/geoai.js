@@ -4,6 +4,7 @@ import { geoai } from '@/geoai';
 import { geobaseParamsBuilding, polygonBuilding } from './constants';
 import { GeoRawImage } from '../src/types/images/GeoRawImage';
 import { ChangeStarBuildingSegmentation } from '@/models/changestar_building_segmentation';
+import { BuildingFootPrintSegmentation } from '@/models/building_footprint_segmentation';
 import { modelRegistry } from '@/registry';
 import { InferenceParams, ProviderParams } from '@/core/types';
 import { geoJsonToGist } from './utils/saveToGist';
@@ -12,15 +13,25 @@ const esriParams: ProviderParams = {
   provider: 'esri',
 };
 
-describe('changestar-building-segmentation registry', () => {
-  it('registers ChangeStar building segmentation with the expected default model', () => {
+const CHANGESTAR_MODEL_ID =
+  'geobase/changestar-building-segmentation-vitb';
+
+const changestarTask = {
+  task: 'building-footprint-segmentation',
+  modelId: CHANGESTAR_MODEL_ID,
+  modelParams: { dtype: 'fp32' as const },
+};
+
+describe('building-footprint-segmentation ChangeStar model routing', () => {
+  it('keeps a single building-footprint-segmentation registry task', () => {
     const entry = modelRegistry.find(
-      m => m.task === 'changestar-building-segmentation'
+      m => m.task === 'building-footprint-segmentation'
     );
     expect(entry).toBeDefined();
-    expect(entry?.library).toBe('geoai');
     expect(entry?.description.toLowerCase()).toContain('changestar');
-    expect(entry?.examples.length).toBeGreaterThan(0);
+    expect(
+      modelRegistry.find(m => m.task === 'changestar-building-segmentation')
+    ).toBeUndefined();
   });
 
   it('exposes ChangeStarBuildingSegmentation class', () => {
@@ -29,47 +40,45 @@ describe('changestar-building-segmentation registry', () => {
   });
 });
 
-describe('test model changestar building segmentation', () => {
+describe('test ChangeStar via building-footprint-segmentation', () => {
   let changestarInstance: ChangeStarBuildingSegmentation;
 
   beforeAll(async () => {
-    changestarInstance = await geoai.pipeline(
-      [{ task: 'changestar-building-segmentation' }],
+    changestarInstance = (await geoai.pipeline(
+      [changestarTask],
       esriParams
-    );
+    )) as ChangeStarBuildingSegmentation;
   }, 120_000);
 
-  it('should initialize a ChangeStar building segmentation pipeline', async () => {
-    const instance = await geoai.pipeline(
-      [{ task: 'changestar-building-segmentation' }],
-      esriParams
-    );
+  it('should initialize ChangeStar when modelId includes changestar', async () => {
+    const instance = await geoai.pipeline([changestarTask], esriParams);
 
     expect(instance).toBeInstanceOf(ChangeStarBuildingSegmentation);
     expect(instance).toBeDefined();
     expect(instance).not.toBeNull();
   });
 
-  it('should reuse the same instance for the same model', async () => {
-    const instance1 = await geoai.pipeline(
-      [{ task: 'changestar-building-segmentation' }],
+  it('should use the default footprint model without changestar modelId', async () => {
+    const instance = await geoai.pipeline(
+      [{ task: 'building-footprint-segmentation' }],
       esriParams
     );
-    const instance2 = await geoai.pipeline(
-      [{ task: 'changestar-building-segmentation' }],
-      esriParams
-    );
+
+    expect(instance).toBeInstanceOf(BuildingFootPrintSegmentation);
+    expect(instance).not.toBeInstanceOf(ChangeStarBuildingSegmentation);
+  });
+
+  it('should reuse the same ChangeStar instance for the same model', async () => {
+    const instance1 = await geoai.pipeline([changestarTask], esriParams);
+    const instance2 = await geoai.pipeline([changestarTask], esriParams);
 
     expect(instance1).toBe(instance2);
   });
 
-  it('should create new instances for different configurations', async () => {
-    const instance1 = await geoai.pipeline(
-      [{ task: 'changestar-building-segmentation' }],
-      esriParams
-    );
+  it('should create new instances for different providers', async () => {
+    const instance1 = await geoai.pipeline([changestarTask], esriParams);
     const instance2 = await geoai.pipeline(
-      [{ task: 'changestar-building-segmentation' }],
+      [changestarTask],
       geobaseParamsBuilding
     );
     expect(instance1).not.toBe(instance2);
@@ -100,7 +109,7 @@ describe('test model changestar building segmentation', () => {
       content: results.detections,
       fileName: 'changestarBuildingSegmentation.geojson',
       description:
-        'result changestarBuildingSegmentation - should process a building-detection polygon',
+        'result changestar via building-footprint-segmentation - should process a building-detection polygon',
     });
   }, 180_000);
 
@@ -153,19 +162,19 @@ describe('test model changestar building segmentation', () => {
   });
 });
 
-describe('test model changestar building segmentation with geobase', () => {
+describe('test ChangeStar building footprint with geobase', () => {
   let geobaseInstance: ChangeStarBuildingSegmentation;
 
   beforeAll(async () => {
-    geobaseInstance = await geoai.pipeline(
-      [{ task: 'changestar-building-segmentation' }],
+    geobaseInstance = (await geoai.pipeline(
+      [changestarTask],
       geobaseParamsBuilding
-    );
+    )) as ChangeStarBuildingSegmentation;
   }, 120_000);
 
-  it('should initialize a ChangeStar pipeline with geobase', async () => {
+  it('should initialize ChangeStar with geobase', async () => {
     const instance = await geoai.pipeline(
-      [{ task: 'changestar-building-segmentation' }],
+      [changestarTask],
       geobaseParamsBuilding
     );
 
@@ -199,7 +208,7 @@ describe('test model changestar building segmentation with geobase', () => {
       content: results.detections,
       fileName: 'changestarBuildingSegmentation-geobase.geojson',
       description:
-        'result changestarBuildingSegmentation - should process a building-detection polygon with geobase imagery',
+        'result changestar via building-footprint-segmentation - geobase imagery',
     });
   }, 180_000);
 });

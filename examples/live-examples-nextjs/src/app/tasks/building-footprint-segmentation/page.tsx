@@ -3,28 +3,39 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import MaplibreDraw from "maplibre-gl-draw";
-import type { StyleSpecification } from "maplibre-gl";
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
-import { 
-  DetectionControls, 
+import {
+  DetectionControls,
   BackgroundEffects,
   ExportButton,
   TaskDownloadProgress,
-  CollapsibleAttribution
+  CollapsibleAttribution,
+  GlassmorphismCard,
 } from "../../../components";
+import { ConfidenceSlider } from "../../../components/ui/ConfidenceSlider";
 import { MapUtils } from "../../../utils/mapUtils";
 import { createBaseMapStyle } from "../../../utils/mapStyleUtils";
 import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
-import { applyProviderMapSettings, getProviderParams } from "../../../utils/providerConfig";
-import { MapProvider } from "../../../types"
+import {
+  applyProviderMapSettings,
+  getProviderParams,
+} from "../../../utils/providerConfig";
+import { MapProvider } from "../../../types";
 import { getOptimumZoom } from "../../../utils/optimalParamsUtil";
+import { TaskType } from "../../../utils/modelSizes";
 
-GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/building-detection.tif"
+GEOBASE_CONFIG.cogImagery =
+  "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/building-detection.tif";
+
+const CHANGESTAR_MODEL_ID =
+  "geobase/changestar-building-segmentation-vitb";
+
+type FootprintModel = "default" | "changestar";
 
 const mapInitConfig = {
   center: [-117.41857614409385, 47.656774236160146] as [number, number],
-  zoom: getOptimumZoom("building-footprint-segmentation","geobase") || 15
-}
+  zoom: getOptimumZoom("building-footprint-segmentation", "geobase") || 15,
+};
 
 // Add validation for required environment variables
 if (!GEOBASE_CONFIG.projectRef || !GEOBASE_CONFIG.apikey) {
@@ -33,13 +44,12 @@ if (!GEOBASE_CONFIG.projectRef || !GEOBASE_CONFIG.apikey) {
   );
 }
 
-
 export default function BuildingFootPrintSegmentation() {
   // Map refs
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const draw = useRef<MaplibreDraw | null>(null);
-  
+
   // GeoAI hook
   const {
     isInitialized,
@@ -57,9 +67,19 @@ export default function BuildingFootPrintSegmentation() {
   const [zoomLevel, setZoomLevel] = useState<number>(15);
   const [mapProvider, setMapProvider] = useState<MapProvider>("mapbox");
   const [drawWarning, setDrawWarning] = useState<string | null>(null);
-  
-    // Dynamic optimum zoom computed per provider (used for guiding drawing)
-    const optimumZoom = getOptimumZoom("building-footprint-segmentation", mapProvider) ?? mapInitConfig.zoom;
+  const [footprintModel, setFootprintModel] =
+    useState<FootprintModel>("changestar");
+  const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.5);
+
+  const isChangeStar = footprintModel === "changestar";
+  const downloadTask: TaskType = isChangeStar
+    ? "changestar-building-segmentation"
+    : "building-footprint-segmentation";
+
+  // Dynamic optimum zoom computed per provider (used for guiding drawing)
+  const optimumZoom =
+    getOptimumZoom("building-footprint-segmentation", mapProvider) ??
+    mapInitConfig.zoom;
 
   const handleReset = () => {
     // Clear all drawn features
@@ -88,18 +108,18 @@ export default function BuildingFootPrintSegmentation() {
 
   const handleDetect = () => {
     if (!polygon) return;
-    
-    runInference(
-      {
-        inputs: {
-          polygon,
-        },
-        mapSourceParams: {
-          zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
-        },
-        postProcessingParams: { confidenceThreshold: 0.5, minArea: 20 }
-      }
-    );
+
+    runInference({
+      inputs: {
+        polygon,
+      },
+      mapSourceParams: {
+        zoomLevel: zoomLevel < optimumZoom ? optimumZoom : zoomLevel,
+      },
+      postProcessingParams: isChangeStar
+        ? { confidenceThreshold }
+        : { confidenceThreshold, minArea: 20 },
+    });
   };
 
   const handleStartDrawing = () => {
@@ -116,15 +136,18 @@ export default function BuildingFootPrintSegmentation() {
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    const mapStyle = createBaseMapStyle({
-      mapProvider,
-      geobaseConfig: GEOBASE_CONFIG,
-      mapboxConfig: MAPBOX_CONFIG,
-    }, {
-      includeMapboxBase: true,
-      mapboxTileStyle: 'satellite-v9',
-      maxZoom: 23
-    });
+    const mapStyle = createBaseMapStyle(
+      {
+        mapProvider,
+        geobaseConfig: GEOBASE_CONFIG,
+        mapboxConfig: MAPBOX_CONFIG,
+      },
+      {
+        includeMapboxBase: true,
+        mapboxTileStyle: "satellite-v9",
+        maxZoom: 23,
+      }
+    );
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
@@ -186,21 +209,24 @@ export default function BuildingFootPrintSegmentation() {
     const currentPitch = map.current.getPitch();
 
     // Create new style for the selected provider
-    const newMapStyle = createBaseMapStyle({
-      mapProvider,
-      geobaseConfig: GEOBASE_CONFIG,
-      mapboxConfig: MAPBOX_CONFIG,
-    }, {
-      includeMapboxBase: true,
-      mapboxTileStyle: 'satellite-v9',
-      maxZoom: 23
-    });
+    const newMapStyle = createBaseMapStyle(
+      {
+        mapProvider,
+        geobaseConfig: GEOBASE_CONFIG,
+        mapboxConfig: MAPBOX_CONFIG,
+      },
+      {
+        includeMapboxBase: true,
+        mapboxTileStyle: "satellite-v9",
+        maxZoom: 23,
+      }
+    );
 
     // Update the map style while preserving camera state
     map.current.setStyle(newMapStyle, { diff: false });
 
     // Restore camera state after style loads
-    map.current.once('styledata', () => {
+    map.current.once("styledata", () => {
       map.current?.setCenter(currentCenter);
       map.current?.setZoom(currentZoom);
       map.current?.setBearing(currentBearing);
@@ -211,19 +237,27 @@ export default function BuildingFootPrintSegmentation() {
     });
   }, [mapProvider]);
 
-  // Initialize the model when the map provider changes
+  // Initialize the model when the map provider or footprint model changes
   useEffect(() => {
     const providerParams = getProviderParams(mapProvider, {
       cogImagery: GEOBASE_CONFIG.cogImagery,
     });
 
+    const taskConfig = isChangeStar
+      ? {
+          task: "building-footprint-segmentation",
+          modelId: CHANGESTAR_MODEL_ID,
+          modelParams: { dtype: "fp32", device: "webgpu" },
+        }
+      : {
+          task: "building-footprint-segmentation",
+        };
+
     initializeModel({
-      tasks: [{
-        task: "building-footprint-segmentation"
-      }],
+      tasks: [taskConfig],
       providerParams,
     });
-  }, [mapProvider, initializeModel]);
+  }, [mapProvider, footprintModel, isChangeStar, initializeModel]);
 
   // Handle results from the worker
   useEffect(() => {
@@ -232,7 +266,10 @@ export default function BuildingFootPrintSegmentation() {
       setDetections(lastResult.detections);
     }
     if (lastResult?.geoRawImage?.bounds && map.current) {
-      MapUtils.displayInferenceBounds(map.current, lastResult.geoRawImage.bounds);
+      MapUtils.displayInferenceBounds(
+        map.current,
+        lastResult.geoRawImage.bounds
+      );
     }
   }, [lastResult]);
 
@@ -243,7 +280,7 @@ export default function BuildingFootPrintSegmentation() {
       {/* Sidebar */}
       <aside className="w-96 h-full flex flex-col overflow-hidden relative">
         {/* Glassmorphism sidebar */}
-        <div className="backdrop-blur-xl bg-white/80 border-r border-gray-200/30 h-full shadow-2xl">
+        <div className="backdrop-blur-xl bg-white/80 border-r border-gray-200/30 h-full shadow-2xl overflow-y-auto">
           <DetectionControls
             polygon={polygon}
             isInitialized={isInitialized}
@@ -254,7 +291,7 @@ export default function BuildingFootPrintSegmentation() {
             error={error}
             drawWarning={drawWarning}
             title="Building Footprint Segmentation"
-            description="Advanced geospatial AI powered building footprint detection system"
+            description="Extract building footprints — default model or ChangeStar ViT-B"
             onStartDrawing={handleStartDrawing}
             onDetect={handleDetect}
             onReset={handleReset}
@@ -262,6 +299,44 @@ export default function BuildingFootPrintSegmentation() {
             onMapProviderChange={setMapProvider}
             optimumZoom={optimumZoom}
           />
+
+          <div className="px-4 pb-6 space-y-4">
+            <GlassmorphismCard>
+              <p className="text-sm font-medium text-gray-700 mb-3">Model</p>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="footprint-model"
+                    checked={footprintModel === "default"}
+                    onChange={() => setFootprintModel("default")}
+                    disabled={isProcessing}
+                  />
+                  Default (lighter)
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="footprint-model"
+                    checked={footprintModel === "changestar"}
+                    onChange={() => setFootprintModel("changestar")}
+                    disabled={isProcessing}
+                  />
+                  ChangeStar ViT-B (~377MB)
+                </label>
+              </div>
+            </GlassmorphismCard>
+
+            <GlassmorphismCard>
+              <ConfidenceSlider
+                value={confidenceThreshold}
+                onChange={setConfidenceThreshold}
+                min={0.1}
+                max={0.9}
+                step={0.05}
+              />
+            </GlassmorphismCard>
+          </div>
         </div>
       </aside>
 
@@ -271,7 +346,7 @@ export default function BuildingFootPrintSegmentation() {
         <div className="absolute inset-2 rounded-lg overflow-hidden border border-gray-200/50 shadow-2xl">
           <div ref={mapContainer} className="w-full h-full" />
         </div>
-        
+
         {/* Export Button - Floating in top right corner */}
         <div className="absolute top-6 right-6 z-10">
           <ExportButton
@@ -283,23 +358,22 @@ export default function BuildingFootPrintSegmentation() {
             className="shadow-2xl backdrop-blur-lg"
           />
         </div>
-        
+
         {/* Model Loading Progress - Floating in top center */}
         <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-50">
           <TaskDownloadProgress
-            task="building-footprint-segmentation"
+            task={downloadTask}
             className="min-w-80"
             isInitialized={isInitialized}
           />
         </div>
-        
+
         {/* Corner decorations */}
         <div className="absolute top-4 right-4 w-20 h-20 border-t-2 border-r-2 border-green-400/40 rounded-tr-lg"></div>
         <div className="absolute bottom-4 left-4 w-20 h-20 border-b-2 border-l-2 border-emerald-400/40 rounded-bl-lg"></div>
-        
+
         <CollapsibleAttribution position="bottom-left" />
       </div>
     </main>
   );
 }
-

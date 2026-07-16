@@ -42,10 +42,22 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         modelInstance = await geoai.pipeline(tasks, providerParams);
         initializedTasks = tasks.map(t => t.task);
 
+        const resolvedModelId =
+          typeof modelInstance?.model_id === "string"
+            ? modelInstance.model_id
+            : tasks[0]?.modelId ?? "(registry default)";
+        const instanceName =
+          modelInstance?.constructor?.name ?? typeof modelInstance;
+
+
         console.log("[Worker] Pipeline initialized successfully");
         self.postMessage({
           type: "init_complete",
-          payload: { tasks: initializedTasks },
+          payload: {
+            tasks: initializedTasks,
+            modelId: resolvedModelId,
+            instance: instanceName,
+          },
         });
         break;
       }

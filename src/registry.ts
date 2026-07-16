@@ -267,39 +267,6 @@ export const modelRegistry: ModelConfig[] = [
     },
   },
   {
-    task: "changestar-building-segmentation",
-    library: "geoai",
-    description:
-      "Segments buildings with ChangeStar ViT-B dense probability maps. Uses overlapped 1024px tiles with feather blending for large AOIs.",
-    examples: [
-      "Segment all building footprints in this city block.",
-      "Extract building polygons from this aerial image.",
-      "Map built structures with ChangeStar segmentation.",
-    ],
-    ioConfig: {} as {
-      inputs: {
-        polygon: GeoJSON.Feature;
-        confidenceThreshold?: number;
-      };
-      outputs: ObjectDetectionResults;
-    },
-    geobase_ai_pipeline: (
-      params: ProviderParams,
-      modelId: string = "geobase/changestar-building-segmentation-vitb",
-      modelParams: PretrainedModelOptions = {
-        dtype: "fp32",
-      }
-    ): Promise<{
-      instance: ChangeStarBuildingSegmentation;
-    }> => {
-      return ChangeStarBuildingSegmentation.getInstance(
-        modelId,
-        params,
-        modelParams
-      );
-    },
-  },
-  {
     task: "oil-storage-tank-detection",
     library: "geoai",
     description:
@@ -333,7 +300,7 @@ export const modelRegistry: ModelConfig[] = [
     task: "building-footprint-segmentation",
     library: "geoai",
     description:
-      "Segments the precise outlines (footprints) of buildings in imagery. Useful for mapping, urban planning, or disaster assessment.",
+      "Segments the precise outlines (footprints) of buildings in imagery. Supports the default footprint model and ChangeStar ViT-B via modelId. Useful for mapping, urban planning, or disaster assessment.",
     examples: [
       "Segment building footprints in this city block.",
       "Identify the outlines of all buildings in this image.",
@@ -352,8 +319,18 @@ export const modelRegistry: ModelConfig[] = [
       modelId: string = "geobase/building-footprint-segmentation",
       modelParams?: PretrainedModelOptions
     ): Promise<{
-      instance: BuildingFootPrintSegmentation;
+      instance:
+        | BuildingFootPrintSegmentation
+        | ChangeStarBuildingSegmentation;
     }> => {
+      // ChangeStar is dense soft-mask footprint segmentation, selected via modelId.
+      if (modelId.toLowerCase().includes("changestar")) {
+        return ChangeStarBuildingSegmentation.getInstance(
+          modelId,
+          params,
+          modelParams ?? { dtype: "fp32" }
+        );
+      }
       return BuildingFootPrintSegmentation.getInstance(
         modelId,
         params,
