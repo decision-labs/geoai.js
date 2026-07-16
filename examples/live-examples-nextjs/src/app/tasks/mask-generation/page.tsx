@@ -6,7 +6,7 @@ import MaplibreDraw from "maplibre-gl-draw";
 import type { StyleSpecification } from "maplibre-gl";
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
 import { GEOBASE_CONFIG, MAPBOX_CONFIG } from "../../../config";
-import { applyProviderMapSettings, getProviderParams } from "../../../utils/providerConfig";
+import { getProviderParams, restoreCameraAfterProviderChange } from "../../../utils/providerConfig";
 import { MapProvider } from "../../../types"
 import { BackgroundEffects, ExportButton, GlassmorphismCard, GradientButton, MapProviderSelector, StatusMessage, ZoomSlider, TaskDownloadProgress, CollapsibleAttribution } from "@/components";
 import { ClearPoint, PlayIcon, PlusIcon, ResetIcon } from "@/components/DetectionControls";
@@ -282,13 +282,13 @@ export default function MaskGeneration() {
 
     // Restore camera state after style loads
     map.current.once('styledata', () => {
-      map.current?.setCenter(currentCenter);
-      map.current?.setZoom(currentZoom);
-      map.current?.setBearing(currentBearing);
-      map.current?.setPitch(currentPitch);
-      if (map.current) {
-        applyProviderMapSettings(map.current, mapProvider);
-      }
+      if (!map.current) return;
+      restoreCameraAfterProviderChange(map.current, mapProvider, {
+        center: currentCenter,
+        zoom: currentZoom,
+        bearing: currentBearing,
+        pitch: currentPitch,
+      });
     });
   }, [mapProvider]);
 
