@@ -91,6 +91,7 @@ Public aerial orthophotos via STAC + TiTiler. No API key.
 ```
 
 Docs: https://docs.geobase.app/geoai/map-providers/oam
+Example: `examples/07-oam-quickstart`
 
 ## Map source params (all providers)
 

@@ -7,6 +7,7 @@ const ALL_PROVIDERS: { value: MapProvider; label: string }[] = [
   { value: "esri", label: "ESRI" },
   { value: "tms", label: "TMS" },
   { value: "wms", label: "WMS (NRW)" },
+  { value: "oam", label: "OAM (HOT)" },
 ];
 
 interface MapProviderSelectorProps {
@@ -52,6 +53,8 @@ export const MapProviderSelector: React.FC<MapProviderSelectorProps> = ({
             <span className="text-gray-500 text-xs">🌍</span>
           ) : value === "wms" ? (
             <span className="text-gray-500 text-xs">🗺️</span>
+          ) : value === "oam" ? (
+            <span className="text-gray-500 text-xs">✈️</span>
           ) : (
             <span className="text-gray-500 text-xs">🛰️</span>
           )}

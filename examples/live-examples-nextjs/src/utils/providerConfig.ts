@@ -1,4 +1,4 @@
-import type { ProviderParams, TmsParams, WmsParams } from 'geoai';
+import type { OamParams, ProviderParams, TmsParams, WmsParams } from 'geoai';
 import type maplibregl from 'maplibre-gl';
 import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from '../config';
 import type { MapProvider } from '../types';
@@ -67,6 +67,20 @@ export function buildWmsMapTileUrl(params: WmsParams): string {
 
 export const WMS_MAP_TILE_URL = buildWmsMapTileUrl(WMS_CONFIG);
 
+/** Rome — known OpenAerialMap coverage for live demos. */
+export const OAM_DEFAULT_CENTER: [number, number] = [12.49, 41.891];
+
+export const OAM_MOSAIC_TILE_URL =
+  'https://api.imagery.hotosm.org/raster/collections/openaerialmap/tiles/WebMercatorQuad/{z}/{x}/{y}?assets=visual';
+
+/** Mosaic for map + inference so display and pipeline stay aligned. */
+export const OAM_CONFIG: OamParams = {
+  provider: 'oam',
+  mosaic: true,
+  tileSize: 256,
+  attribution: 'OpenAerialMap / HOT Imagery',
+};
+
 type ProviderOptions = {
   cogImagery?: string;
 };
@@ -89,6 +103,8 @@ export function getProviderParams(
       return TMS_CONFIG;
     case 'wms':
       return WMS_CONFIG;
+    case 'oam':
+      return OAM_CONFIG;
     default:
       return ESRI_CONFIG;
   }
@@ -128,14 +144,15 @@ type CameraState = {
 };
 
 /**
- * After a style swap: restore the previous camera, or move to NRW when selecting WMS.
+ * After a style swap: restore the previous camera, or move to a known AOI for
+ * sparse providers (WMS → NRW, OAM → Rome).
  */
 export function restoreCameraAfterProviderChange(
   map: maplibregl.Map,
   mapProvider: MapProvider,
   previous: CameraState,
 ): void {
-  if (mapProvider === 'wms') {
+  if (mapProvider === 'wms' || mapProvider === 'oam') {
     applyProviderMapSettings(map, mapProvider);
     return;
   }
@@ -152,6 +169,10 @@ export function applyProviderMapSettings(map: maplibregl.Map, mapProvider: MapPr
     map.setMaxBounds(NRW_MAP_MAX_BOUNDS);
     // Always jump to NRW when selecting WMS — orthophotos only cover this extent.
     map.flyTo({ center: WMS_DEFAULT_CENTER, zoom: 17, duration: 1200 });
+  } else if (mapProvider === 'oam') {
+    map.setMaxBounds(null);
+    // OAM coverage is sparse — jump to Rome where demo imagery exists.
+    map.flyTo({ center: OAM_DEFAULT_CENTER, zoom: 16, duration: 1200 });
   } else {
     map.setMaxBounds(null);
   }

@@ -1,0 +1,32 @@
+{
+  "name": "07-oam-quickstart",
+  "version": "1.0.0",
+  "description": "Minimal GeoAI.js quickstart using the OpenAerialMap (OAM) provider",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@types/geojson": "^7946.0.13",
+    "geoai": "file:../../build",
+    "maplibre-gl": "^4.7.1",
+    "maplibre-gl-draw": "^1.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@vitejs/plugin-react": "^4.1.1",
+    "typescript": "^5.2.2",
+    "vite": "^4.5.0"
+  },
+  "peerDependencies": {
+    "@huggingface/transformers": "^3.7.3",
+    "onnxruntime-web": "^1.21.0"
+  }
+}

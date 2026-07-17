@@ -3047,6 +3047,8 @@ const results = await pipeline.inference({
 });
 ```
 
+**Interactive example:** [`examples/07-oam-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/07-oam-quickstart) — MapLibre + Rome OAM orthophoto + draw-to-detect.
+
 > By default the provider **STAC-searches** the AOI, picks the best item (lowest
 > GSD, then newest), and fetches XYZ tiles for that item. If nothing matches,
 > it falls back to the collection **mosaic**.
@@ -3143,6 +3145,8 @@ Community aerial orthophotos via the public [HOT Imagery](https://docs.imagery.h
 
 **Pros:** Free public aerial coverage where contributors have uploaded.\
 **Cons:** Sparse global coverage; not a substitute for basemap satellite everywhere.
+
+See [`examples/07-oam-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/07-oam-quickstart) for a minimal Vite + MapLibre demo over Rome imagery.
 
 ## Option 2: Dynamic COG tile servers
 
