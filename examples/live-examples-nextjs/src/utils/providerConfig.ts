@@ -1,6 +1,6 @@
 import type { OamParams, ProviderParams, TmsParams, WmsParams } from 'geoai';
 import type maplibregl from 'maplibre-gl';
-import { ESRI_CONFIG, GEOBASE_CONFIG, MAPBOX_CONFIG } from '../config';
+import { ESRI_CONFIG, GEOBASE_CONFIG, GOOGLE_CONFIG, MAPBOX_CONFIG } from '../config';
 import type { MapProvider } from '../types';
 
 /** ESRI World Imagery as TMS — same tiles, `provider: "tms"` pipeline. */
@@ -105,6 +105,8 @@ export function getProviderParams(
       return WMS_CONFIG;
     case 'oam':
       return OAM_CONFIG;
+    case 'google':
+      return GOOGLE_CONFIG;
     default:
       return ESRI_CONFIG;
   }

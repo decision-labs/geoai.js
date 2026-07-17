@@ -24,6 +24,7 @@ const PROVIDER_ZOOM_FALLBACK: Record<string, string> = {
   tms: 'esri',
   wms: 'esri',
   oam: 'esri',
+  google: 'mapbox',
 };
 
 export const getOptimumZoom = (task: string, provider: string): number | null => {

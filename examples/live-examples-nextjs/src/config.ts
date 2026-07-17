@@ -1,4 +1,4 @@
-import { GeobaseParams, ProviderParams } from "geoai";
+import { GeobaseParams, GoogleMapsParams } from "geoai";
 
 export const ESRI_CONFIG = {
   provider: "esri" as const,
@@ -19,6 +19,14 @@ export const MAPBOX_CONFIG = {
   provider: "mapbox" as const,
   apiKey: process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "test",
   style: "mapbox://styles/mapbox/satellite-v9",
+};
+
+/** Inference uses Google Map Tiles API; MapLibre basemap stays on ESRI (ToS). */
+export const GOOGLE_CONFIG: GoogleMapsParams = {
+  provider: "google",
+  apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+  mapType: "satellite",
+  attribution: "© Google Maps / Map Tiles API",
 };
 
 
