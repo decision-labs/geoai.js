@@ -186,6 +186,17 @@ const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
 });
 ```
 
+### OpenAerialMap (OAM)
+Community aerial imagery via HOT Imagery STAC + TiTiler — no API key.
+
+```javascript
+const pipeline = await geoai.pipeline([{ task: "object-detection" }], {
+  provider: "oam",
+  // itemId: "67826781a07cc20001818cdb", // optional pin
+  // mosaic: true, // optional: collection mosaic only
+});
+```
+
 ### ESRI
 ESRI World Imagery - no API key required.
 

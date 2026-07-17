@@ -35,6 +35,15 @@ See the [TMS provider](./tms) page for URL templates, schemes, and API keys.
 **Pros:** No tile-server ops; integrates with storage and auth.  
 **Cons:** Requires a Geobase project.
 
+## Option 1b: OpenAerialMap / HOT Imagery
+
+Community aerial orthophotos via the public [HOT Imagery](https://docs.imagery.hotosm.org/) STAC + TiTiler stack — no API key. Prefer the first-class [OAM provider](./oam) (`provider: "oam"`), which STAC-searches the AOI and fetches item XYZ tiles (or use `mosaic: true` / TMS with the mosaic template).
+
+**Pros:** Free public aerial coverage where contributors have uploaded.  
+**Cons:** Sparse global coverage; not a substitute for basemap satellite everywhere.
+
+See [`examples/07-oam-quickstart`](https://github.com/decision-labs/geoai.js/tree/main/examples/07-oam-quickstart) for a minimal Vite + MapLibre demo over Rome imagery.
+
 ## Option 2: Dynamic COG tile servers
 
 Serve tiles **on demand** from a COG (HTTP range reads, overviews) without pre-rendering a full pyramid.

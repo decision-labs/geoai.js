@@ -15,11 +15,15 @@ const mapZoomLookup: Record<string, number> = {
   "wms:object-detection": 18,
   "wms:building-detection": 17,
   "wms:car-detection": 20,
+  "oam:object-detection": 16,
+  "oam:building-detection": 16,
+  "oam:car-detection": 18,
 };
 
 const PROVIDER_ZOOM_FALLBACK: Record<string, string> = {
   tms: 'esri',
   wms: 'esri',
+  oam: 'esri',
 };
 
 export const getOptimumZoom = (task: string, provider: string): number | null => {

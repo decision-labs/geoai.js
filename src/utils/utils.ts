@@ -173,6 +173,18 @@ export const parametersChanged = (
         return true;
       }
       break;
+    case "oam":
+      if (
+        instance.providerParams?.stacUrl !== providerParams?.stacUrl ||
+        instance.providerParams?.rasterUrl !== providerParams?.rasterUrl ||
+        instance.providerParams?.collection !== providerParams?.collection ||
+        instance.providerParams?.asset !== providerParams?.asset ||
+        instance.providerParams?.itemId !== providerParams?.itemId ||
+        instance.providerParams?.mosaic !== providerParams?.mosaic
+      ) {
+        return true;
+      }
+      break;
   }
 
   // Compare modelParams if they exist

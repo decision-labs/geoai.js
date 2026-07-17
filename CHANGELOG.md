@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- OpenAerialMap (OAM) map provider — HOT Imagery STAC + TiTiler (`provider: "oam"`)
+- `examples/07-oam-quickstart` — Rome orthophoto draw-to-detect demo
+- OAM option in `live-examples-nextjs` (flies to Rome; mosaic tiles)
+
 ## [1.0.6] - 2026-07-16
 
 ### Added

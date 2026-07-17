@@ -91,6 +91,7 @@ Full task notes, defaults, and chain rules: [tasks.md](tasks.md).
 | `geobase` | projectRef + apikey + COG URL | Your own COG imagery |
 | `tms` | Optional | Any `{z}/{x}/{y}` raster tiles |
 | `wms` | Usually none | OGC GetMap endpoints |
+| `oam` | None | OpenAerialMap / HOT aerial imagery |
 
 Configs: [providers.md](providers.md).
 

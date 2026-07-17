@@ -1,6 +1,6 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
-import { TMS_TILE_URL, WMS_MAP_TILE_URL } from './providerConfig';
+import { OAM_MOSAIC_TILE_URL, TMS_TILE_URL, WMS_MAP_TILE_URL } from './providerConfig';
 
 interface MapConfig {
   projectRef?: string;
@@ -121,6 +121,12 @@ export function createBaseMapStyle(config: MapStyleConfig, options: BaseMapStyle
         tileSize: 256,
         attribution: "© Geobasis NRW / Bezirksregierung Köln",
       },
+      "oam-tiles": {
+        type: "raster",
+        tiles: [OAM_MOSAIC_TILE_URL],
+        tileSize: 256,
+        attribution: "OpenAerialMap / HOT Imagery",
+      },
     },
     layers: [
       {
@@ -171,6 +177,16 @@ export function createBaseMapStyle(config: MapStyleConfig, options: BaseMapStyle
         maxzoom: maxZoom,
         layout: {
           visibility: mapProvider === "wms" ? "visible" : "none",
+        },
+      },
+      {
+        id: "oam-layer",
+        type: "raster",
+        source: "oam-tiles",
+        minzoom: 0,
+        maxzoom: maxZoom,
+        layout: {
+          visibility: mapProvider === "oam" ? "visible" : "none",
         },
       },
     ],

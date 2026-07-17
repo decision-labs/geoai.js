@@ -75,6 +75,24 @@ See serving options: https://docs.geobase.app/geoai/map-providers/serving-raster
 
 Discover layer names via `GetCapabilities`. Prefer TMS when XYZ tiles already exist.
 
+## OpenAerialMap (OAM / HOT Imagery)
+
+Public aerial orthophotos via STAC + TiTiler. No API key.
+
+```typescript
+// Auto: STAC-search AOI → best item tiles (mosaic fallback)
+{ provider: 'oam' }
+
+// Pin a known STAC item
+{ provider: 'oam', itemId: '67826781a07cc20001818cdb' }
+
+// Collection mosaic only
+{ provider: 'oam', mosaic: true }
+```
+
+Docs: https://docs.geobase.app/geoai/map-providers/oam
+Example: `examples/07-oam-quickstart`
+
 ## Map source params (all providers)
 
 ```typescript

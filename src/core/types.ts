@@ -75,6 +75,25 @@ export type WmsParams = {
   extraParams?: Record<string, string>;
 };
 
+export type OamParams = {
+  provider: "oam";
+  /** STAC API root (default https://api.imagery.hotosm.org/stac). */
+  stacUrl?: string;
+  /** Raster/TiTiler API root (default https://api.imagery.hotosm.org/raster). */
+  rasterUrl?: string;
+  /** STAC collection id (default openaerialmap). */
+  collection?: string;
+  /** Asset key for RGB tiles (default visual). */
+  asset?: string;
+  /** Pin to a specific STAC item id (skips search). */
+  itemId?: string;
+  /** Use collection mosaic tiles instead of per-item STAC search. */
+  mosaic?: boolean;
+  attribution?: string;
+  tileSize?: number;
+  headers?: Record<string, string>;
+};
+
 export interface InferenceInputs {
   polygon: GeoJSON.Feature;
   classLabel?: string;
@@ -110,7 +129,8 @@ export type ProviderParams =
   | GeobaseParams
   | EsriParams
   | TmsParams
-  | WmsParams;
+  | WmsParams
+  | OamParams;
 
 export type HuggingFaceModelTask =
   | "mask-generation"

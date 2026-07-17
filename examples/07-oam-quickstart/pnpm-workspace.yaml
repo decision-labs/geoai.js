@@ -1,0 +1,8 @@
+# geoai is linked from ../../build; global-mercator is bundled inside geoai.js
+blockExoticSubdeps: false
+
+allowBuilds:
+  esbuild: true
+  onnxruntime-node: false
+  protobufjs: false
+  sharp: false
