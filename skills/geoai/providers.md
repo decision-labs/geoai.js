@@ -93,6 +93,23 @@ Public aerial orthophotos via STAC + TiTiler. No API key.
 Docs: https://docs.geobase.app/geoai/map-providers/oam
 Example: `examples/07-oam-quickstart`
 
+## Google Maps (Map Tiles API)
+
+Global satellite imagery. Requires a Google Maps Platform API key with Map Tiles API enabled.
+
+```typescript
+{
+  provider: 'google',
+  apiKey: process.env.GOOGLE_MAPS_API_KEY,
+  // optional: mapType: 'satellite',
+  // optional: sessionToken: '...',
+}
+```
+
+Creates a session on first fetch (`/v1/createSession`), then requests
+`/v1/2dtiles/{z}/{x}/{y}`. Follow Google attribution and caching policies.
+Docs: https://docs.geobase.app/geoai/map-providers/google
+
 ## Map source params (all providers)
 
 ```typescript

@@ -1,6 +1,6 @@
 # GeoAI.js
 
-> JavaScript library for running geospatial AI models (detection, segmentation, classification, DINOv3 features) in the browser against satellite/aerial imagery from ESRI, Mapbox, Geobase, TMS, WMS, or OpenAerialMap.
+> JavaScript library for running geospatial AI models (detection, segmentation, classification, DINOv3 features) in the browser against satellite/aerial imagery from ESRI, Mapbox, Geobase, TMS, WMS, OpenAerialMap, or Google Maps.
 
 Package: `geoai` on npm. Peer deps: `@huggingface/transformers`, `onnxruntime-web`.
 
@@ -23,6 +23,7 @@ Package: `geoai` on npm. Peer deps: `@huggingface/transformers`, `onnxruntime-we
 - [TMS](https://docs.geobase.app/geoai/map-providers/tms): Custom `{z}/{x}/{y}` raster tiles
 - [WMS](https://docs.geobase.app/geoai/map-providers/wms): OGC GetMap endpoints
 - [OpenAerialMap](https://docs.geobase.app/geoai/map-providers/oam): HOT / OAM aerial orthophotos (STAC + TiTiler)
+- [Google Maps](https://docs.geobase.app/geoai/map-providers/google): Map Tiles API satellite (session + XYZ)
 - [Serving raster tiles](https://docs.geobase.app/geoai/map-providers/serving-raster-tiles): COG → tile workflows
 
 ## Supported tasks

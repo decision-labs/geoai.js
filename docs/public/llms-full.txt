@@ -438,9 +438,9 @@ Planned backlog (repo): [ROADMAP.md](https://github.com/decision-labs/geoai.js/b
 | [TMS](./map-providers/tms)         | Custom raster tile URLs (COG, XYZ pyramids) | Optional       |
 | [WMS](./map-providers/wms)         | OGC WMS GetMap (e.g. Geobasis NRW orthophotos) | None (public)  |
 | [OpenAerialMap](./map-providers/oam) | HOT / OAM aerial orthophotos via STAC + TiTiler | None (public) |
-| Google Maps                        | 🚧 Coming Soon - Global satellite imagery | -              |
+| [Google Maps](./map-providers/google) | Global satellite via Map Tiles API (session + XYZ) | API Key |
 
-> **Geobase** — your own COG imagery with full control. **Mapbox / ESRI** — ready-to-use
+> **Geobase** — your own COG imagery with full control. **Mapbox / ESRI / Google** — ready-to-use
 > global satellite coverage. **TMS** — any raster `{z}/{x}/{y}` URL. **WMS** — OGC GetMap
 > endpoints. **OAM** — community aerial imagery from OpenAerialMap / HOT. See [Serving raster tiles](./map-providers/serving-raster-tiles) for COG and
 > tile-server options.
@@ -2968,6 +2968,68 @@ type GeobaseParams = {
 
 > Serves your own Cloud Optimized GeoTIFF (COG) imagery. Task compatibility
 > depends on your COG specifications (resolution, bands, etc.)
+
+---
+
+<!-- map-providers/google.mdx -->
+<!-- https://docs.geobase.app/geoai/map-providers/google -->
+
+# Google Maps
+
+> Global satellite imagery via the Google Map Tiles API (session + XYZ)
+
+Use Google's **Map Tiles API** 2D satellite tiles for GeoAI inference. Requires a Google Maps Platform API key with **Map Tiles API** enabled (billing required).
+
+## Setup
+
+```typescript
+import { geoai } from "geoai";
+
+const pipeline = await geoai.pipeline([{ task: "building-detection" }], {
+  provider: "google",
+  apiKey: process.env.GOOGLE_MAPS_API_KEY!,
+  // optional: mapType: "satellite",
+  // optional: sessionToken: "...", // reuse a pre-created session
+});
+
+const results = await pipeline.inference({
+  inputs: { polygon: myPolygon },
+  mapSourceParams: { zoomLevel: 18 },
+});
+```
+
+> The provider creates a Map Tiles **session** (`POST /v1/createSession`) on
+> first image fetch, caches it, and refreshes near expiry. Tile requests use
+> `GET /v1/2dtiles/{z}/{x}/{y}?session=…&key=…`.
+
+## Parameters
+
+```typescript
+type GoogleMapsParams = {
+  provider: "google";
+  apiKey: string;
+  mapType?: "satellite" | "roadmap" | "terrain"; // default satellite
+  language?: string; // default en-US
+  region?: string; // default US
+  sessionToken?: string; // optional pre-created session
+  attribution?: string;
+  tileSize?: number;
+  headers?: Record<string, string>;
+};
+```
+
+## Notes
+
+- **Not free** — Map Tiles API is billed per request; enable the API in your GCP project.
+- **Terms of Service** — follow [Map Tiles API policies](https://developers.google.com/maps/documentation/tile/policies) (attribution, caching limits). Do not scrape unofficial `mt*.google.com` tile hosts.
+- **Map UI** — MapLibre cannot legally use Google tiles as a basemap in most cases. Prefer ESRI/Mapbox/OAM for map display and Google for **inference**, or use the Google Maps JavaScript SDK for the map layer.
+- **CORS** — browser apps may need a same-origin proxy for `tile.googleapis.com` depending on deployment.
+
+## References
+
+- [Map Tiles API overview](https://developers.google.com/maps/documentation/tile/overview)
+- [Session tokens](https://developers.google.com/maps/documentation/tile/session_tokens)
+- [Satellite tiles](https://developers.google.com/maps/documentation/tile/satellite)
 
 ---
 

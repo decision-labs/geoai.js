@@ -185,6 +185,15 @@ export const parametersChanged = (
         return true;
       }
       break;
+    case "google":
+      if (
+        instance.providerParams?.apiKey !== providerParams?.apiKey ||
+        instance.providerParams?.mapType !== providerParams?.mapType ||
+        instance.providerParams?.sessionToken !== providerParams?.sessionToken
+      ) {
+        return true;
+      }
+      break;
   }
 
   // Compare modelParams if they exist
