@@ -21,11 +21,14 @@ export const MAPBOX_CONFIG = {
   style: "mapbox://styles/mapbox/satellite-v9",
 };
 
-/** Inference uses Google Map Tiles API; MapLibre basemap stays on ESRI (ToS). */
+/** Inference via Google Map Tiles through a same-origin proxy (server holds the key). */
 export const GOOGLE_CONFIG: GoogleMapsParams = {
   provider: "google",
-  apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+  // Key is injected by /api/google-tiles; not sent from the browser.
+  apiKey: "proxy",
   mapType: "satellite",
+  tileApiUrl: `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/api/google-tiles`,
+  includeApiKey: false,
   attribution: "© Google Maps / Map Tiles API",
 };
 

@@ -71,6 +71,32 @@ describe("Google Maps helpers", () => {
 });
 
 describe("GoogleMaps provider", () => {
+  it("omits api key from URLs when includeApiKey is false", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        session: "sess-proxy",
+        expiry: String(Math.floor(Date.now() / 1000) + 3600),
+      }),
+    });
+
+    const google = new GoogleMaps({
+      apiKey: "unused",
+      includeApiKey: false,
+      tileApiUrl: "http://localhost/api/google-tiles",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+
+    await google.ensureSession();
+    const [url] = fetchImpl.mock.calls[0];
+    expect(url).toBe("http://localhost/api/google-tiles/v1/createSession");
+    expect(url).not.toContain("key=");
+
+    const tileUrl = google["getTileUrlFromTileCoords"]([1, 2, 3], google);
+    expect(tileUrl).toContain("/v1/2dtiles/3/1/2?session=sess-proxy");
+    expect(tileUrl).not.toContain("key=");
+  });
+
   it("requires apiKey", () => {
     expect(() => new GoogleMaps({ apiKey: "" })).toThrow(/apiKey/);
   });

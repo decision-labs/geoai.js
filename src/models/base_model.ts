@@ -121,6 +121,8 @@ export abstract class BaseModel {
           language: this.providerParams.language,
           region: this.providerParams.region,
           sessionToken: this.providerParams.sessionToken,
+          tileApiUrl: this.providerParams.tileApiUrl,
+          includeApiKey: this.providerParams.includeApiKey,
           attribution: this.providerParams.attribution,
           tileSize: this.providerParams.tileSize,
           headers: this.providerParams.headers,

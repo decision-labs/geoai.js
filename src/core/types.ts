@@ -104,6 +104,13 @@ export type GoogleMapsParams = {
   region?: string;
   /** Optional pre-created session token (skips createSession until expiry). */
   sessionToken?: string;
+  /** Override API root (e.g. same-origin proxy). Default https://tile.googleapis.com */
+  tileApiUrl?: string;
+  /**
+   * When false, omit `key=` from requests (proxy injects the server key).
+   * Default true.
+   */
+  includeApiKey?: boolean;
   attribution?: string;
   tileSize?: number;
   headers?: Record<string, string>;

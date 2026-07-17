@@ -17,8 +17,13 @@ export interface GoogleConfig {
    * one via `POST /v1/createSession` and refreshes near expiry.
    */
   sessionToken?: string;
-  /** Session API root (default https://tile.googleapis.com). */
+  /** Session/tile API root (default https://tile.googleapis.com). */
   tileApiUrl?: string;
+  /**
+   * When false, omit `key=` from createSession/tile URLs (use with a same-origin
+   * proxy that injects the server-side API key). Default true.
+   */
+  includeApiKey?: boolean;
   attribution?: string;
   tileSize?: number;
   headers?: Record<string, string>;
@@ -36,9 +41,13 @@ export interface GoogleSessionResponse {
 
 export function buildGoogleCreateSessionUrl(
   apiKey: string,
-  tileApiUrl: string = DEFAULT_GOOGLE_TILE_API_URL
+  tileApiUrl: string = DEFAULT_GOOGLE_TILE_API_URL,
+  includeApiKey: boolean = true
 ): string {
   const base = tileApiUrl.replace(/\/$/, "");
+  if (!includeApiKey) {
+    return `${base}/v1/createSession`;
+  }
   return `${base}/v1/createSession?key=${encodeURIComponent(apiKey)}`;
 }
 
@@ -48,14 +57,17 @@ export function buildGoogleTileUrl(
   y: number,
   sessionToken: string,
   apiKey: string,
-  tileApiUrl: string = DEFAULT_GOOGLE_TILE_API_URL
+  tileApiUrl: string = DEFAULT_GOOGLE_TILE_API_URL,
+  includeApiKey: boolean = true
 ): string {
   const base = tileApiUrl.replace(/\/$/, "");
-  return (
+  let url =
     `${base}/v1/2dtiles/${z}/${x}/${y}` +
-    `?session=${encodeURIComponent(sessionToken)}` +
-    `&key=${encodeURIComponent(apiKey)}`
-  );
+    `?session=${encodeURIComponent(sessionToken)}`;
+  if (includeApiKey) {
+    url += `&key=${encodeURIComponent(apiKey)}`;
+  }
+  return url;
 }
 
 /**
@@ -68,18 +80,21 @@ export async function createGoogleSession(options: {
   language?: string;
   region?: string;
   tileApiUrl?: string;
+  includeApiKey?: boolean;
   headers?: Record<string, string>;
   fetchImpl?: typeof fetch;
 }): Promise<GoogleSessionResponse> {
   const apiKey = options.apiKey;
-  if (!apiKey) {
+  const includeApiKey = options.includeApiKey !== false;
+  if (includeApiKey && !apiKey) {
     throw new Error("Google Maps provider requires an apiKey");
   }
 
   const fetchImpl = options.fetchImpl || fetch;
   const url = buildGoogleCreateSessionUrl(
     apiKey,
-    options.tileApiUrl || DEFAULT_GOOGLE_TILE_API_URL
+    options.tileApiUrl || DEFAULT_GOOGLE_TILE_API_URL,
+    includeApiKey
   );
 
   const response = await fetchImpl(url, {
@@ -115,6 +130,7 @@ export class GoogleMaps extends MapSource {
   language: string;
   region: string;
   tileApiUrl: string;
+  includeApiKey: boolean;
   attribution: string;
   tileSize: number;
   headers?: Record<string, string>;
@@ -126,10 +142,11 @@ export class GoogleMaps extends MapSource {
 
   constructor(config: GoogleConfig) {
     super();
-    if (!config.apiKey) {
+    this.includeApiKey = config.includeApiKey !== false;
+    if (this.includeApiKey && !config.apiKey) {
       throw new Error("Google Maps provider requires an apiKey");
     }
-    this.apiKey = config.apiKey;
+    this.apiKey = config.apiKey || "";
     this.mapType = config.mapType || DEFAULT_GOOGLE_MAP_TYPE;
     this.language = config.language || "en-US";
     this.region = config.region || "US";
@@ -169,6 +186,7 @@ export class GoogleMaps extends MapSource {
       language: this.language,
       region: this.region,
       tileApiUrl: this.tileApiUrl,
+      includeApiKey: this.includeApiKey,
       headers: this.headers,
       fetchImpl: this.fetchImpl,
     });
@@ -217,7 +235,8 @@ export class GoogleMaps extends MapSource {
       y,
       instance.sessionToken,
       instance.apiKey,
-      instance.tileApiUrl
+      instance.tileApiUrl,
+      instance.includeApiKey
     );
   }
 }

@@ -49,9 +49,10 @@ type GoogleMapsParams = {
 ## Notes
 
 - **Not free** — Map Tiles API is billed per request; enable the API in your GCP project.
+- **API key restrictions** — Map Tiles is a **web service**. Do **not** use an HTTP-referrer–restricted key (Maps JavaScript keys). Use **no application restriction** or **IP** restriction. Referrer-restricted keys often fail with `401 API keys are not supported` / `CREDENTIALS_MISSING`.
+- **Browser apps** — prefer a same-origin proxy that keeps the key server-side (see live-examples `/api/google-tiles`).
 - **Terms of Service** — follow [Map Tiles API policies](https://developers.google.com/maps/documentation/tile/policies) (attribution, caching limits). Do not scrape unofficial `mt*.google.com` tile hosts.
 - **Map UI** — MapLibre cannot legally use Google tiles as a basemap in most cases. Prefer ESRI/Mapbox/OAM for map display and Google for **inference**, or use the Google Maps JavaScript SDK for the map layer.
-- **CORS** — browser apps may need a same-origin proxy for `tile.googleapis.com` depending on deployment.
 
 ## References
 
