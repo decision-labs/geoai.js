@@ -16,6 +16,6 @@ npx --yes serve -p 5175 .
 
 ## Notes
 
-- Uses CDN `geoai@1.0.6` + deck.gl 9.1
+- Uses CDN `geoai@1.0.7` + deck.gl 9.1
 - Draw a polygon over tanks near Dubai (default view), then finish to run inference
 - `codepen.html` is a single-file variant for CodePen / paste-bin use

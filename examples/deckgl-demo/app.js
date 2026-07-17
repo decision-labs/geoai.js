@@ -1,4 +1,4 @@
-import { geoai } from "https://cdn.jsdelivr.net/npm/geoai@1.0.6/geoai.js";
+import { geoai } from "https://cdn.jsdelivr.net/npm/geoai@1.0.7/geoai.js";
 
 const { Deck, TileLayer, BitmapLayer, GeoJsonLayer, ScatterplotLayer } = deck;
 

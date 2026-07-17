@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-07-17
+
 ### Added
 - OpenAerialMap (OAM) map provider — HOT Imagery STAC + TiTiler (`provider: "oam"`)
 - `examples/07-oam-quickstart` — Rome orthophoto draw-to-detect demo
 - OAM option in `live-examples-nextjs` (flies to Rome; mosaic tiles)
+
+### Fixed
+- Docs Vercel prebuild: ship `remark` deps with docs and run `generate-llms-txt` from `docs/scripts/` so module resolution works when the Vercel root is `docs/`
 
 ## [1.0.6] - 2026-07-16
 
