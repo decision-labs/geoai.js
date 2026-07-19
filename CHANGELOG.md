@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Google Maps provider (`provider: "google"`) via Map Tiles API session + 2D satellite XYZ tiles
+
 ## [1.0.7] - 2026-07-17
 
 ### Added

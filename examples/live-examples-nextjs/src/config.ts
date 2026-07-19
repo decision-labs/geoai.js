@@ -1,4 +1,4 @@
-import { GeobaseParams, ProviderParams } from "geoai";
+import { GeobaseParams, GoogleMapsParams } from "geoai";
 
 export const ESRI_CONFIG = {
   provider: "esri" as const,
@@ -19,6 +19,17 @@ export const MAPBOX_CONFIG = {
   provider: "mapbox" as const,
   apiKey: process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "test",
   style: "mapbox://styles/mapbox/satellite-v9",
+};
+
+/** Inference via Google Map Tiles through a same-origin proxy (server holds the key). */
+export const GOOGLE_CONFIG: GoogleMapsParams = {
+  provider: "google",
+  // Key is injected by /api/google-tiles; not sent from the browser.
+  apiKey: "proxy",
+  mapType: "satellite",
+  tileApiUrl: `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/api/google-tiles`,
+  includeApiKey: false,
+  attribution: "© Google Maps / Map Tiles API",
 };
 
 

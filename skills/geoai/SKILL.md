@@ -92,6 +92,7 @@ Full task notes, defaults, and chain rules: [tasks.md](tasks.md).
 | `tms` | Optional | Any `{z}/{x}/{y}` raster tiles |
 | `wms` | Usually none | OGC GetMap endpoints |
 | `oam` | None | OpenAerialMap / HOT aerial imagery |
+| `google` | API key | Google Map Tiles API satellite |
 
 Configs: [providers.md](providers.md).
 

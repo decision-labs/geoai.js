@@ -94,6 +94,28 @@ export type OamParams = {
   headers?: Record<string, string>;
 };
 
+export type GoogleMapsParams = {
+  provider: "google";
+  /** Google Maps Platform API key with Map Tiles API enabled. */
+  apiKey: string;
+  /** 2D map type for the session (default satellite). */
+  mapType?: "satellite" | "roadmap" | "terrain";
+  language?: string;
+  region?: string;
+  /** Optional pre-created session token (skips createSession until expiry). */
+  sessionToken?: string;
+  /** Override API root (e.g. same-origin proxy). Default https://tile.googleapis.com */
+  tileApiUrl?: string;
+  /**
+   * When false, omit `key=` from requests (proxy injects the server key).
+   * Default true.
+   */
+  includeApiKey?: boolean;
+  attribution?: string;
+  tileSize?: number;
+  headers?: Record<string, string>;
+};
+
 export interface InferenceInputs {
   polygon: GeoJSON.Feature;
   classLabel?: string;
@@ -130,7 +152,8 @@ export type ProviderParams =
   | EsriParams
   | TmsParams
   | WmsParams
-  | OamParams;
+  | OamParams
+  | GoogleMapsParams;
 
 export type HuggingFaceModelTask =
   | "mask-generation"

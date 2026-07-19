@@ -4,6 +4,7 @@ import { Esri } from "@/data_providers/esri";
 import { Tms } from "@/data_providers/tms";
 import { Wms } from "@/data_providers/wms";
 import { Oam } from "@/data_providers/oam";
+import { GoogleMaps } from "@/data_providers/google";
 import { ProviderParams } from "@/geoai";
 import { PretrainedModelOptions } from "@huggingface/transformers";
 import { GeoRawImage } from "@/types/images/GeoRawImage";
@@ -12,7 +13,15 @@ import { InferenceParams } from "@/core/types";
 export abstract class BaseModel {
   protected static instance: BaseModel | null = null;
   protected providerParams: ProviderParams;
-  protected dataProvider: Mapbox | Geobase | Esri | Tms | Wms | Oam | undefined;
+  protected dataProvider:
+    | Mapbox
+    | Geobase
+    | Esri
+    | Tms
+    | Wms
+    | Oam
+    | GoogleMaps
+    | undefined;
   protected model_id: string;
   protected initialized: boolean = false;
   protected modelParams?: PretrainedModelOptions;
@@ -100,6 +109,20 @@ export abstract class BaseModel {
           asset: this.providerParams.asset,
           itemId: this.providerParams.itemId,
           mosaic: this.providerParams.mosaic,
+          attribution: this.providerParams.attribution,
+          tileSize: this.providerParams.tileSize,
+          headers: this.providerParams.headers,
+        });
+        break;
+      case "google":
+        this.dataProvider = new GoogleMaps({
+          apiKey: this.providerParams.apiKey,
+          mapType: this.providerParams.mapType,
+          language: this.providerParams.language,
+          region: this.providerParams.region,
+          sessionToken: this.providerParams.sessionToken,
+          tileApiUrl: this.providerParams.tileApiUrl,
+          includeApiKey: this.providerParams.includeApiKey,
           attribution: this.providerParams.attribution,
           tileSize: this.providerParams.tileSize,
           headers: this.providerParams.headers,

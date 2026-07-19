@@ -156,7 +156,7 @@ export function createBaseMapStyle(config: MapStyleConfig, options: BaseMapStyle
         minzoom: 0,
         maxzoom: maxZoom,
         layout: {
-          visibility: mapProvider === "esri" ? "visible" : "none",
+          visibility: mapProvider === "esri" || mapProvider === "google" ? "visible" : "none",
         },
       },
       {

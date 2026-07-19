@@ -1,1 +1,1 @@
-export type MapProvider = "geobase" | "mapbox" | "esri" | "tms" | "wms" | "oam";
+export type MapProvider = "geobase" | "mapbox" | "esri" | "tms" | "wms" | "oam" | "google";
