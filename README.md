@@ -102,7 +102,7 @@ Persist detections, sync in real time, and serve results as vector tiles.
 |-------|----------------|
 | **[Supabase](examples/04-geoai-supabase-geobase-integration)** | Auth, PostGIS storage, realtime subscriptions for detection history |
 | **[Geobase](examples/04-geoai-supabase-geobase-integration)** | Same PostGIS path **plus** vector tileserver for thousands of styled detections |
-| **MapLibre / React** | Live task demos and quickstarts |
+| **[MapLibre / React](examples/live-examples-nextjs)** | Interactive task demos ([live](https://docs.geobase.app/geoai-live)); also [`01-quickstart`](examples/01-quickstart) |
 | **[deck.gl](examples/deckgl-demo)** | GPU-friendly overlay workflows |
 | **Agent skill** | Cursor / Claude / Codex integration via [`skills/geoai`](skills/geoai) |
 
