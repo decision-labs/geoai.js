@@ -35,7 +35,7 @@ Before getting started, ensure you have:
 
 - Basic React/TypeScript knowledge
 - Node.js 16+ installed
-- A map provider API key (Geobase or Mapbox)
+- A map provider (ESRI works with no API key; Mapbox/Geobase/Google need credentials)
 
 > Make sure your Node.js version is 16 or higher for compatibility with the
 > latest dependencies.
@@ -336,7 +336,8 @@ graph TD
 
 Map source providers abstract the process of fetching satellite imagery from different sources (Geobase, Mapbox, etc.). They handle tile-based image retrieval, coordinate transformations, and provide a unified interface for accessing geospatial imagery regardless of the underlying provider.
 
-> **Supported Providers:** Geobase (custom COG imagery), Mapbox (global satellite), with Google Maps and Esri ArcGIS coming soon.
+> **Supported Providers:** Geobase (your COG imagery), Mapbox, ESRI World Imagery,
+> TMS/XYZ, WMS, OpenAerialMap / HOT Imagery, and Google Maps (Map Tiles API).
 
 ## 4. [Model Pipeline](./concepts/model-pipeline)
 
@@ -1087,19 +1088,17 @@ interface TaskConfig {
 #### ProviderParams
 
 ```typescript
-interface ProviderParams {
-  provider: "geobase" | "mapbox";
-
-  // Geobase config
-  projectRef?: string;
-  apikey?: string;
-  cogImagery?: string;
-
-  // Mapbox config
-  apiKey?: string;
-  style?: string;
-}
+type ProviderParams =
+  | { provider: "esri" }
+  | { provider: "mapbox"; apiKey: string; style: string }
+  | { provider: "geobase"; projectRef: string; apikey: string; cogImagery: string }
+  | { provider: "tms"; baseUrl: string; /* … */ }
+  | { provider: "wms"; baseUrl: string; layers: string; /* … */ }
+  | { provider: "oam"; itemId?: string; mosaic?: boolean }
+  | { provider: "google"; apiKey: string; /* … */ };
 ```
+
+See [Map Providers](/map-providers) for full parameter docs.
 
 #### Returns
 

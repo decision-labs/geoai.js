@@ -91,20 +91,17 @@ interface TaskConfig {
 #### ProviderParams
 
 ```typescript
-interface ProviderParams {
-  provider: "geobase" | "mapbox";
-
-  // Geobase config
-  projectRef?: string;
-  apikey?: string;
-  cogImagery?: string;
-
-  // Mapbox config
-  apiKey?: string;
-  style?: string;
-}
+type ProviderParams =
+  | { provider: "esri" }
+  | { provider: "mapbox"; apiKey: string; style: string }
+  | { provider: "geobase"; projectRef: string; apikey: string; cogImagery: string }
+  | { provider: "tms"; baseUrl: string; /* … */ }
+  | { provider: "wms"; baseUrl: string; layers: string; /* … */ }
+  | { provider: "oam"; itemId?: string; mosaic?: boolean }
+  | { provider: "google"; apiKey: string; /* … */ };
 ```
 
+See [Map Providers](/map-providers) for full parameter docs.
 #### Returns
 
 Returns a `ModelInstance` (single task) or `ChainInstance` (multiple tasks) with an `inference` method.
