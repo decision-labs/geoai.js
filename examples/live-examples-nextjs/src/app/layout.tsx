@@ -63,11 +63,6 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "your-google-verification-code",
-    yandex: "your-yandex-verification-code",
-    yahoo: "your-yahoo-verification-code",
-  },
 };
 
 export default function RootLayout({
@@ -76,14 +71,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
         {/* Ensure relative URLs resolve from the base path in all routes */}
         <base href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/`} />
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        />
         {/* Favicon and icons */}
         <link rel="apple-touch-icon" sizes="180x180" href="/geoai-live/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/geoai-live/favicon-32x32.png" />
@@ -140,9 +131,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.className} antialiased`}>
         {children}
       </body>
     </html>

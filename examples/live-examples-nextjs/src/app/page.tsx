@@ -1,775 +1,656 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import maplibregl from "maplibre-gl";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import GitHubButton from 'react-github-btn'
-import { Grid3X3, Layers } from 'lucide-react';
-import { GITHUB_REPO_URI, NPM_PACKAGE_NAME } from '../config';
-import { MobileNavigation } from '../components';
-import { GitHubStarsButton } from '@/components/ui/shadcn-io/github-stars-button';
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { Grid3X3, Layers } from "lucide-react";
+import { GITHUB_REPO_URI, NPM_PACKAGE_NAME } from "../config";
+import { MobileNavigation } from "../components";
+import { GitHubStarsButton } from "@/components/ui/shadcn-io/github-stars-button";
 
-const GEOBASE_CONFIG = {
-  projectRef: process.env.NEXT_PUBLIC_GEOBASE_PROJECT_REF,
-  apikey: process.env.NEXT_PUBLIC_GEOBASE_API_KEY,
-  cogImagery:
-    "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/object-detection.tif",
-  provider: "geobase",
-};
-
-export default function Home() {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<maplibregl.Map | null>(null);
+function LazyVideo({
+  src,
+  className,
+}: {
+  src: string;
+  className?: string;
+}) {
+  const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    const el = ref.current;
+    if (!el) return;
 
-    console.log("Initializing map...");
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: "raster",
-            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-            tileSize: 256,
-            attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          },
-          "raster-tiles": {
-            type: "raster",
-            tiles: [
-              `${process.env.NEXT_PUBLIC_BASE_PATH}/api/tiles/WebMercatorQuad/{z}/{x}/{y}?url=${GEOBASE_CONFIG.cogImagery}&apikey=${GEOBASE_CONFIG.apikey}`,
-            ],
-            tileSize: 256,
-            attribution:
-              'Data &copy; <a href="https://openaerialmap.org/" target="_blank">OpenAerialMap</a> contributors',
-          },
-          "mapbox-satellite": {
-            type: "raster",
-            tiles: [
-              `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ""}`,
-            ],
-            tileSize: 256,
-          },
-        },
-        layers: [
-          {
-            id: "osm-tiles",
-            type: "raster",
-            source: "osm",
-            minzoom: 0,
-            maxzoom: 19,
-          },
-          {
-            id: "simple-tiles",
-            type: "raster",
-            source: "raster-tiles",
-            minzoom: 0,
-            maxzoom: 22,
-          },
-        ],
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (el.dataset.src && !el.src) {
+            el.src = el.dataset.src;
+          }
+          void el.play().catch(() => {});
+        } else {
+          el.pause();
+        }
       },
-      center: [114.84857638295142, -3.449805712621256],
-      zoom: 18,
-    });
+      { rootMargin: "240px 0px" }
+    );
 
-    return () => {
-      console.log("Cleaning up map...");
-      if (map.current) {
-        map.current.remove();
-      }
-    };
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
-  // return (
-  //   <main className="w-full h-screen flex">
-  //     {/* Sidebar */}
-  //     <Sidebar map={map} />
-  //     {/* Map Container */}
-  //     <div className="flex-1 h-full relative">
-  //       <div ref={mapContainer} className="w-full h-full" />
-  //     </div>
-  //   </main>
-  // );
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white scroll-smooth">
-      {/* Header */}
-      <header className="fixed w-full p-3 sm:p-5 z-50">
-        <div className="bg-gray-800/80 border border-gray-600 rounded-2xl backdrop-blur-sm mx-auto max-w-6xl px-4 md:px-6 shadow-xl">
-          <div className="flex items-center justify-between py-4 lg:py-6 relative">
-            {/* Logo - Responsive positioning */}
-            <a className="text-white lg:absolute lg:left-0 lg:top-1/2 lg:-translate-y-1/2" href="/geoai-live">
-              <div className="flex items-center">
-                <img
-                  src="/geoai-live/javascript-logo.svg"
-                  alt="JavaScript logo"
-                  className="h-5 w-auto mr-2 sm:h-6"
-                />
-                <pre className="text-lg font-bold text-white font-mono sm:text-xl">
-                  {NPM_PACKAGE_NAME}
-                </pre>
-              </div>
+    <video
+      ref={ref}
+      data-src={src}
+      className={className}
+      muted
+      loop
+      playsInline
+      preload="none"
+    />
+  );
+}
+
+const PROVIDERS = [
+  {
+    name: "Geobase",
+    src: "/geoai-live/provider-logos/geobase.svg",
+    href: "https://geobase.app",
+    available: true,
+  },
+  {
+    name: "Mapbox",
+    src: "/geoai-live/provider-logos/mapbox.svg",
+    available: true,
+  },
+  {
+    name: "ESRI",
+    src: "/geoai-live/provider-logos/esri.svg",
+    available: true,
+    scale: 0.85,
+  },
+  {
+    name: "Google Maps",
+    src: "/geoai-live/provider-logos/google-maps.svg",
+    available: true,
+  },
+  {
+    name: "OpenAerialMap",
+    href: "https://docs.geobase.app/geoai/map-providers/oam",
+    icon: "oam" as const,
+    available: true,
+  },
+  {
+    name: "TMS",
+    href: "https://docs.geobase.app/geoai/map-providers/tms",
+    icon: "tms" as const,
+    available: true,
+  },
+  {
+    name: "WMS",
+    href: "https://docs.geobase.app/geoai/map-providers/wms",
+    icon: "wms" as const,
+    available: true,
+  },
+] as const;
+
+type TaskCard = {
+  href: string;
+  title: string;
+  description: string;
+  video: string;
+  badge?: string;
+};
+
+const TASKS: TaskCard[] = [
+  {
+    href: "/geoai-live/tasks/image-feature-extraction",
+    title: "Image Feature Extraction",
+    description:
+      "Extract DINOv3 patch embeddings from satellite imagery for similarity and analysis.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/image-feature-extraction.mp4",
+    badge: "DINOv3",
+  },
+  {
+    href: "/geoai-live/tasks/oil-storage-tank-detection",
+    title: "Oil Storage Tank Detection",
+    description: "Detect oil storage tanks in aerial imagery.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/oil-storage-tank-detection.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/object-detection",
+    title: "Object Detection",
+    description: "Detect and highlight objects in the imagery.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/object-detection.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/building-detection",
+    title: "Building Detection",
+    description: "Identify and outline buildings in the imagery.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/building-detection.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/car-detection",
+    title: "Car Detection",
+    description: "Detect cars and vehicles in the image.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/car-detection-model.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/wetland-segmentation",
+    title: "Wetland Detection",
+    description:
+      "Identify wetland areas from 4-band multispectral COG imagery (Geobase).",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/wetland-segmentation.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/solar-panel-detection",
+    title: "Solar Panel Detection",
+    description: "Detect solar panels and solar farms in the image.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/solar-panel-detection.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/ship-detection",
+    title: "Ship Detection",
+    description: "Detect ships and large vessels in water bodies.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/ship-detection.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/oriented-object-detection",
+    title: "Oriented Object Detection",
+    description: "Detect objects and report their orientation.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/oriented-object-detection.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/building-footprint-segmentation",
+    title: "Building Footprint Segmentation",
+    description:
+      "Generate building footprint polygons — ChangeStar ViT-B by default.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/building-footprint-segmentation.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/land-cover-classification",
+    title: "Land Cover Classification",
+    description:
+      "Classify terrain and land cover such as water, forest, or urban areas.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/land-cover-classification.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/zero-shot-object-detection",
+    title: "Zero-Shot Object Detection",
+    description:
+      "Detect objects from text prompts without class-specific training.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/zero-shot-object-detection.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/zero-shot-segmentation",
+    title: "Zero-Shot Segmentation",
+    description:
+      "Segment objects from prompts without class-specific training.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/zero-shot-segmentation.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/mask-generation",
+    title: "Interactive Mask Generation",
+    description:
+      "Generate segmentation masks for features of interest in the image.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/mask-generation.mp4",
+  },
+  {
+    href: "/geoai-live/tasks/embedding-similarity-search",
+    title: "Embedding Similarity Search",
+    description: "Find similar patches in the imagery based on embeddings.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/embedding-similarity-search.mp4",
+  },
+];
+
+function ProviderIcon({
+  icon,
+}: {
+  icon: "oam" | "tms" | "wms";
+}) {
+  if (icon === "oam") {
+    return (
+      <span className="text-[11px] font-semibold tracking-wide text-stone-300">
+        OAM
+      </span>
+    );
+  }
+  if (icon === "tms") {
+    return <Grid3X3 className="h-5 w-5 text-stone-300" aria-hidden />;
+  }
+  return <Layers className="h-5 w-5 text-stone-300" aria-hidden />;
+}
+
+export default function Home() {
+  return (
+    <div className="min-h-screen bg-[#0c0f0d] text-stone-100 font-sans antialiased">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0c0f0d]/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <a
+            href="/geoai-live"
+            className="flex items-center gap-2 text-stone-50"
+          >
+            <img
+              src="/geoai-live/javascript-logo.svg"
+              alt=""
+              className="h-5 w-auto sm:h-6"
+            />
+            <span className="font-mono text-lg font-semibold tracking-tight sm:text-xl">
+              {NPM_PACKAGE_NAME}
+            </span>
+          </a>
+
+          <nav className="hidden items-center gap-1 text-sm font-medium text-stone-200 lg:flex">
+            <a
+              className="rounded-md px-3 py-2 transition hover:bg-white/10 hover:text-white"
+              href="#models"
+            >
+              Models
             </a>
+            <a
+              className="rounded-md px-3 py-2 transition hover:bg-white/10 hover:text-white"
+              href="https://docs.geobase.app/geoai"
+            >
+              Docs
+            </a>
+            <a
+              className="rounded-md px-3 py-2 transition hover:bg-white/10 hover:text-white"
+              href="#footer"
+            >
+              About
+            </a>
+            <a
+              className="rounded-md px-3 py-2 transition hover:bg-white/10 hover:text-white"
+              href="https://decision-labs.com/newsletter/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Newsletter
+            </a>
+          </nav>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex grow items-center justify-center">
-              <ul className="flex gap-1 text-sm font-semibold">
-                <li><a className="px-3 py-2 rounded-md hover:bg-white/10 hover:text-white transition" href="#dinov3">What's New</a></li>
-                <li><a className="px-3 py-2 rounded-md hover:bg-white/10 hover:text-white transition" href="#features">AI Models</a></li>
-                <li><a className="px-3 py-2 rounded-md hover:bg-white/10 hover:text-white transition" href="https://docs.geobase.app/geoai">Docs</a></li>
-                <li><a className="px-3 py-2 rounded-md hover:bg-white/10 hover:text-white transition" href="#footer">About</a></li>
-                <li className="relative group">
-                  <a className="px-3 py-2 rounded-md hover:bg-white/10 hover:text-white transition text-gray-400 hover:text-white" href="https://mailchi.mp/ece911e44b4e/new-geoaijs-models" target="_blank" rel="noopener noreferrer">Newsletter</a>
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                    We are always adding new models! Stay posted 🚀
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                  </div>
-                </li>
-              </ul>
-            </nav>
-
-            {/* Desktop Action Buttons */}
-            <div className="hidden lg:flex items-center gap-2 lg:absolute lg:-right-1 lg:top-1/2 lg:-translate-y-1/2">
-                <a
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium text-sm cursor-pointer min-h-[38px] bg-green-600 shadow-lg hover:bg-green-700 transition"
-                href="https://docs.geobase.app/geoai/"
-                >
-                Get Started
-                </a>
-                <GitHubStarsButton 
-                  username="decision-labs" 
-                  repo="geoai.js" 
-                  formatted 
-                />
-            </div>
-
-            {/* Mobile Navigation */}
-            <MobileNavigation />
+          <div className="hidden items-center gap-2 lg:flex">
+            <a
+              className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-600"
+              href="https://docs.geobase.app/geoai/"
+            >
+              Get Started
+            </a>
+            <GitHubStarsButton
+              username="decision-labs"
+              repo="geoai.js"
+              formatted
+            />
           </div>
+
+          <MobileNavigation />
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="min-h-screen">
-        {/* Hero Section */}
-        <section id="dinov3" className="flex flex-col items-center justify-center relative pt-12 pb-12 sm:pt-16 sm:pb-10 md:pt-20 xl:pt-24 overflow-hidden scroll-mt-32">
-          {/* Background Animation */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -mt-12 w-96 h-96 md:w-[32rem] md:h-[32rem] md:mt-12 xl:w-[50rem] xl:h-[50rem] xl:mt-24 pointer-events-none opacity-30">
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
-              <div className="absolute inset-0 h-full w-full opacity-50 animate-spin-slow">
-                <div className="w-full h-full border border-gray-600 rounded-full"></div>
-              </div>
-            </div>
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%]">
-              <div className="absolute inset-0 h-full w-full opacity-50 animate-spin-reverse-slow">
-                <div className="w-full h-full border border-gray-500 rounded-full"></div>
-              </div>
-            </div>
-            <div className="absolute bottom-0 left-0 w-full h-3/4 bg-gradient-to-t from-gray-900 to-transparent"></div>
+      <main>
+        {/* Hero — one composition: brand, headline, support, CTAs, product visual */}
+        <section className="relative min-h-[100svh] overflow-hidden">
+          <div className="absolute inset-0">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster="/geoai-live/geoaijs-meta.png"
+              className="h-full w-full object-cover"
+            >
+              <source
+                src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/oriented-object-detection.mp4"
+                type="video/mp4"
+              />
+            </video>
+            <div className="absolute inset-0 bg-[#0c0f0d]/55" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0c0f0d] via-[#0c0f0d]/80 to-transparent" />
           </div>
-          
-          <div className="mt-0 lg:mt-2 flex flex-col gap-6 lg:gap-12 items-center justify-center p-4 z-[1] max-w-5xl mx-auto">
-            {/* DINOv3 Launch Banner */}
-            <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-2xl p-6 md:p-8 max-w-4xl w-full">
-              <div className="grid md:grid-cols-2 gap-6 items-center">
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-2xl">🚀</span>
-                    <div>
-                      <h2 className="text-xl md:text-2xl font-bold text-white">Meta's DINOv3 Now Available</h2>
-                      <p className="text-purple-300 text-sm">Latest integration</p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-gray-300 text-base mb-4">
-                    We've just added Meta's groundbreaking DINOv3 model thanks to the awesome integration with Hugging Face's 🤗 <a href="https://github.com/huggingface/transformers.js/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 transition-colors">Transformers.js</a>.
-                  </p>
-                  
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <a href="/geoai-live/tasks/image-feature-extraction" className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-lg transition-colors text-sm">
-                      <span>Try DINOv3 Demo</span>
-                      <span className="text-purple-200">→</span>
-                    </a>
-                  </div>
-                </div>
-                
-                <div className="relative">
-                  <video autoPlay loop muted playsInline className="w-full rounded-lg shadow-xl">
-                    <source src="/geoai-live/video/image-feature-extraction-sm.mp4" type="video/mp4" />
-                  </video>
-                  <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 to-transparent rounded-lg"></div>
-                </div>
-              </div>
+
+          <div className="relative mx-auto flex min-h-[100svh] max-w-5xl flex-col justify-end px-4 pb-16 pt-28 sm:px-6 sm:pb-20 lg:pb-24">
+            <div className="mb-6 flex items-center gap-3 lg:mb-8">
+              <img
+                src="/geoai-live/javascript-logo.svg"
+                alt=""
+                className="h-10 w-auto sm:h-12"
+              />
+              <span className="font-mono text-4xl font-semibold tracking-tight text-stone-50 sm:text-5xl md:text-6xl">
+                {NPM_PACKAGE_NAME}
+              </span>
             </div>
-            
-            {/* Main Heading */}
-            <div className="relative h-32 sm:h-36 lg:h-40 w-full mt-6">
-              <h1 className="absolute left-1/2 w-full lg:w-[150%] top-1/2 -translate-x-1/2 -translate-y-1/2 text-center font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl leading-tight px-4">
-                GeoAI for the modern
-                <br/>
-                <span className="text-green-500">JavaScript</span> developer
-              </h1>
-            </div>
-            
-            <p className="text-center font-normal text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 max-w-3xl px-4">
-              Open-source GeoAI. No backend required. Run models right in your JavaScript apps or edge devices!
+            <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl md:text-5xl lg:text-6xl">
+              Geospatial AI for the modern JavaScript developer
+            </h1>
+            <p className="mt-5 max-w-2xl text-base text-stone-300 sm:text-lg md:text-xl">
+              Open-source models in the browser. No backend required — run
+              inference in your apps or on the edge.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 px-4">
-              <a className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-white font-medium text-base sm:text-lg cursor-pointer min-h-[44px] bg-gray-600 shadow-lg hover:bg-gray-500 transition" href="#features">
-                Explore Tasks
-              </a>
-              <a className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-white font-medium text-base sm:text-lg cursor-pointer min-h-[44px] bg-green-700 shadow-lg hover:bg-green-600 transition" href="https://docs.geobase.app/geoai/">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <a
+                className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-6 py-3 text-base font-medium text-white transition hover:bg-emerald-600"
+                href="https://docs.geobase.app/geoai/"
+              >
                 Get Started
               </a>
-            </div>
-            
-            {/* Works with section */}
-            <div className="flex flex-col items-center gap-4 px-4">
-              <div className="text-center">
-                <h3 className="text-base sm:text-lg font-medium text-gray-300 mb-2">Works with your favorite mapping providers</h3>
-                <p className="text-xs sm:text-sm text-gray-400">Seamlessly integrate with existing mapping infrastructure</p>
-              </div>
-              
-              {/* All Providers - Responsive Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 w-full max-w-5xl">
-                {/* Geobase */}
-                <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 sm:p-4 hover:border-green-500/50 transition-all duration-200 group">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-6 w-16 sm:h-8 sm:w-20 flex items-center justify-center mb-2 sm:mb-3">
-                      <img src="/geoai-live/provider-logos/geobase.svg" alt="Geobase" className="h-full object-contain filter brightness-0 invert opacity-80 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <span className="text-xs text-green-400 font-medium">Available</span>
-                  </div>
-                </div>
-                
-                {/* Mapbox */}
-                <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 sm:p-4 hover:border-green-500/50 transition-all duration-200 group">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-6 w-16 sm:h-8 sm:w-20 flex items-center justify-center mb-2 sm:mb-3">
-                      <img src="/geoai-live/provider-logos/mapbox.svg" alt="Mapbox" className="h-full object-contain filter brightness-0 invert opacity-80 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <span className="text-xs text-green-400 font-medium">Available</span>
-                  </div>
-                </div>
-                
-                {/* ESRI */}
-                <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 sm:p-4 hover:border-green-500/50 transition-all duration-200 group">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-6 w-16 sm:h-8 sm:w-20 flex items-center justify-center mb-2 sm:mb-3">
-                      <img src="/geoai-live/provider-logos/esri.svg" alt="ESRI" className="h-full object-contain filter brightness-0 invert opacity-60" style={{ transform: 'scale(0.8)' }} />
-                    </div>
-                    <span className="text-xs text-green-400 font-medium">Available</span>
-                  </div>
-                </div>
-                
-                {/* Google Maps */}
-                <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-3 sm:p-4 opacity-60">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-6 w-16 sm:h-8 sm:w-20 flex items-center justify-center mb-2 sm:mb-3">
-                      <img src="/geoai-live/provider-logos/google-maps.svg" alt="Google Maps" className="h-full object-contain filter brightness-0 invert opacity-60" />
-                    </div>
-                    <span className="text-xs text-gray-500 font-medium">Coming Soon</span>
-                  </div>
-                </div>
-                
-                {/* TMS — custom XYZ / raster tile URLs */}
-                <a
-                  href="https://docs.geobase.app/geoai/map-providers/tms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 sm:p-4 hover:border-green-500/50 transition-all duration-200 group"
-                >
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-6 w-16 sm:h-8 sm:w-20 flex items-center justify-center mb-2 sm:mb-3">
-                      <Grid3X3 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 group-hover:text-white transition-colors" />
-                    </div>
-                    <span className="text-xs text-gray-300 font-medium group-hover:text-white transition-colors">TMS</span>
-                    <span className="text-xs text-green-400 font-medium mt-1">Available</span>
-                  </div>
-                </a>
-
-                {/* WMS — OGC GetMap (e.g. Geobasis NRW orthophotos) */}
-                <a
-                  href="https://docs.geobase.app/geoai/map-providers/wms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 sm:p-4 hover:border-green-500/50 transition-all duration-200 group"
-                >
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-6 w-16 sm:h-8 sm:w-20 flex items-center justify-center mb-2 sm:mb-3">
-                      <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 group-hover:text-white transition-colors" />
-                    </div>
-                    <span className="text-xs text-gray-300 font-medium group-hover:text-white transition-colors">WMS</span>
-                    <span className="text-xs text-green-400 font-medium mt-1">Available</span>
-                  </div>
-                </a>
-                
-                {/* WMTS Format */}
-                <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-3 sm:p-4 opacity-60">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-6 w-16 sm:h-8 sm:w-20 flex items-center justify-center mb-2 sm:mb-3">
-                      <Grid3X3 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-                    </div>
-                    <span className="text-xs text-gray-500 font-medium">WMTS</span>
-                    <span className="text-xs text-gray-500 mt-1">Coming Soon</span>
-                  </div>
-                </div>
-              </div>
+              <a
+                className="inline-flex min-h-11 items-center justify-center rounded-md border border-stone-600 bg-stone-950/40 px-6 py-3 text-base font-medium text-stone-100 transition hover:border-stone-400 hover:bg-stone-900/60"
+                href="#models"
+              >
+                Explore models
+              </a>
             </div>
           </div>
         </section>
 
-        {/* Code Example Section */}
-        <section className="max-w-5xl mx-auto mb-16 px-4">
-          <div className="mb-4">
+        {/* Providers — logo strip, not a card grid */}
+        <section className="border-y border-stone-800/80 bg-[#0c0f0d] px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-5xl">
+            <p className="text-center text-sm text-stone-400">
+              Works with your mapping stack
+            </p>
+            <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-6 sm:gap-x-10">
+              {PROVIDERS.map((provider) => {
+                const content = (
+                  <>
+                    {"src" in provider && provider.src ? (
+                      <img
+                        src={provider.src}
+                        alt={provider.name}
+                        className="h-7 w-auto max-w-[5.5rem] object-contain opacity-70 brightness-0 invert transition group-hover:opacity-100"
+                        style={
+                          "scale" in provider && provider.scale
+                            ? { transform: `scale(${provider.scale})` }
+                            : undefined
+                        }
+                      />
+                    ) : (
+                      <ProviderIcon
+                        icon={"icon" in provider ? provider.icon : "tms"}
+                      />
+                    )}
+                    <span className="sr-only">{provider.name}</span>
+                  </>
+                );
+
+                if ("href" in provider && provider.href) {
+                  return (
+                    <li key={provider.name}>
+                      <a
+                        href={provider.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center justify-center"
+                        title={provider.name}
+                      >
+                        {content}
+                      </a>
+                    </li>
+                  );
+                }
+
+                return (
+                  <li
+                    key={provider.name}
+                    className="group flex items-center justify-center"
+                    title={provider.name}
+                  >
+                    {content}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </section>
+
+        {/* Install */}
+        <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+          <h2 className="sr-only">Install</h2>
+          <div className="code-sample overflow-hidden rounded-xl border border-stone-800 bg-[#121614]">
             <SyntaxHighlighter
               language="shell"
               style={oneDark}
+              PreTag="div"
               customStyle={{
-                borderRadius: 12,
-                fontSize: 16,
-                marginBottom: 16,
-                backgroundColor: '#1f2937',
-                userSelect: 'text', // allow normal text selection
-                boxShadow: 'none', // remove any highlight shadow
-                outline: 'none',   // remove outline highlight
+                margin: 0,
+                borderRadius: 0,
+                fontSize: 15,
+                background: "transparent",
+                padding: "1rem 1.25rem",
+                textShadow: "none",
+                boxShadow: "none",
+                outline: "none",
+              }}
+              codeTagProps={{
+                style: {
+                  background: "transparent",
+                  textShadow: "none",
+                  fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
+                },
               }}
             >
               {`pnpm add ${NPM_PACKAGE_NAME}`}
             </SyntaxHighlighter>
+            <div className="border-t border-stone-800">
+              <SyntaxHighlighter
+                language="javascript"
+                style={oneDark}
+                PreTag="div"
+                customStyle={{
+                  margin: 0,
+                  borderRadius: 0,
+                  fontSize: 14,
+                  background: "transparent",
+                  padding: "1.25rem",
+                  textShadow: "none",
+                  boxShadow: "none",
+                  outline: "none",
+                }}
+                codeTagProps={{
+                  style: {
+                    background: "transparent",
+                    textShadow: "none",
+                    fontFamily:
+                      "var(--font-geist-mono), ui-monospace, monospace",
+                  },
+                }}
+              >
+                {`import { geoai } from "${NPM_PACKAGE_NAME}";
+
+const pipeline = await geoai.pipeline(
+  [{ task: "building-detection" }],
+  { provider: "esri" }
+);
+
+const result = await pipeline.inference({ inputs: { polygon } });`}
+              </SyntaxHighlighter>
+            </div>
           </div>
-          <SyntaxHighlighter language="javascript" style={oneDark} customStyle={{ borderRadius: 12, fontSize: 16, backgroundColor: '#1f2937' }}>
-            {`import { geoai } from "${NPM_PACKAGE_NAME}";
-
-// Now with Meta's DINOv3 for image feature extraction
-const mapProviderConfig = {
-  provider: "geobase", projectRef, apikey, cogImagery
-};
-
-const pipeline = await geoai.pipeline([
-  { task: "image-feature-extraction" }
-], mapProviderConfig);
-
-const result = await pipeline.inference(polygon);`}
-          </SyntaxHighlighter>
+          <p className="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-sm text-stone-400">
+            <span>Built with</span>
+            <a
+              href="https://github.com/huggingface/transformers.js/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-stone-200 underline-offset-4 transition hover:text-white hover:underline"
+            >
+              <img
+                src="/geoai-live/huggingface-logo.svg"
+                alt=""
+                className="h-4 w-4"
+              />
+              Transformers.js
+            </a>
+            <span>and</span>
+            <a
+              href="https://geobase.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center transition opacity-90 hover:opacity-100"
+              title="Geobase"
+            >
+              <img
+                src="/geoai-live/geobase-logo-darkmode.svg"
+                alt="Geobase"
+                className="h-5 w-auto"
+              />
+            </a>
+          </p>
         </section>
 
-
-
-        {/* Integration Highlight */}
-        <section className="max-w-4xl mx-auto mb-12 sm:mb-16 px-4">
-          <div className="text-center">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl sm:text-3xl">🤗</span>
-                <span className="text-white font-semibold text-base sm:text-lg pr-2">Hugging Face</span>
-              </div>
-              <span className="text-gray-300 text-lg sm:text-xl">×</span>
-              <img src="/geoai-live/geobase-logo-darkmode.svg" alt="Geobase" className="h-6 sm:h-8" />
-            </div>
-            <p className="text-gray-300 text-xs sm:text-sm mt-4">
-              Seamless integration of state-of-the-art AI models from TransformersJS with Geobase's geospatial platform
-            </p>
-          </div>
-        </section>
-
-        {/* Features Grid */}
-        <section id="features" className="mx-auto max-w-7xl pb-12 sm:pb-16 px-4 scroll-mt-32">
-          <div className="flex flex-col gap-4 sm:gap-5 mb-8 sm:mb-12 mx-auto text-center">
-            <h2 className="font-semibold text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white leading-tight px-4">
-              Explore cutting-edge AI models for geospatial analysis
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-4xl mx-auto px-4">
-              From object detection to feature extraction, discover how AI can transform your geospatial workflows. Try our interactive demos below.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-
-              <a
-                href="/geoai-live/tasks/image-feature-extraction"
-              className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 p-4 sm:p-6 rounded-xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:-translate-y-2 border-2 border-purple-500/50 hover:border-purple-400 relative overflow-hidden"
-            >
-              {/* DINOv3 Badge */}
-              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                DINOv3
-              </div>
-              
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-40 sm:h-48 object-cover rounded-lg mb-4 sm:mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/image-feature-extraction.mp4" type="video/mp4" />
-              </video>
-              
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 flex items-center gap-2">
-                <span className="text-purple-400">⚡</span>
-                Image Feature Extraction with DINOv3
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
-                Powered by Meta's latest DINOv3 model - extract and analyze visual features from satellite imagery using state-of-the-art AI embeddings.
-              </p>
-              
-              {/* CTA Button */}
-              <div className="mt-3 sm:mt-4">
-                <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors">
-                  Build with DINOv3
-                  <span className="text-purple-200">→</span>
-                </span>
-              </div>
-            </a>
-
-            
-              <a
-                href="/geoai-live/tasks/oil-storage-tank-detection"
-              className="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-40 sm:h-48 object-cover rounded-lg mb-4 sm:mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/oil-storage-tank-detection.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                Oil Storage Tank Detection
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
-                Detects oil storage tanks in the imagery.
-              </p>
-            </a>
-
-            
-              <a
-                href="/geoai-live/tasks/object-detection"
-              className="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-40 sm:h-48 object-cover rounded-lg mb-4 sm:mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/object-detection.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                Object Detection
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
-                Detects and highlights objects in the imagery using AI models.
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/building-detection"
-              className="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-40 sm:h-48 object-cover rounded-lg mb-4 sm:mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/building-detection.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                Building Detection
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
-                Identifies and outlines buildings present in the imagery.
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/car-detection"
-              className="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-40 sm:h-48 object-cover rounded-lg mb-4 sm:mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/car-detection-model.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                Car Detection
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
-                Detects and marks cars and vehicles in the image.
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/wetland-segmentation"
-              className="bg-gray-800 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-48 object-cover rounded-lg mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/wetland-segmentation.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-xl font-bold text-white mb-3">
-                Wetland Detection
-              </h3>
-              <p className="text-gray-300 text-base">
-                Identifies wetland areas from 4-band multispectral COG imagery (Geobase only).
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/solar-panel-detection"
-              className="bg-gray-800 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-48 object-cover rounded-lg mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/solar-panel-detection.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-xl font-bold text-white mb-3">
-                Solar Panel Detection
-              </h3>
-              <p className="text-gray-300 text-base">
-                Detects solar panels and solar farms in the image.
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/ship-detection"
-              className="bg-gray-800 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-48 object-cover rounded-lg mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/ship-detection.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-xl font-bold text-white mb-3">
-                Ship Detection
-              </h3>
-              <p className="text-gray-300 text-base">
-                Detects ships and large vessels in water bodies.
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/oriented-object-detection"
-              className="bg-gray-800 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-48 object-cover rounded-lg mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/oriented-object-detection.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-xl font-bold text-white mb-3">
-                Oriented Object Detection
-              </h3>
-              <p className="text-gray-300 text-base">
-                Detects objects and provides their orientation in the imagery.
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/building-footprint-segmentation"
-              className="bg-gray-800 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-48 object-cover rounded-lg mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/building-footprint-segmentation.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-xl font-bold text-white mb-3">
-                Building Footprint Segmentation
-              </h3>
-              <p className="text-gray-300 text-base">
-                Generates building footprint polygons — default model or ChangeStar ViT-B.
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/land-cover-classification"
-              className="bg-gray-800 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-48 object-cover rounded-lg mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/land-cover-classification.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-xl font-bold text-white mb-3">
-                Land Cover Classification
-              </h3>
-              <p className="text-gray-300 text-base">
-                Classifies terrain and land cover types such as water, forest, or urban areas.
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/zero-shot-object-detection"
-              className="bg-gray-800 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-48 object-cover rounded-lg mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/zero-shot-object-detection.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-xl font-bold text-white mb-3">
-                Zero Shot Object Detection
-              </h3>
-              <p className="text-gray-300 text-base">
-                Detects objects without prior training on specific classes using advanced AI.
-              </p>
-            </a>
-            
-              <a
-                href="/geoai-live/tasks/zero-shot-segmentation"
-              className="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 hover:border-green-500/50"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-40 sm:h-48 object-cover rounded-lg mb-4 sm:mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/zero-shot-segmentation.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                Zero Shot Segmentation
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
-                Segment objects without prior training on specific classes using advanced AI.
-              </p>
-            </a>
-
-            <div
-              className="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-xl transition-all duration-300 transform border border-gray-700 relative group cursor-not-allowed"
-            >
-              <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                <span className="text-white font-semibold text-base sm:text-lg">Coming Soon</span>
-              </div>
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-40 sm:h-48 object-cover rounded-lg mb-4 sm:mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/mask-generation.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                Interactive Mask Generation
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
-                Generates segmentation masks for features of interest in the image.
+        {/* Models */}
+        <section
+          id="models"
+          className="scroll-mt-24 px-4 pb-20 sm:px-6 sm:pb-28"
+        >
+          <div className="mx-auto max-w-6xl">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+                Interactive model demos
+              </h2>
+              <p className="mt-3 text-base text-stone-400 sm:text-lg">
+                Draw an area on the map and run detection, segmentation, or
+                feature extraction in the browser.
               </p>
             </div>
-            
-            <div
-              className="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-xl transition-all duration-300 transform border border-gray-700 relative group cursor-not-allowed"
-            >
-              <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                <span className="text-white font-semibold text-base sm:text-lg">Coming Soon</span>
-              </div>
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-40 sm:h-48 object-cover rounded-lg mb-4 sm:mb-6"
-              >
-                <source src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/embedding-similarity-search.mp4" type="video/mp4" />
-              </video>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                Embedding Similarity Search
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
-                Finds similar patches in the imagery based on embeddings.
-              </p>
-            </div>
+
+            <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {TASKS.map((task) => (
+                <li key={task.href}>
+                  <a
+                    href={task.href}
+                    className="group flex h-full flex-col overflow-hidden rounded-xl border border-stone-800 bg-[#121614] transition hover:border-stone-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden bg-stone-900">
+                      <LazyVideo
+                        src={task.video}
+                        className="h-full w-full object-cover"
+                      />
+                      {task.badge ? (
+                        <span className="absolute left-3 top-3 rounded bg-stone-950/80 px-2 py-0.5 font-mono text-[11px] font-medium text-emerald-300">
+                          {task.badge}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-2 p-5">
+                      <h3 className="text-lg font-semibold text-stone-50">
+                        {task.title}
+                      </h3>
+                      <p className="text-sm leading-relaxed text-stone-400">
+                        {task.description}
+                      </p>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
-        {/* Footer */}
-        <footer id="footer" className="bg-gray-800/50 border-t border-gray-700 mt-16 sm:mt-20">
-          <div className="max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-              <div className="col-span-1 sm:col-span-2">
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 flex items-center">
+        <footer
+          id="footer"
+          className="border-t border-stone-800 bg-[#0a0c0b]"
+        >
+          <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="sm:col-span-2">
+                <div className="flex items-center gap-2">
                   <img
                     src="/geoai-live/javascript-logo.svg"
-                    alt="JavaScript logo"
-                    className="h-6 w-auto mr-2 sm:h-8 sm:mr-3"
+                    alt=""
+                    className="h-6 w-auto"
                   />
-                  GeoAI.js
-                </h3>
-                <p className="text-gray-300 text-sm sm:text-base max-w-md">
-                  Open-source GeoAI toolkit for JavaScript developers. Run AI models directly in your browser or edge devices without any backend infrastructure.
+                  <span className="text-xl font-semibold tracking-tight">
+                    GeoAI.js
+                  </span>
+                </div>
+                <p className="mt-3 max-w-md text-sm leading-relaxed text-stone-400">
+                  Open-source GeoAI for JavaScript. Run models in the browser or
+                  on edge devices without a model-serving backend.
                 </p>
               </div>
               <div>
-                <h4 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Resources</h4>
-                <ul className="space-y-2">
-                  <li><a href="https://docs.geobase.app/geoai/" className="text-gray-300 hover:text-white transition text-sm sm:text-base">Documentation</a></li>
-                  <li><a href="https://docs.geobase.app/geoai-live" className="text-gray-300 hover:text-white transition text-sm sm:text-base">Examples</a></li>
-                  <li><a href={GITHUB_REPO_URI} className="text-gray-300 hover:text-white transition text-sm sm:text-base">GitHub</a></li>
+                <h3 className="text-sm font-semibold text-stone-200">
+                  Resources
+                </h3>
+                <ul className="mt-3 space-y-2 text-sm text-stone-400">
+                  <li>
+                    <a
+                      href="https://docs.geobase.app/geoai/"
+                      className="transition hover:text-stone-100"
+                    >
+                      Documentation
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://docs.geobase.app/geoai-live"
+                      className="transition hover:text-stone-100"
+                    >
+                      Live examples
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href={GITHUB_REPO_URI}
+                      className="transition hover:text-stone-100"
+                    >
+                      GitHub
+                    </a>
+                  </li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Community</h4>
-                <ul className="space-y-2">
-                  <li><a href="https://geobase.app/discord" className="text-gray-300 hover:text-white transition text-sm sm:text-base">Discord</a></li>
+                <h3 className="text-sm font-semibold text-stone-200">
+                  Community
+                </h3>
+                <ul className="mt-3 space-y-2 text-sm text-stone-400">
+                  <li>
+                    <a
+                      href="https://geobase.app/discord"
+                      className="transition hover:text-stone-100"
+                    >
+                      Discord
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-gray-700 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center">
-              <p className="text-gray-400 text-xs sm:text-sm">
-              geobase.app © 2025
-              </p>
-              <p className="text-gray-400 text-xs sm:text-sm mt-2">
-                Made with ❤️ in Berlin
-              </p>
-              <div className="flex justify-center gap-4 mt-3 sm:mt-4">
-                <a href="https://geobase.app/agb" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition text-xs sm:text-sm">AGB</a>
-                <a href="https://geobase.app/impressum" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition text-xs sm:text-sm">Impressum</a>
+            <div className="mt-10 flex flex-col items-center gap-3 border-t border-stone-800 pt-8 text-center text-xs text-stone-500 sm:flex-row sm:justify-between sm:text-left">
+              <p>geobase.app © {new Date().getFullYear()}</p>
+              <div className="flex gap-4">
+                <a
+                  href="https://geobase.app/agb"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition hover:text-stone-300"
+                >
+                  AGB
+                </a>
+                <a
+                  href="https://geobase.app/impressum"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition hover:text-stone-300"
+                >
+                  Impressum
+                </a>
               </div>
             </div>
           </div>

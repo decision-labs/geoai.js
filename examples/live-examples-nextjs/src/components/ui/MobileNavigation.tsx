@@ -1,111 +1,103 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Menu, X } from 'lucide-react';
-import { GITHUB_REPO_URI } from '@/config';
-import { GitHubStarsButton } from '@/components/ui/shadcn-io/github-stars-button';
+import React, { useState } from "react";
+import { Menu, X } from "lucide-react";
+import { GitHubStarsButton } from "@/components/ui/shadcn-io/github-stars-button";
 
 interface MobileNavigationProps {
   className?: string;
 }
 
-export const MobileNavigation: React.FC<MobileNavigationProps> = ({ className = '' }) => {
+export const MobileNavigation: React.FC<MobileNavigationProps> = ({
+  className = "",
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const menuItems = [
-    { href: "#dinov3", label: "What's New" },
-    { href: "#features", label: "AI Models" },
+    { href: "#models", label: "Models" },
     { href: "https://docs.geobase.app/geoai", label: "Docs" },
     { href: "#footer", label: "About" },
-    { 
-      href: "https://mailchi.mp/ece911e44b4e/new-geoaijs-models", 
+    {
+      href: "https://decision-labs.com/newsletter/",
       label: "Newsletter",
-      external: true 
+      external: true,
     },
   ];
 
   return (
     <div className={`lg:hidden ${className}`}>
-      {/* Hamburger Button */}
       <button
         onClick={toggleMenu}
-        className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-colors cursor-pointer"
-        aria-label="Toggle navigation menu"
+        className="rounded-md p-2 text-stone-200 transition hover:bg-white/5"
+        aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+        aria-expanded={isOpen}
       >
-        {isOpen ? (
-          <X className="h-6 w-6 text-white" />
-        ) : (
-          <Menu className="h-6 w-6 text-white" />
-        )}
+        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </button>
 
-      {/* Mobile Menu Overlay */}
-      {isOpen && (
+      {isOpen ? (
         <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 z-40"
+          <div
+            className="fixed inset-0 z-40 bg-black/60"
             onClick={toggleMenu}
+            aria-hidden
           />
-          
-          {/* Menu Panel */}
-          <div className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-gray-900 border-l border-gray-600 z-50 transform transition-transform duration-300 ease-in-out shadow-2xl">
-            <div className="flex flex-col h-full bg-gray-900">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-600 bg-gray-900">
-                <h2 className="text-lg font-semibold text-white">Menu</h2>
-                <button
-                  onClick={toggleMenu}
-                  className="p-2 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer"
-                >
-                  <X className="h-5 w-5 text-white" />
-                </button>
-              </div>
 
-              {/* Navigation Items */}
-              <nav className="flex-1 p-6 bg-gray-900">
-                <ul className="space-y-4">
-                  {menuItems.map((item, index) => (
-                    <li key={index}>
-                      <a
-                        href={item.href}
-                        target={item.external ? "_blank" : undefined}
-                        rel={item.external ? "noopener noreferrer" : undefined}
-                        onClick={!item.external ? toggleMenu : undefined}
-                        className="block px-4 py-3 rounded-lg text-white hover:bg-gray-700 transition-colors font-medium"
-                      >
-                        {item.label}
-                        {item.external && (
-                          <span className="ml-2 text-gray-400">↗</span>
-                        )}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
+          <div className="fixed right-0 top-0 z-50 flex h-full w-80 max-w-[85vw] flex-col border-l border-stone-800 bg-[#0c0f0d] shadow-xl">
+            <div className="flex items-center justify-between border-b border-stone-800 px-5 py-4">
+              <span className="text-sm font-semibold text-stone-100">Menu</span>
+              <button
+                onClick={toggleMenu}
+                className="rounded-md p-2 text-stone-300 transition hover:bg-white/5"
+                aria-label="Close navigation menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-              {/* Action Buttons */}
-              <div className="p-6 border-t border-gray-600 space-y-3 bg-gray-900">
-                <a
-                  href="https://docs.geobase.app/geoai/"
-                  className="block w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg text-center transition-colors"
-                >
-                  Get Started
-                </a>
-                <div className="flex justify-center">
-                  <GitHubStarsButton 
-                    username="decision-labs" 
-                    repo="geoai.js" 
-                    formatted 
-                  />
-                </div>
+            <nav className="flex-1 overflow-y-auto px-5 py-4">
+              <ul className="space-y-1">
+                {menuItems.map((item) => (
+                  <li key={item.href}>
+                    <a
+                      href={item.href}
+                      target={item.external ? "_blank" : undefined}
+                      rel={item.external ? "noopener noreferrer" : undefined}
+                      onClick={!item.external ? toggleMenu : undefined}
+                      className="block rounded-md px-3 py-3 text-base font-medium text-stone-200 transition hover:bg-white/5 hover:text-white"
+                    >
+                      {item.label}
+                      {item.external ? (
+                        <span className="ml-2 text-stone-500" aria-hidden>
+                          ↗
+                        </span>
+                      ) : null}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <div className="space-y-3 border-t border-stone-800 px-5 py-5">
+              <a
+                href="https://docs.geobase.app/geoai/"
+                className="block w-full rounded-md bg-emerald-700 px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-emerald-600"
+              >
+                Get Started
+              </a>
+              <div className="flex justify-center">
+                <GitHubStarsButton
+                  username="decision-labs"
+                  repo="geoai.js"
+                  formatted
+                />
               </div>
             </div>
           </div>
         </>
-      )}
+      ) : null}
     </div>
   );
 };
