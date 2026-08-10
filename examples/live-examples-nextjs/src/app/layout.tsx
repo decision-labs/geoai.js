@@ -81,8 +81,13 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/geoai-live/favicon-16x16.png" />
         <link rel="manifest" href="/geoai-live/site.webmanifest" />
         <link rel="shortcut icon" href="/geoai-live/favicon.ico" />
-        <meta name="msapplication-TileColor" content="#ffffff" />
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="msapplication-TileColor" content="#0c0f0d" />
+        <meta name="theme-color" content="#0c0f0d" />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: "html,body{background:#0c0f0d;color:#f5f5f4}",
+          }}
+        />
         
         {/* JSON-LD Structured Data */}
         <script

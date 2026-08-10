@@ -312,8 +312,8 @@ export default function Home() {
               loop
               muted
               playsInline
-              poster="/geoai-live/geoaijs-meta.png"
-              className="h-full w-full object-cover"
+              preload="auto"
+              className="h-full w-full bg-[#0c0f0d] object-cover"
             >
               <source
                 src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/oriented-object-detection.mp4"
