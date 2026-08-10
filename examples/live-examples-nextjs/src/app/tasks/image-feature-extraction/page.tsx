@@ -31,6 +31,9 @@ import { MapProvider } from "../../../types";
 
 GEOBASE_CONFIG.cogImagery = "https://huggingface.co/datasets/geobase/geoai-cogs/resolve/main/object-detection.tif";
 
+/** DINOv3 satellite pretrained (SAT-493M) — preferred over LVD for aerial imagery */
+const DINOV3_SAT_MODEL_ID = "geobase/dinov3-vitl16-pretrain-sat493m-ONNX";
+
 // Initial demo location for precomputed embeddings
 const INITIAL_DEMO_LOCATION = {
   center: [114.84901, -3.449806] as [number, number],
@@ -523,6 +526,7 @@ export default function ImageFeatureExtraction() {
     initializeModel({
       tasks: [{
         task: "image-feature-extraction",
+        modelId: DINOV3_SAT_MODEL_ID,
       }],
       providerParams,
     });
@@ -677,8 +681,9 @@ export default function ImageFeatureExtraction() {
         <div className="absolute bottom-6 right-6 z-50">
           <TaskInfo
             taskName="Image Feature Extraction"
-            modelId={lastResult?.metadata?.modelId}
+            modelId={lastResult?.metadata?.modelId ?? DINOV3_SAT_MODEL_ID}
             isInitialized={isInitialized}
+            defaultModelName="DINOv3 ViT-L/16 SAT-493M"
           />
         </div>
 
