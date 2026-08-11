@@ -237,46 +237,47 @@ function ProviderIcon({
   return <Layers className="h-5 w-5 text-stone-300" aria-hidden />;
 }
 
+const navLinkClass =
+  "rounded-md px-3 py-2 transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500";
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#0c0f0d] text-stone-100 font-sans antialiased">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0c0f0d]/85 backdrop-blur-md">
+      <a
+        href="#models"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-emerald-700 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+      >
+        Skip to models
+      </a>
+
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0c0f0d]/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <a
             href="/geoai-live"
-            className="flex items-center gap-2 text-stone-50"
+            className="flex items-center gap-2 rounded-md text-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
           >
             <img
               src="/geoai-live/javascript-logo.svg"
               alt=""
               className="h-5 w-auto sm:h-6"
             />
-            <span className="font-mono text-lg font-semibold tracking-tight sm:text-xl">
+            <span className="text-lg font-semibold tracking-tight sm:text-xl">
               {NPM_PACKAGE_NAME}
             </span>
           </a>
 
           <nav className="hidden items-center gap-1 text-sm font-medium text-stone-200 lg:flex">
-            <a
-              className="rounded-md px-3 py-2 transition hover:bg-white/10 hover:text-white"
-              href="#models"
-            >
+            <a className={navLinkClass} href="#models">
               Models
             </a>
-            <a
-              className="rounded-md px-3 py-2 transition hover:bg-white/10 hover:text-white"
-              href="https://docs.geobase.app/geoai"
-            >
+            <a className={navLinkClass} href="https://docs.geobase.app/geoai">
               Docs
             </a>
-            <a
-              className="rounded-md px-3 py-2 transition hover:bg-white/10 hover:text-white"
-              href="#footer"
-            >
+            <a className={navLinkClass} href="#footer">
               About
             </a>
             <a
-              className="rounded-md px-3 py-2 transition hover:bg-white/10 hover:text-white"
+              className={navLinkClass}
               href="https://decision-labs.com/newsletter/"
               target="_blank"
               rel="noopener noreferrer"
@@ -287,7 +288,7 @@ export default function Home() {
 
           <div className="hidden items-center gap-2 lg:flex">
             <a
-              className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-600"
+              className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
               href="https://docs.geobase.app/geoai/"
             >
               Get Started
@@ -316,45 +317,48 @@ export default function Home() {
               className="h-full w-full bg-[#0c0f0d] object-cover"
             >
               <source
-                src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/oriented-object-detection.mp4"
+                src="https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/ship-detection.mp4"
                 type="video/mp4"
               />
             </video>
-            <div className="absolute inset-0 bg-[#0c0f0d]/55" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0c0f0d] via-[#0c0f0d]/80 to-transparent" />
+            {/* Keep the demo visible; darken only where copy sits */}
+            <div className="absolute inset-0 bg-[#0c0f0d]/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0c0f0d] from-[15%] via-[#0c0f0d]/70 via-50% to-[#0c0f0d]/25" />
           </div>
 
           <div className="relative mx-auto flex min-h-[100svh] max-w-5xl flex-col justify-end px-4 pb-16 pt-28 sm:px-6 sm:pb-20 lg:pb-24">
-            <div className="mb-6 flex items-center gap-3 lg:mb-8">
-              <img
-                src="/geoai-live/javascript-logo.svg"
-                alt=""
-                className="h-10 w-auto sm:h-12"
-              />
-              <span className="font-mono text-4xl font-semibold tracking-tight text-stone-50 sm:text-5xl md:text-6xl">
-                {NPM_PACKAGE_NAME}
-              </span>
-            </div>
-            <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl md:text-5xl lg:text-6xl">
-              Geospatial AI for the modern JavaScript developer
-            </h1>
-            <p className="mt-5 max-w-2xl text-base text-stone-300 sm:text-lg md:text-xl">
-              Open-source models in the browser. No backend required — run
-              inference in your apps or on the edge.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <a
-                className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-6 py-3 text-base font-medium text-white transition hover:bg-emerald-600"
-                href="https://docs.geobase.app/geoai/"
-              >
-                Get Started
-              </a>
-              <a
-                className="inline-flex min-h-11 items-center justify-center rounded-md border border-stone-600 bg-stone-950/40 px-6 py-3 text-base font-medium text-stone-100 transition hover:border-stone-400 hover:bg-stone-900/60"
-                href="#models"
-              >
-                Explore models
-              </a>
+            <div className="landing-hero-copy max-w-3xl">
+              <div className="mb-5 flex items-center gap-3 sm:mb-6 lg:mb-7">
+                <img
+                  src="/geoai-live/javascript-logo.svg"
+                  alt=""
+                  className="h-10 w-auto drop-shadow-sm sm:h-12"
+                />
+                <span className="text-4xl font-semibold tracking-tight text-stone-50 sm:text-5xl md:text-6xl">
+                  {NPM_PACKAGE_NAME}
+                </span>
+              </div>
+              <h1 className="text-3xl font-semibold tracking-tight text-stone-50 text-shadow-sm sm:text-4xl md:text-5xl lg:text-[3.5rem] lg:leading-[1.1]">
+                Geospatial AI for the modern JavaScript developer
+              </h1>
+              <p className="mt-5 max-w-2xl text-base text-stone-200/95 sm:text-lg md:text-xl">
+                Open-source models in the browser. No backend required — run
+                inference in your apps or on the edge.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <a
+                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-6 py-3 text-base font-medium text-white shadow-[0_10px_30px_-12px_rgba(4,120,87,0.8)] transition hover:bg-emerald-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+                  href="https://docs.geobase.app/geoai/"
+                >
+                  Get Started
+                </a>
+                <a
+                  className="inline-flex min-h-11 items-center justify-center rounded-md border border-stone-500/80 bg-stone-950/50 px-6 py-3 text-base font-medium text-stone-50 backdrop-blur-sm transition hover:border-stone-300 hover:bg-stone-900/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                  href="#models"
+                >
+                  Explore models
+                </a>
+              </div>
             </div>
           </div>
         </section>
@@ -421,7 +425,9 @@ export default function Home() {
 
         {/* Install */}
         <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-          <h2 className="sr-only">Install</h2>
+          <h2 className="mb-4 text-center text-sm font-medium text-stone-400">
+            Install
+          </h2>
           <div className="code-sample overflow-hidden rounded-xl border border-stone-800 bg-[#121614]">
             <SyntaxHighlighter
               language="shell"
@@ -540,7 +546,7 @@ const result = await pipeline.inference({ inputs: { polygon } });`}
                     <div className="relative aspect-[16/10] overflow-hidden bg-stone-900">
                       <LazyVideo
                         src={task.video}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition duration-500 ease-out group-hover:brightness-110"
                       />
                       {task.badge ? (
                         <span className="absolute left-3 top-3 rounded bg-stone-950/80 px-2 py-0.5 font-mono text-[11px] font-medium text-emerald-300">
@@ -549,7 +555,7 @@ const result = await pipeline.inference({ inputs: { polygon } });`}
                       ) : null}
                     </div>
                     <div className="flex flex-1 flex-col gap-2 p-5">
-                      <h3 className="text-lg font-semibold text-stone-50">
+                      <h3 className="text-lg font-semibold text-stone-50 transition group-hover:text-white">
                         {task.title}
                       </h3>
                       <p className="text-sm leading-relaxed text-stone-400">

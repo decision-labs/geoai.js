@@ -55,6 +55,56 @@ body {
   color: oklch(0.98 0.01 145);
 }
 
+/* Landing — one authored entrance; reduced-motion stays static */
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.landing-hero-copy {
+  animation: landing-rise 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-copy {
+    animation: none;
+  }
+}
+
+/* Dark-page browser chrome */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(68 64 60) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgb(68 64 60);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.text-shadow-sm {
+  text-shadow: 0 1px 18px rgb(12 15 13 / 0.55);
+}
+
 /* Prism oneDark paints a gray <code> background that reads as "selected" */
 .code-sample code,
 .code-sample pre,
