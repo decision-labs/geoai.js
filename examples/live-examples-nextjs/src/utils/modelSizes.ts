@@ -15,6 +15,7 @@ export const MODEL_SIZES = {
   'zero-shot-object-detection': 204,
   'zero-shot-segmentation': 50,
   'image-feature-extraction': 50,
+  'image-geolocation': 237,
   'embedding-similarity-search': 24,
 } as const;
 

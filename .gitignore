@@ -32,3 +32,6 @@ stats.html
 talks/*
 !talks/*.md
 .vercel
+
+# Uncompressed demo recordings (web uses the compressed copies)
+examples/live-examples-nextjs/public/video/originals/

@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.8] - 2026-09-29
+
 ### Added
+- Image geolocation task (`image-geolocation`) powered by GeoCLIP Q4 (`Xenova/geoclip-large-patch14`)
+- Live demo and docs for image geolocation (`/tasks/image-geolocation`)
 - Google Maps provider (`provider: "google"`) via Map Tiles API session + 2D satellite XYZ tiles
+
+### Fixed
+- OAM item tile URLs: drop deprecated HOT TiTiler `@1x` path suffix (was returning HTTP 422)
 
 ## [1.0.7] - 2026-07-17
 

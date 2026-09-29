@@ -63,9 +63,9 @@ const result = await pipeline.inference({
 CDN:
 
 ```html
-<script src="https://unpkg.com/geoai@1.0.7/geoai.js"></script>
+<script src="https://unpkg.com/geoai@1.0.8/geoai.js"></script>
 <!-- or -->
-<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.7/geoai.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.8/geoai.min.js"></script>
 ```
 
 ---
@@ -78,9 +78,29 @@ GeoAI.js is built for product teams and researchers who need **interactive** geo
 - **Energy & infrastructure** — solar panels, oil storage tanks, utility assets  
 - **Transport & logistics** — cars, trucks, ships in ports and yards  
 - **Environment** — land cover and wetland segmentation over AOIs  
-- **Exploration** — zero-shot detection and DINOv3 embeddings for similarity search  
+- **Exploration** — zero-shot detection, DINOv3 embeddings, and image geolocation (GeoCLIP)
 
 Draw an AOI on a map, run a model, store or style the GeoJSON — all in one frontend session.
+
+### Image geolocation
+
+```javascript
+const pipeline = await geoai.pipeline(
+  [
+    {
+      task: "image-geolocation",
+      modelParams: { dtype: "q4", device: "webgpu" },
+    },
+  ],
+  { provider: "esri" }
+);
+const result = await pipeline.inference({
+  inputs: { image: uploadedFile, topK: 5 },
+});
+// result.predictions → ranked [lat, lon] pairs
+```
+
+See the [image geolocation docs](https://docs.geobase.app/geoai/supported-tasks/image-geolocation).
 
 ---
 

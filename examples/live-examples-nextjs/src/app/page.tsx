@@ -12,14 +12,14 @@ function LazyVideo({
   src,
   className,
 }: {
-  src: string;
+  src?: string;
   className?: string;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || !src) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -37,7 +37,18 @@ function LazyVideo({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [src]);
+
+  if (!src) {
+    return (
+      <div
+        className={`flex h-full w-full items-center justify-center bg-[#0c0f0d] ${className ?? ""}`}
+        aria-hidden
+      >
+        <div className="h-px w-16 bg-stone-700" />
+      </div>
+    );
+  }
 
   return (
     <video
@@ -99,11 +110,20 @@ type TaskCard = {
   href: string;
   title: string;
   description: string;
-  video: string;
+  video?: string;
   badge?: string;
 };
 
 const TASKS: TaskCard[] = [
+  {
+    href: "/geoai-live/tasks/image-geolocation",
+    title: "Image Geolocation",
+    description:
+      "Estimate where an uploaded photo was taken with GeoCLIP, entirely in the browser.",
+    video:
+      "https://geobase-docs.s3.amazonaws.com/geobase-ai-assets/image-geolocation.mp4",
+    badge: "GeoCLIP",
+  },
   {
     href: "/geoai-live/tasks/image-feature-extraction",
     title: "Image Feature Extraction",
@@ -531,8 +551,9 @@ const result = await pipeline.inference({ inputs: { polygon } });`}
                 Interactive model demos
               </h2>
               <p className="mt-3 text-base text-stone-400 sm:text-lg">
-                Draw an area on the map and run detection, segmentation, or
-                feature extraction in the browser.
+                Draw an area on the map — or upload a photo — and run
+                detection, segmentation, feature extraction, or geolocation in
+                the browser.
               </p>
             </div>
 

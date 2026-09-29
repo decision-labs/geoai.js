@@ -20,6 +20,7 @@ import { ZeroShotObjectDetection } from "@/models/zero_shot_object_detection";
 import { BuildingFootPrintSegmentation } from "@/models/building_footprint_segmentation";
 import { ImageFeatureExtraction } from "@/models/image_feature_extraction";
 import { ChangeStarBuildingSegmentation } from "@/models/changestar_building_segmentation";
+import { ImageGeolocation } from "@/models/image_geolocation";
 // NOTE: Add new models here
 // ==============================
 
@@ -117,7 +118,7 @@ export type GoogleMapsParams = {
 };
 
 export interface InferenceInputs {
-  polygon: GeoJSON.Feature;
+  polygon?: GeoJSON.Feature;
   classLabel?: string;
   [key: string]: unknown;
 }
@@ -161,7 +162,8 @@ export type HuggingFaceModelTask =
   | "zero-shot-image-classification"
   | "object-detection"
   | "oriented-object-detection"
-  | "image-feature-extraction";
+  | "image-feature-extraction"
+  | "image-geolocation";
 
 export type GeobaseAiModelTask =
   | "damage-assessment"
@@ -192,7 +194,8 @@ export type ModelInstance =
   | ChangeStarBuildingSegmentation
   | OilStorageTankDetection
   | BuildingFootPrintSegmentation
-  | ImageFeatureExtraction;
+  | ImageFeatureExtraction
+  | ImageGeolocation;
 
 export type ModelConfig = {
   task: HuggingFaceModelTask | GeobaseAiModelTask;
@@ -272,4 +275,15 @@ export type imageFeatureExtractionIOConfig = {
     maxFeatures?: number;
   };
   outputs: ImageFeatureExtractionResults;
+};
+
+export interface ImageGeolocationResults {
+  predictions: Array<{ index: number; gps: [number, number]; score: number }>;
+  geoRawImage?: GeoRawImage;
+  metadata: { modelId: string; gallerySize: number };
+}
+
+export type imageGeolocationIOConfig = {
+  inputs: { polygon?: GeoJSON.Feature; image?: Blob; topK?: number };
+  outputs: ImageGeolocationResults;
 };

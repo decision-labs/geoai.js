@@ -1,4 +1,5 @@
 export default {
+  "image-geolocation": "Image Geolocation (GeoCLIP)",
   "image-feature-extraction": "Image Feature Extraction",
   "object-detection": "Object Detection",
   "building-detection": "Building Detection",

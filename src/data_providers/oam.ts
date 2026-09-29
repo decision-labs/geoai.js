@@ -60,7 +60,8 @@ export function buildOamItemTileUrlTemplate(
   asset: string = DEFAULT_OAM_ASSET
 ): string {
   const base = rasterUrl.replace(/\/$/, "");
-  return `${base}/collections/${encodeURIComponent(collection)}/items/${encodeURIComponent(itemId)}/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?assets=${encodeURIComponent(asset)}`;
+  // HOT Imagery no longer accepts the TiTiler `@1x` scale suffix in the path.
+  return `${base}/collections/${encodeURIComponent(collection)}/items/${encodeURIComponent(itemId)}/tiles/WebMercatorQuad/{z}/{x}/{y}?assets=${encodeURIComponent(asset)}`;
 }
 
 /** Prefer higher resolution (lower gsd), then newer imagery. */

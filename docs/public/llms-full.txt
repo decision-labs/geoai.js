@@ -3935,6 +3935,102 @@ Returns embeddings for each image patch:
 
 ---
 
+<!-- supported-tasks/image-geolocation.mdx -->
+<!-- https://docs.geobase.app/geoai/supported-tasks/image-geolocation -->
+
+# Image Geolocation
+
+> Estimate where an uploaded image was taken with GeoCLIP
+
+> Powered by [Xenova/geoclip-large-patch14](https://huggingface.co/Xenova/geoclip-large-patch14).
+> Matches an image against a worldwide gallery of 100,000 GPS coordinates. The vision
+> encoder defaults to Q4 weights for browser-friendly inference.
+
+[🚀 Try Live Demo](https://docs.geobase.app/geoai-live/tasks/image-geolocation)
+
+[🤗 View Model on Hugging Face](https://huggingface.co/Xenova/geoclip-large-patch14)
+
+## Quick Start
+
+Pass an uploaded image as a `Blob` or `File`. The task runs entirely in the browser.
+
+```typescript
+import { geoai } from "geoai";
+
+const pipeline = await geoai.pipeline(
+  [
+    {
+      task: "image-geolocation",
+      modelParams: { dtype: "q4", device: "webgpu" },
+    },
+  ],
+  { provider: "esri" }
+);
+
+const result = await pipeline.inference({
+  inputs: {
+    image: uploadedFile,
+    topK: 5,
+  },
+});
+
+console.log(result.predictions);
+```
+
+`device: "webgpu"` is preferred when the browser supports WebGPU. Omit it to use the default runtime fallback.
+
+## Parameters
+
+### Inputs
+
+```typescript
+inputs: {
+  image: Blob | File;           // required — PNG, JPEG, or WebP
+  topK?: number;                // ranked GPS predictions to return (default 5)
+  polygon?: GeoJSON.Feature;    // optional — map-provider imagery instead of upload
+}
+```
+
+| Field     | Type              | Description                                                                |
+| --------- | ----------------- | -------------------------------------------------------------------------- |
+| `image`   | `Blob` or `File`  | Image to geolocate. PNG, JPEG, and WebP are supported by the live example. |
+| `topK`    | `number`          | Number of GPS predictions to return. Defaults to `5`.                      |
+| `polygon` | `GeoJSON.Feature` | Optional alternative input for map-provider imagery.                       |
+
+## Output
+
+The response contains ranked predictions. Each `gps` value is `[latitude, longitude]`.
+
+```typescript
+{
+  predictions: [
+    {
+      index: 75129,
+      gps: [51.327447, -116.183509],
+      score: 0.0689,
+    },
+  ],
+  metadata: {
+    modelId: "Xenova/geoclip-large-patch14",
+    gallerySize: 100000,
+  },
+}
+```
+
+To use the result on a map, convert each value to standard GeoJSON coordinate order: `[longitude, latitude]`.
+
+## Test Image
+
+The live demo includes the model card's Moraine Lake image as a one-click sample. The integration test runs the same sample:
+
+```bash
+pnpm vitest run test/imageGeolocation.test.ts
+```
+
+The first run downloads model assets and evaluates the GPS gallery, so it can take around two minutes.
+
+---
+
 <!-- supported-tasks/land-cover-classification.mdx -->
 <!-- https://docs.geobase.app/geoai/supported-tasks/land-cover-classification -->
 
