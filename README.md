@@ -82,6 +82,26 @@ GeoAI.js is built for product teams and researchers who need **interactive** geo
 
 Draw an AOI on a map, run a model, store or style the GeoJSON — all in one frontend session.
 
+### Image geolocation
+
+```javascript
+const pipeline = await geoai.pipeline(
+  [
+    {
+      task: "image-geolocation",
+      modelParams: { dtype: "q4", device: "webgpu" },
+    },
+  ],
+  { provider: "esri" }
+);
+const result = await pipeline.inference({
+  inputs: { image: uploadedFile, topK: 5 },
+});
+// result.predictions → ranked [lat, lon] pairs
+```
+
+See the [image geolocation docs](https://docs.geobase.app/geoai/supported-tasks/image-geolocation).
+
 ---
 
 ## Integrations
