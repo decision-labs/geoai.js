@@ -25,8 +25,6 @@ describe("image-geolocation", () => {
       inputs: { image: testImage, topK: 5 },
     });
 
-    console.log({result})
-
     expect(result.predictions).toHaveLength(5);
     expect(result.predictions[0].score).toBeGreaterThan(0);
     // The model card's reference output places this sample at Moraine Lake, Canada.

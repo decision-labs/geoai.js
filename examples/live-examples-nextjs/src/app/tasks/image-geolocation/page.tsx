@@ -242,7 +242,7 @@ export default function ImageGeolocationPage() {
             className="sr-only"
             onChange={onInputChange}
           />
-          {previewUrl ? (
+          {previewUrl?.startsWith("blob:") ? (
             <img
               src={previewUrl}
               alt="Selected image"
