@@ -15,7 +15,7 @@ export const OAM_MOSAIC_TILE_URL =
   'https://api.imagery.hotosm.org/raster/collections/openaerialmap/tiles/WebMercatorQuad/{z}/{x}/{y}?assets=visual';
 
 export function buildOamItemMapTileUrl(itemId: string): string {
-  return `https://api.imagery.hotosm.org/raster/collections/openaerialmap/items/${encodeURIComponent(itemId)}/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?assets=visual`;
+  return `https://api.imagery.hotosm.org/raster/collections/openaerialmap/items/${encodeURIComponent(itemId)}/tiles/WebMercatorQuad/{z}/{x}/{y}?assets=visual`;
 }
 
 export type OamMode = 'auto' | 'mosaic' | 'item';

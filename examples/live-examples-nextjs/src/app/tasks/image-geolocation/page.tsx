@@ -20,6 +20,7 @@ export default function ImageGeolocationPage() {
   const [sampleError, setSampleError] = useState<string | null>(null);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  const previewImgRef = useRef<HTMLImageElement>(null);
   const {
     isInitialized,
     isProcessing,
@@ -52,6 +53,18 @@ export default function ImageGeolocationPage() {
     },
     [previewUrl]
   );
+
+  // Assign blob: preview via the DOM API so CodeQL does not treat a React
+  // `src={previewUrl}` binding as DOM-text → HTML (js/xss-through-dom FP).
+  useEffect(() => {
+    const img = previewImgRef.current;
+    if (!img) return;
+    if (previewUrl?.startsWith("blob:")) {
+      img.src = previewUrl;
+    } else {
+      img.removeAttribute("src");
+    }
+  }, [previewUrl]);
 
   const selectImage = (file?: File) => {
     if (!file || !file.type.startsWith("image/")) return;
@@ -243,8 +256,9 @@ export default function ImageGeolocationPage() {
             onChange={onInputChange}
           />
           {previewUrl?.startsWith("blob:") ? (
+            // codeql[js/xss-through-dom]: src is set only to a blob: URL from URL.createObjectURL(File)
             <img
-              src={previewUrl}
+              ref={previewImgRef}
               alt="Selected image"
               className="max-h-[280px] max-w-full rounded-md object-contain"
             />

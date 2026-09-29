@@ -43,7 +43,8 @@ describe("Oam helpers", () => {
   it("builds item tile URL templates", () => {
     const url = buildOamItemTileUrlTemplate(ROME_ITEM_ID);
     expect(url).toContain(`/items/${ROME_ITEM_ID}/tiles/`);
-    expect(url).toContain("{z}/{x}/{y}@1x");
+    expect(url).toContain("{z}/{x}/{y}");
+    expect(url).not.toContain("@1x");
   });
 
   it("picks the highest-resolution (lowest gsd) item", () => {
@@ -84,7 +85,7 @@ describe("Oam provider", () => {
       const oam = new Oam({ itemId: ROME_ITEM_ID });
       const url = oam["getTileUrlFromTileCoords"]([35041, 24355, 16], oam);
       expect(url).toContain(`/items/${ROME_ITEM_ID}/tiles/`);
-      expect(url).toContain("/16/35041/24355@1x");
+      expect(url).toContain("/16/35041/24355?");
       expect(url).toContain("assets=visual");
     });
 
