@@ -120,6 +120,7 @@ const TASKS: TaskCard[] = [
     title: "Image Geolocation",
     description:
       "Estimate where an uploaded photo was taken with GeoCLIP, entirely in the browser.",
+    video: "/geoai-live/video/image-geolocation.mp4",
     badge: "GeoCLIP",
   },
   {
