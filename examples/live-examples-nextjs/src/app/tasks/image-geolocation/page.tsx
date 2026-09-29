@@ -16,11 +16,11 @@ const MORAINE_LAKE_TEST_IMAGE =
 
 export default function ImageGeolocationPage() {
   const [image, setImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [hasPreview, setHasPreview] = useState(false);
   const [sampleError, setSampleError] = useState<string | null>(null);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const previewImgRef = useRef<HTMLImageElement>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const {
     isInitialized,
     isProcessing,
@@ -47,32 +47,45 @@ export default function ImageGeolocationPage() {
     });
   }, [initializeModel]);
 
-  useEffect(
-    () => () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    },
-    [previewUrl]
-  );
-
-  // Assign blob: preview via the DOM API so CodeQL does not treat a React
-  // `src={previewUrl}` binding as DOM-text → HTML (js/xss-through-dom FP).
+  // Draw the local File onto a canvas — avoids blob:/data: URLs in img.src
+  // (CodeQL js/xss-through-dom false positive on createObjectURL → Element.src).
   useEffect(() => {
-    const img = previewImgRef.current;
-    if (!img) return;
-    if (previewUrl?.startsWith("blob:")) {
-      img.src = previewUrl;
-    } else {
-      img.removeAttribute("src");
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+
+    if (!image) {
+      const context = canvas.getContext("2d");
+      context?.clearRect(0, 0, canvas.width, canvas.height);
+      setHasPreview(false);
+      return;
     }
-  }, [previewUrl]);
+
+    let cancelled = false;
+    void createImageBitmap(image)
+      .then(bitmap => {
+        if (cancelled) {
+          bitmap.close();
+          return;
+        }
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const context = canvas.getContext("2d");
+        context?.drawImage(bitmap, 0, 0);
+        bitmap.close();
+        setHasPreview(true);
+      })
+      .catch(() => {
+        if (!cancelled) setHasPreview(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [image]);
 
   const selectImage = (file?: File) => {
     if (!file || !file.type.startsWith("image/")) return;
     setImage(file);
-    setPreviewUrl((current) => {
-      if (current) URL.revokeObjectURL(current);
-      return URL.createObjectURL(file);
-    });
   };
 
   const onInputChange = (event: ChangeEvent<HTMLInputElement>) =>
@@ -182,12 +195,7 @@ export default function ImageGeolocationPage() {
           type: "circle",
           source: "geoclip-predictions",
           paint: {
-            "circle-radius": [
-              "case",
-              ["get", "primary"],
-              11,
-              9,
-            ],
+            "circle-radius": ["case", ["get", "primary"], 11, 9],
             "circle-color": [
               "case",
               ["get", "primary"],
@@ -201,7 +209,7 @@ export default function ImageGeolocationPage() {
       }
 
       const bounds = new maplibregl.LngLatBounds();
-      predictions.forEach((prediction) => {
+      predictions.forEach(prediction => {
         bounds.extend([prediction.gps[1], prediction.gps[0]]);
       });
       mapInstance.fitBounds(bounds, {
@@ -245,7 +253,7 @@ export default function ImageGeolocationPage() {
         </header>
 
         <label
-          onDragOver={(event) => event.preventDefault()}
+          onDragOver={event => event.preventDefault()}
           onDrop={onDrop}
           className="mt-6 flex min-h-[240px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-stone-700 bg-[#0c0f0d] p-4 text-center transition hover:border-stone-500 focus-within:border-emerald-600"
         >
@@ -255,14 +263,16 @@ export default function ImageGeolocationPage() {
             className="sr-only"
             onChange={onInputChange}
           />
-          {previewUrl?.startsWith("blob:") ? (
-            // codeql[js/xss-through-dom]: src is set only to a blob: URL from URL.createObjectURL(File)
-            <img
-              ref={previewImgRef}
-              alt="Selected image"
-              className="max-h-[280px] max-w-full rounded-md object-contain"
-            />
-          ) : (
+          <canvas
+            ref={previewCanvasRef}
+            aria-hidden={!hasPreview}
+            className={
+              hasPreview
+                ? "max-h-[280px] max-w-full rounded-md object-contain"
+                : "hidden"
+            }
+          />
+          {!hasPreview ? (
             <>
               <strong className="text-sm font-medium text-stone-200">
                 Drop an image here
@@ -271,7 +281,7 @@ export default function ImageGeolocationPage() {
                 or click to choose a file
               </span>
             </>
-          )}
+          ) : null}
         </label>
 
         <p className="mt-3 truncate text-sm text-stone-500">

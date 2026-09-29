@@ -63,9 +63,9 @@ const result = await pipeline.inference({
 CDN:
 
 ```html
-<script src="https://unpkg.com/geoai@1.0.7/geoai.js"></script>
+<script src="https://unpkg.com/geoai@1.0.8/geoai.js"></script>
 <!-- or -->
-<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.7/geoai.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/geoai@1.0.8/geoai.min.js"></script>
 ```
 
 ---
