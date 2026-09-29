@@ -78,7 +78,7 @@ GeoAI.js is built for product teams and researchers who need **interactive** geo
 - **Energy & infrastructure** — solar panels, oil storage tanks, utility assets  
 - **Transport & logistics** — cars, trucks, ships in ports and yards  
 - **Environment** — land cover and wetland segmentation over AOIs  
-- **Exploration** — zero-shot detection and DINOv3 embeddings for similarity search  
+- **Exploration** — zero-shot detection, DINOv3 embeddings, and image geolocation (GeoCLIP)
 
 Draw an AOI on a map, run a model, store or style the GeoJSON — all in one frontend session.
 

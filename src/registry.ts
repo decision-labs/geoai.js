@@ -7,6 +7,7 @@ import {
   zeroShotModelIOConfig,
   ObjectDetectionResults,
   imageFeatureExtractionIOConfig,
+  imageGeolocationIOConfig,
 } from "@/core/types";
 import { ZeroShotObjectDetection } from "./models/zero_shot_object_detection";
 import { MaskGeneration } from "./models/mask_generation";
@@ -24,8 +25,27 @@ import { OilStorageTankDetection } from "./models/oil_storage_tank_detection";
 import { ChangeStarBuildingSegmentation } from "./models/changestar_building_segmentation";
 import { ImageFeatureExtraction } from "./models/image_feature_extraction";
 import { BuildingSegmentationFactory } from "./models/building_segmentation_factory";
+import { ImageGeolocation } from "./models/image_geolocation";
 
 export const modelRegistry: ModelConfig[] = [
+  {
+    task: "image-geolocation",
+    library: "@huggingface/transformers",
+    description:
+      "Estimates where an image was taken by matching visual features against GeoCLIP's worldwide GPS gallery.",
+    examples: [
+      "Estimate where this landscape image was taken.",
+      "Find likely locations for this aerial image.",
+      "Geolocate this landmark photograph.",
+    ],
+    ioConfig: {} as imageGeolocationIOConfig,
+    geobase_ai_pipeline: (
+      params: ProviderParams,
+      modelId: string = "Xenova/geoclip-large-patch14",
+      modelParams: PretrainedModelOptions = { dtype: "q4" }
+    ): Promise<{ instance: ImageGeolocation }> =>
+      ImageGeolocation.getInstance(modelId, params, modelParams),
+  },
   {
     task: "zero-shot-object-detection",
     library: "@huggingface/transformers",
