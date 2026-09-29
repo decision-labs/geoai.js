@@ -114,7 +114,20 @@ export default function ImageGeolocationPage() {
     if (!mapContainer.current || map.current) return;
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+      style: {
+        version: 8,
+        sources: {
+          satellite: {
+            type: "raster",
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            ],
+            tileSize: 256,
+            attribution: "Tiles © Esri",
+          },
+        },
+        layers: [{ id: "satellite", type: "raster", source: "satellite" }],
+      },
       center: [-116.1835, 51.3274],
       zoom: 4,
     });
@@ -159,29 +172,18 @@ export default function ImageGeolocationPage() {
             "circle-radius": [
               "case",
               ["get", "primary"],
+              11,
               9,
-              7,
             ],
             "circle-color": [
               "case",
               ["get", "primary"],
-              "#047857",
-              "#a8a29e",
+              "#0072B2",
+              "#E69F00",
             ],
-            "circle-stroke-color": "#fafaf9",
-            "circle-stroke-width": 2,
+            "circle-stroke-color": "#111827",
+            "circle-stroke-width": 3,
           },
-        });
-        mapInstance.addLayer({
-          id: "geoclip-prediction-labels",
-          type: "symbol",
-          source: "geoclip-predictions",
-          layout: {
-            "text-field": ["to-string", ["get", "rank"]],
-            "text-size": 12,
-            "text-font": ["Open Sans Bold"],
-          },
-          paint: { "text-color": "#fafaf9" },
         });
       }
 
