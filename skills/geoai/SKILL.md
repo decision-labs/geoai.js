@@ -2,12 +2,13 @@
 name: geoai
 description: >-
   Build browser geospatial AI apps with the geoai npm package (GeoAI.js).
-  Use when integrating object detection, segmentation, classification, or
-  feature extraction on satellite/aerial imagery; choosing a geoai task or
-  map provider (esri, geobase, mapbox, tms, wms); wiring geoai.pipeline /
-  inference; web workers for background inference; or React + MapLibre
-  patterns. Triggers include geoai, GeoAI.js, geobase AI, satellite detection,
-  building footprints, DINOv3 embeddings, web worker, Worker API.
+  Use when integrating object detection, segmentation, classification,
+  feature extraction, or image geolocation on satellite/aerial imagery;
+  choosing a geoai task or map provider (esri, geobase, mapbox, tms, wms,
+  oam, google); wiring geoai.pipeline / inference; web workers for
+  background inference; or React + MapLibre patterns. Triggers include
+  geoai, GeoAI.js, geobase AI, satellite detection, building footprints,
+  DINOv3 embeddings, GeoCLIP, image geolocation, web worker, Worker API.
 ---
 
 # GeoAI.js

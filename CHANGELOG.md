@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Google Maps provider (`provider: "google"`) via Map Tiles API session + 2D satellite XYZ tiles
+- Image geolocation task (`image-geolocation`) powered by GeoCLIP Q4 (`Xenova/geoclip-large-patch14`)
+- Live demo and docs for image geolocation (`/tasks/image-geolocation`)
 
 ## [1.0.7] - 2026-07-17
 

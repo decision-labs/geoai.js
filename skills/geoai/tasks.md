@@ -30,6 +30,7 @@ Defaults come from `src/registry.ts`.
 | `oriented-object-detection` | `geobase/gghl-oriented-object-detection` | Rotated boxes; dtype q8 |
 | `zero-shot-object-detection` | `onnx-community/grounding-dino-tiny-ONNX` | Requires `inputs.classLabel` (dot-separated). Prefer specialized tasks when the class is in the object-detection list |
 | `image-feature-extraction` | `onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX` | DINOv3 patch features / similarity; dtype q8 |
+| `image-geolocation` | `Xenova/geoclip-large-patch14` | Estimate photo GPS via GeoCLIP gallery; inputs `image` (+ optional `topK`); dtype q4; prefer `device: "webgpu"` |
 
 ## Chaining
 
@@ -86,6 +87,8 @@ await geoai.pipeline(
 ```
 
 Detection-style results typically expose GeoJSON under `detections` (FeatureCollection).
+`image-geolocation` returns ranked `predictions` with `gps: [lat, lon]` — convert to
+`[lon, lat]` for GeoJSON maps.
 Confirm the task page for exact return fields.
 
 ## Docs per task

@@ -1,6 +1,6 @@
 # GeoAI.js
 
-> JavaScript library for running geospatial AI models (detection, segmentation, classification, DINOv3 features) in the browser against satellite/aerial imagery from ESRI, Mapbox, Geobase, TMS, WMS, OpenAerialMap, or Google Maps.
+> JavaScript library for running geospatial AI models (detection, segmentation, classification, DINOv3 features, GeoCLIP geolocation) in the browser against satellite/aerial imagery from ESRI, Mapbox, Geobase, TMS, WMS, OpenAerialMap, or Google Maps.
 
 Package: `geoai` on npm. Peer deps: `@huggingface/transformers`, `onnxruntime-web`.
 
@@ -29,6 +29,7 @@ Package: `geoai` on npm. Peer deps: `@huggingface/transformers`, `onnxruntime-we
 ## Supported tasks
 
 - [Tasks overview](https://docs.geobase.app/geoai/supported-tasks): All AI tasks
+- [Image Geolocation](https://docs.geobase.app/geoai/supported-tasks/image-geolocation): GeoCLIP photo → GPS
 - [Image Feature Extraction](https://docs.geobase.app/geoai/supported-tasks/image-feature-extraction): DINOv3 embeddings
 - [Object Detection](https://docs.geobase.app/geoai/supported-tasks/object-detection): Multi-class aerial objects
 - [Building Detection](https://docs.geobase.app/geoai/supported-tasks/building-detection): Building boxes

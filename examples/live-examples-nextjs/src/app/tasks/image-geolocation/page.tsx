@@ -4,6 +4,10 @@ import { ChangeEvent, DragEvent, useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import { ESRI_CONFIG } from "../../../config";
 import { useGeoAIWorker } from "../../../hooks/useGeoAIWorker";
+import {
+  CollapsibleAttribution,
+  TaskDownloadProgress,
+} from "../../../components";
 
 type Prediction = { gps: [number, number]; score: number };
 
@@ -328,6 +332,14 @@ export default function ImageGeolocationPage() {
             Map fitted to GeoCLIP prediction points
           </p>
         </div>
+        <div className="absolute left-1/2 top-6 z-50 -translate-x-1/2">
+          <TaskDownloadProgress
+            task="image-geolocation"
+            className="min-w-80"
+            isInitialized={isInitialized}
+          />
+        </div>
+        <CollapsibleAttribution position="bottom-left" />
       </section>
     </main>
   );
